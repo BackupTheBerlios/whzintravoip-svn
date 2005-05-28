@@ -69,7 +69,7 @@ public class SIPReceiver implements SipListener {
      * @param myIP String .. the own IP
      */
     public SIPReceiver(ThinClientGUI dialog, String myIP) {
-        this.userGUI = dialog;
+        userGUI = dialog;
         m_sMyAddress = myIP;
         try{
             initReceiverSIPStack();
@@ -438,6 +438,8 @@ public class SIPReceiver implements SipListener {
             }
             st.sendResponse(response);
             userGUI.stdOutput("\n--- Response 180 (Ringing) gesendet ---\n");
+//            userGUI.jButtonAccept.setEnabled(true);
+//            userGUI.jButtonDeny.setEnabled(true);
         } catch (Exception ex) {
             ex.printStackTrace();
             userGUI.errOutput("Exception bei processInvite...");
