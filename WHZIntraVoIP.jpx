@@ -57,5 +57,5 @@
   <property category="sys" name="WorkingDirectory" value="."/>
   <property category="sys" name="uidesign.size.de.fh_zwickau.pti.whzintravoip.sip_connection.SIPConnector" value="602,300"/>
   <property category="sys" name="uidesign.size.de.fh_zwickau.pti.whzintravoip.sip_connection.SIPPacketReceiver_Dialog" value="631,300"/>
-  <property category="sys" name="uidesign.size.de.fh_zwickau.pti.whzintravoip.thin_client.ThinClientGUI" value="491,495"/>
+  <property category="sys" name="uidesign.size.de.fh_zwickau.pti.whzintravoip.thin_client.ThinClientGUI" value="491,565"/>
 </project>

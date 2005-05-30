@@ -438,8 +438,8 @@ public class SIPReceiver implements SipListener {
             }
             st.sendResponse(response);
             userGUI.stdOutput("\n--- Response 180 (Ringing) gesendet ---\n");
-//            userGUI.jButtonAccept.setEnabled(true);
-//            userGUI.jButtonDeny.setEnabled(true);
+            userGUI.jButtonAccept.setEnabled(true);
+            userGUI.jButtonDeny.setEnabled(true);
         } catch (Exception ex) {
             ex.printStackTrace();
             userGUI.errOutput("Exception bei processInvite...");

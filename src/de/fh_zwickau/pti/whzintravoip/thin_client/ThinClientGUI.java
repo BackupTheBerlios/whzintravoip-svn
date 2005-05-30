@@ -1,6 +1,7 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
 import de.fh_zwickau.pti.whzintravoip.thin_client.*;
 import de.fh_zwickau.pti.whzintravoip.thin_client.sip_comm.*;
+import de.fh_zwickau.pti.whzintravoip.thin_client.sip_comm.SIPReceiver;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -95,9 +96,9 @@ public class ThinClientGUI extends JFrame{
     TitledBorder titledBorder1 = new TitledBorder("");
     TitledBorder titledBorder2 = new TitledBorder("");
     JScrollPane jScrollPane1 = new JScrollPane();
-    JButton jButtonAccept = new JButton();
-    JButton jButtonDeny = new JButton();
-    JButton jButtonBye = new JButton();
+    public JButton jButtonAccept = new JButton();
+    public JButton jButtonDeny = new JButton();
+    public JButton jButtonBye = new JButton();
     TitledBorder titledBorder3 = new TitledBorder("");
 
     public void jButtonStartReceiver_actionPerformed(ActionEvent e) {
