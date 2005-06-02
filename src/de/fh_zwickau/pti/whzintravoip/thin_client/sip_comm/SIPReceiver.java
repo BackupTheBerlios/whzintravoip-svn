@@ -46,8 +46,19 @@ public class SIPReceiver implements SipListener {
 
     private Dialog dialog;
 
+    private static final byte LOGIN    = 1;
+    private static final byte PICKUP   = 2;
+    private static final byte INCOMING = 3;
+    private static final byte MAKECALL = 4;
+    private static final byte CALLING  = 5;
+    private static final byte TALKING  = 6;
+
     private Request request;
     private RequestEvent requestEvent;
+
+    private enum Status {
+        LOGIN, PICKUP, INCOMING, MAKECALL, CALLING, TALKING;
+    }
 
     class ApplicationData {
         protected int ackCount;
@@ -240,13 +251,17 @@ public class SIPReceiver implements SipListener {
 
         // Infos ausgeben
         userGUI.stdOutput("\n\nRequest "
-                             + this.request.getMethod().toString()
-                             + " received at "
-                             + sipStackReceiver.getStackName()
-                             + " with server transaction id "
-                             + this.serverTransaction);
+                          + this.request.getMethod().toString()
+                          + " received at "
+                          + sipStackReceiver.getStackName()
+                          + " with server transaction id "
+                          + this.serverTransaction);
 
-        if (this.request.getMethod().equals(Request.INVITE)) {
+        if (userGUI.getStatus() == TALKING ) {
+            userGUI.stdOutput("besetzt");
+        } else if (userGUI.getStatus() != PICKUP) {
+            userGUI.stdOutput("z. Z. nicht möglich");
+        } else if (this.request.getMethod().equals(Request.INVITE)) {
             userGUI.stdOutput("\nINVITE empfangen\n");
             processInvite(requestEvent, serverTransaction);
         } else if (this.request.getMethod().equals(Request.ACK)) {
@@ -438,8 +453,6 @@ public class SIPReceiver implements SipListener {
             }
             st.sendResponse(response);
             userGUI.stdOutput("\n--- Response 180 (Ringing) gesendet ---\n");
-            userGUI.jButtonAccept.setEnabled(true);
-            userGUI.jButtonDeny.setEnabled(true);
         } catch (Exception ex) {
             ex.printStackTrace();
             userGUI.errOutput("Exception bei processInvite...");

@@ -1,13 +1,14 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
-import de.fh_zwickau.pti.whzintravoip.thin_client.*;
-import de.fh_zwickau.pti.whzintravoip.thin_client.sip_comm.*;
-import de.fh_zwickau.pti.whzintravoip.thin_client.sip_comm.SIPReceiver;
 import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+import javax.swing.border.*;
+
 import com.borland.jbcl.layout.*;
-import javax.swing.border.TitledBorder;
+import de.fh_zwickau.pti.whzintravoip.thin_client.sip_comm.*;
+import java.net.UnknownHostException;
+import java.net.InetAddress;
 
 /**
  * <p>Überschrift: ThinClientGUI</p>
@@ -18,13 +19,30 @@ import javax.swing.border.TitledBorder;
  *
  * <p>Organisation: </p>
  *
- * @author Y. Schumann
+ * @author Y. Schumann ys@fh-zwickau.de
  * @version 0.0.1
  */
 public class ThinClientGUI extends JFrame{
 
-    private SIPReceiver receiver;
+    private SIPReceiver receiver = null;
+    private Output outputWindow = null;
+    private SOAPMethodCaller methodCaller = null;
 
+    private static final byte LOGIN    = 1;
+    private static final byte PICKUP   = 2;
+    private static final byte INCOMING = 3;
+    private static final byte MAKECALL = 4;
+    private static final byte CALLING  = 5;
+    private static final byte TALKING  = 6;
+    private byte status = LOGIN; // Login, Pickup, Incoming, MakeCall, Calling, Talking
+
+/**
+    private enum Status {
+        LOGIN, PICKUP, INCOMING, MAKECALL, CALLING, TALKING;
+    }
+
+    private Status status2 = Status.LOGIN;
+ */
     public ThinClientGUI() {
         try {
             jbInit();
@@ -33,6 +51,8 @@ public class ThinClientGUI extends JFrame{
         }
         this.setSize(500, 700);
         this.setLocation(764, 2);
+        jTextFieldMyIP.setText(getOwnIP());
+        methodCaller = new SOAPMethodCaller(this);
     }
 
     public static void main(String[] args) {
@@ -42,11 +62,63 @@ public class ThinClientGUI extends JFrame{
     public void stdOutput(String std) {
 //        jTextArea.append("Info: " + std + "\n");
         jTextArea.append("Info: " + std + "\n");
+        if(outputWindow != null){
+            outputWindow.stdOutput(std);
+        }
     }
 
     public void errOutput(String err) {
 //        jTextArea.append("Error: " + err + "\n");
         jTextArea.append("Error: " + err + "\n");
+        if(outputWindow != null){
+            outputWindow.errOutput(err);
+        }
+    }
+
+    public void setStatusLogin(){
+        status = LOGIN;
+        stdOutput("Status ist jetzt " + status);
+    }
+
+    public void setStatusPICKUP(){
+        status = PICKUP;
+        stdOutput("Status ist jetzt " + status);
+    }
+
+    public void setStatusINCOMING(){
+        status = INCOMING;
+        stdOutput("Status ist jetzt " + status);
+    }
+
+    public void setStatusMAKECALL(){
+        status = MAKECALL;
+        stdOutput("Status ist jetzt " + status);
+    }
+
+    public void setStatusCALLING(){
+        status = CALLING;
+        stdOutput("Status ist jetzt " + status);
+    }
+
+    public void setStatusTALKING(){
+        status = TALKING;
+        stdOutput("Status ist jetzt " + status);
+    }
+
+    private String getOwnIP(){
+        String ip = null;
+        try {
+          InetAddress duke = InetAddress.getLocalHost();
+          ip = duke.getHostAddress();
+        }
+        catch (UnknownHostException ex) {
+          System.err.println(ex);
+        }
+        return ip;
+    }
+
+    public byte getStatus(){
+        return status;
     }
 
     private void jbInit() throws Exception {
@@ -72,6 +144,15 @@ public class ThinClientGUI extends JFrame{
         jButtonBye.setEnabled(false);
         jButtonBye.setText("Beenden");
         jButtonBye.addActionListener(new ThinClientGUI_jButtonBye_actionAdapter(this));
+        jButtonToggleOutputWindow.setText("Ausgabefenster öffnen");
+        jButtonToggleOutputWindow.addActionListener(new
+                ThinClientGUI_jButtonToggleOutputWindow_actionAdapter(this));
+        jButtonInitCall.setText("Init Call");
+        jButtonInitCall.addActionListener(new
+                ThinClientGUI_jButtonInitCall_actionAdapter(this));
+        jButtonMakeCall.setText("Make Call");
+        jButtonMakeCall.addActionListener(new
+                ThinClientGUI_jButtonMakeCall_actionAdapter(this));
         this.getContentPane().add(jButtonStartReceiver,
                                   new XYConstraints(9, 9, 103, 27));
         jScrollPane1.getViewport().add(jTextArea);
@@ -86,6 +167,11 @@ public class ThinClientGUI extends JFrame{
                                   new XYConstraints(113, 494, 100, 30));
         this.getContentPane().add(jButtonBye,
                                   new XYConstraints(216, 494, 100, 30));
+        this.getContentPane().add(jButtonToggleOutputWindow,
+                                  new XYConstraints(124, 11, 165, -1));
+        this.getContentPane().add(jButtonInitCall,
+                                  new XYConstraints(327, 489, 113, 29));
+        this.getContentPane().add(jButtonMakeCall, new XYConstraints(327, 527, 113, 26));
     }
 
     XYLayout xYLayout1 = new XYLayout();
@@ -100,9 +186,13 @@ public class ThinClientGUI extends JFrame{
     public JButton jButtonDeny = new JButton();
     public JButton jButtonBye = new JButton();
     TitledBorder titledBorder3 = new TitledBorder("");
+    JButton jButtonToggleOutputWindow = new JButton();
+    JButton jButtonInitCall = new JButton();
+    JButton jButtonMakeCall = new JButton();
 
     public void jButtonStartReceiver_actionPerformed(ActionEvent e) {
         receiver = new SIPReceiver(this, jTextFieldMyIP.getText());
+        setStatusPICKUP();
     }
 
     public void this_windowClosing(WindowEvent e) {
@@ -111,15 +201,76 @@ public class ThinClientGUI extends JFrame{
     }
 
     public void jButtonAccept_actionPerformed(ActionEvent e) {
-
     }
 
     public void jButtonDeny_actionPerformed(ActionEvent e) {
-
     }
 
     public void jButtonBye_actionPerformed(ActionEvent e) {
+    }
 
+    public void jButtonToggleOutputWindow_actionPerformed(ActionEvent e) {
+        if(outputWindow == null){
+            outputWindow = new Output(this);
+            outputWindow.setSize(530, 600);
+            outputWindow.setVisible(true);
+        }else{
+            outputWindow.setVisible(false);
+            outputWindow = null;
+        }
+    }
+
+    public void jButtonInitCall_actionPerformed(ActionEvent e) {
+        try{
+            methodCaller.callSOAPServer("initCall", getOwnIP(), "141.32.28.227");
+        }catch(Exception ex){
+
+        }
+    }
+
+    public void jButtonMakeCall_actionPerformed(ActionEvent e) {
+        try{
+            methodCaller.callSOAPServer("makeCall", getOwnIP(), null);
+        }catch(Exception ex){
+
+        }
+    }
+}
+
+
+class ThinClientGUI_jButtonMakeCall_actionAdapter implements ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jButtonMakeCall_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButtonMakeCall_actionPerformed(e);
+    }
+}
+
+
+class ThinClientGUI_jButtonInitCall_actionAdapter implements ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jButtonInitCall_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButtonInitCall_actionPerformed(e);
+    }
+}
+
+
+class ThinClientGUI_jButtonToggleOutputWindow_actionAdapter implements
+        ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jButtonToggleOutputWindow_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButtonToggleOutputWindow_actionPerformed(e);
     }
 }
 
