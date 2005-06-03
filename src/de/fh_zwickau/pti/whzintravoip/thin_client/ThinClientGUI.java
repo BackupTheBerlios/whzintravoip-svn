@@ -52,7 +52,10 @@ public class ThinClientGUI extends JFrame{
         this.setSize(500, 700);
         this.setLocation(764, 2);
         jTextFieldMyIP.setText(getOwnIP());
-        methodCaller = new SOAPMethodCaller(this);
+        methodCaller = new SOAPMethodCaller(
+            this,
+            "http://141.32.28.226:8080/soap/servlet/rpcrouter",
+            "urn:sip_server:soapserver:appscope");
     }
 
     public static void main(String[] args) {
@@ -105,11 +108,19 @@ public class ThinClientGUI extends JFrame{
         stdOutput("Status ist jetzt " + status);
     }
 
+    public void setAcceptButtonTrue(){
+        jButtonAccept.setEnabled(true);
+    }
+
+    public void setAcceptButtonFalse(){
+        jButtonAccept.setEnabled(false);
+    }
+
     private String getOwnIP(){
         String ip = null;
         try {
-          InetAddress duke = InetAddress.getLocalHost();
-          ip = duke.getHostAddress();
+          InetAddress myIP = InetAddress.getLocalHost();
+          ip = myIP.getHostAddress();
         }
         catch (UnknownHostException ex) {
           System.err.println(ex);
@@ -201,6 +212,11 @@ public class ThinClientGUI extends JFrame{
     }
 
     public void jButtonAccept_actionPerformed(ActionEvent e) {
+        try{
+            methodCaller.callSOAPServer("acceptCall", getOwnIP(), null);
+        }catch(Exception ex){
+
+        }
     }
 
     public void jButtonDeny_actionPerformed(ActionEvent e) {
@@ -214,9 +230,10 @@ public class ThinClientGUI extends JFrame{
             outputWindow = new Output(this);
             outputWindow.setSize(530, 600);
             outputWindow.setVisible(true);
-        }else{
+        } else if (outputWindow.isVisible() == false) {
+            outputWindow.setVisible(true);
+        } else {
             outputWindow.setVisible(false);
-            outputWindow = null;
         }
     }
 

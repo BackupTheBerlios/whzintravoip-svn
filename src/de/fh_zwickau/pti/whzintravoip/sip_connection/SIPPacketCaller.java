@@ -94,7 +94,6 @@ public class SIPPacketCaller implements SipListener {
         sipFactoryCaller = SipFactory.getInstance();
         sipFactoryCaller.setPathName("gov.nist");
         Properties properties = new Properties();
-        properties.setProperty("javax.sip.IP_ADDRESS", m_sMyAddress);
         properties.setProperty("javax.sip.RETRANSMISSION_FILTER", "true");
         properties.setProperty("javax.sip.STACK_NAME", m_sCallerStackName);
         properties.setProperty("javax.sip.ROUTER_PATH", "de.fh_zwickau.pti.whzintravoip.sip_connection.MyRouter");
@@ -119,6 +118,7 @@ public class SIPPacketCaller implements SipListener {
         properties.setProperty("javax.sip.OUTBOUND_PROXY", m_sPeerHostPort + "/" + m_sTransport);
 
         sipStackCaller = sipFactoryCaller.createSipStack(properties);     // this can throw an exception
+
         return true;
     }
 

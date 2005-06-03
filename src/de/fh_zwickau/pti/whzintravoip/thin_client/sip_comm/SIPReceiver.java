@@ -263,16 +263,17 @@ public class SIPReceiver implements SipListener {
             userGUI.stdOutput("z. Z. nicht möglich");
         } else if (this.request.getMethod().equals(Request.INVITE)) {
             userGUI.stdOutput("\nINVITE empfangen\n");
-            processInvite(requestEvent, serverTransaction);
+            userGUI.setAcceptButtonTrue();
+//            processInvite(requestEvent, serverTransaction);
         } else if (this.request.getMethod().equals(Request.ACK)) {
             userGUI.stdOutput("\nACK empfangen\n");
-            processAck(requestEvent, serverTransaction);
+//            processAck(requestEvent, serverTransaction);
         } else if (this.request.getMethod().equals(Request.BYE)) {
             userGUI.stdOutput("\nBYE empfangen\n");
-            processBye(requestEvent, serverTransaction);
+//            processBye(requestEvent, serverTransaction);
         } else if (this.request.getMethod().equals(Request.OPTIONS)) {
             userGUI.stdOutput("\nOPTIONS empfangen\n");
-            processOptions(requestEvent, serverTransaction);
+//            processOptions(requestEvent, serverTransaction);
         }
     }
 
