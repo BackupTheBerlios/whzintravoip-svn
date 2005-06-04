@@ -134,6 +134,7 @@ public class ThinClientGUI extends JFrame{
 
     private void jbInit() throws Exception {
         this.getContentPane().setLayout(xYLayout1);
+        this.setDefaultCloseOperation(HIDE_ON_CLOSE);
         jButtonStartReceiver.setBorder(titledBorder3);
         jButtonStartReceiver.setMargin(new Insets(2, 2, 2, 2));
         jButtonStartReceiver.setText("Wait for Call");

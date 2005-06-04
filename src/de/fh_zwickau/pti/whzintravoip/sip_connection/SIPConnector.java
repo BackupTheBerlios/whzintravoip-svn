@@ -46,6 +46,7 @@ public class SIPConnector extends JFrame {
 
     private void jbInit() throws Exception {
         this.getContentPane().setLayout(borderLayout1);
+        this.setDefaultCloseOperation(HIDE_ON_CLOSE);
         jMainPanel.setLayout(borderLayout2);
         jPanelForButtons.setLayout(xYLayout1);
         jButtonStop.setEnabled(false);
