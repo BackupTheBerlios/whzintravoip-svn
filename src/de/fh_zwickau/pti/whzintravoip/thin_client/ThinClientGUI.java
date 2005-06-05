@@ -64,7 +64,6 @@ public class ThinClientGUI extends JFrame{
 
     public void stdOutput(String std) {
 //        jTextArea.append("Info: " + std + "\n");
-        jTextArea.append("Info: " + std + "\n");
         if(outputWindow != null){
             outputWindow.stdOutput(std);
         }
@@ -72,7 +71,6 @@ public class ThinClientGUI extends JFrame{
 
     public void errOutput(String err) {
 //        jTextArea.append("Error: " + err + "\n");
-        jTextArea.append("Error: " + err + "\n");
         if(outputWindow != null){
             outputWindow.errOutput(err);
         }
@@ -135,16 +133,15 @@ public class ThinClientGUI extends JFrame{
     private void jbInit() throws Exception {
         this.getContentPane().setLayout(xYLayout1);
         this.setDefaultCloseOperation(HIDE_ON_CLOSE);
-        jButtonStartReceiver.setBorder(titledBorder3);
-        jButtonStartReceiver.setMargin(new Insets(2, 2, 2, 2));
-        jButtonStartReceiver.setText("Wait for Call");
-        jButtonStartReceiver.addActionListener(new
-                ThinClientGUI_jButtonStartReceiver_actionAdapter(this));
+//        jButtonStartReceiver.setBorder(titledBorder3);
+//        jButtonStartReceiver.setMargin(new Insets(2, 2, 2, 2));
+//        jButtonStartReceiver.setText("Wait for Call");
+//        jButtonStartReceiver.addActionListener(new
+//                ThinClientGUI_jButtonStartReceiver_actionAdapter(this));
         jTextFieldMyIP.setText("127.0.0.1");
         jLabel1.setText("My IP");
         this.addWindowListener(new ThinClientGUI_this_windowAdapter(this));
-        xYLayout1.setWidth(491);
-        xYLayout1.setHeight(565);
+        xYLayout1.setWidth(465);
         jButtonAccept.setEnabled(false);
         jButtonAccept.setText("Annehmen");
         jButtonAccept.addActionListener(new
@@ -165,11 +162,9 @@ public class ThinClientGUI extends JFrame{
         jButtonMakeCall.setText("Make Call");
         jButtonMakeCall.addActionListener(new
                 ThinClientGUI_jButtonMakeCall_actionAdapter(this));
-        this.getContentPane().add(jButtonStartReceiver,
-                                  new XYConstraints(9, 9, 103, 27));
-        jScrollPane1.getViewport().add(jTextArea);
-        this.getContentPane().add(jScrollPane1,
-                                  new XYConstraints(9, 45, 469, 440));
+        jButtonStartReceiver.setText("Start Receiver");
+        jButtonStartReceiver.addActionListener(new
+                ThinClientGUI_jButtonStartReceiver_actionAdapter(this));
         this.getContentPane().add(jTextFieldMyIP,
                                   new XYConstraints(354, 10, 123, 26));
         this.getContentPane().add(jLabel1, new XYConstraints(317, 15, 35, 18));
@@ -180,20 +175,19 @@ public class ThinClientGUI extends JFrame{
         this.getContentPane().add(jButtonBye,
                                   new XYConstraints(216, 494, 100, 30));
         this.getContentPane().add(jButtonToggleOutputWindow,
-                                  new XYConstraints(124, 11, 165, -1));
+                                  new XYConstraints(126, 12, 165, -1));
+        this.getContentPane().add(jButtonMakeCall,
+                                  new XYConstraints(327, 494, 100, 30));
         this.getContentPane().add(jButtonInitCall,
-                                  new XYConstraints(327, 489, 113, 29));
-        this.getContentPane().add(jButtonMakeCall, new XYConstraints(327, 527, 113, 26));
+                                  new XYConstraints(327, 460, 100, 30));
+        this.getContentPane().add(jButtonStartReceiver, new XYConstraints(11, 12, 104, -1));
     }
 
     XYLayout xYLayout1 = new XYLayout();
-    JButton jButtonStartReceiver = new JButton();
-    JTextArea jTextArea = new JTextArea();
     JTextField jTextFieldMyIP = new JTextField();
     JLabel jLabel1 = new JLabel();
     TitledBorder titledBorder1 = new TitledBorder("");
     TitledBorder titledBorder2 = new TitledBorder("");
-    JScrollPane jScrollPane1 = new JScrollPane();
     public JButton jButtonAccept = new JButton();
     public JButton jButtonDeny = new JButton();
     public JButton jButtonBye = new JButton();
@@ -201,10 +195,12 @@ public class ThinClientGUI extends JFrame{
     JButton jButtonToggleOutputWindow = new JButton();
     JButton jButtonInitCall = new JButton();
     JButton jButtonMakeCall = new JButton();
+    JButton jButtonStartReceiver = new JButton();
 
     public void jButtonStartReceiver_actionPerformed(ActionEvent e) {
         receiver = new SIPReceiver(this, jTextFieldMyIP.getText());
         setStatusPICKUP();
+        jButtonStartReceiver.setEnabled(false);
     }
 
     public void this_windowClosing(WindowEvent e) {
@@ -252,6 +248,19 @@ public class ThinClientGUI extends JFrame{
         }catch(Exception ex){
 
         }
+    }
+}
+
+
+class ThinClientGUI_jButtonStartReceiver_actionAdapter implements
+        ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jButtonStartReceiver_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButtonStartReceiver_actionPerformed(e);
     }
 }
 
@@ -340,14 +349,3 @@ class ThinClientGUI_this_windowAdapter extends WindowAdapter {
     }
 }
 
-class ThinClientGUI_jButtonStartReceiver_actionAdapter implements
-        ActionListener {
-    private ThinClientGUI adaptee;
-    ThinClientGUI_jButtonStartReceiver_actionAdapter(ThinClientGUI adaptee) {
-        this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        adaptee.jButtonStartReceiver_actionPerformed(e);
-    }
-}
