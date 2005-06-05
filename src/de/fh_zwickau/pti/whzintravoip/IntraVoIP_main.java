@@ -2,7 +2,7 @@ package de.fh_zwickau.pti.whzintravoip;
 
 import de.fh_zwickau.pti.whzintravoip.sip_connection.*;
 import de.fh_zwickau.pti.whzintravoip.thin_client.*;
-import de.fh_zwickau.pti.whzintravoip.db_access.*;
+//import de.fh_zwickau.pti.whzintravoip.db_access.*;
 import javax.swing.JFrame;
 import com.borland.jbcl.layout.XYLayout;
 import com.borland.jbcl.layout.*;
@@ -88,8 +88,8 @@ public class IntraVoIP_main  extends JFrame{
     }
 
     public void jButtonHib_actionPerformed(ActionEvent e) {
-        db_test test = new db_test();
-        test.main(null);
+//        db_test test = new db_test();
+//        test.main(null);
     }
 }
 
