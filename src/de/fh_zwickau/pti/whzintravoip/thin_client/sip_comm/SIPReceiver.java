@@ -56,9 +56,10 @@ public class SIPReceiver implements SipListener {
     private Request request;
     private RequestEvent requestEvent;
 
-    private enum Status {
-        LOGIN, PICKUP, INCOMING, MAKECALL, CALLING, TALKING;
-    }
+
+//    private enum Status {
+//        LOGIN, PICKUP, INCOMING, MAKECALL, CALLING, TALKING;
+//    }
 
     class ApplicationData {
         protected int ackCount;
