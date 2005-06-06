@@ -22,6 +22,9 @@ import de.fh_zwickau.pti.whzintravoip.thin_client.sip_comm.*;
  */
 public class ThinClientGUI extends JFrame{
 
+    private String soapServerIP = "192.168.0.4";
+    private String ipToCall =     "192.168.0.2";
+
     private SIPReceiver receiver = null;
     private Output outputWindow = null;
     private SOAPMethodCaller methodCaller = null;
@@ -52,7 +55,7 @@ public class ThinClientGUI extends JFrame{
         jTextFieldMyIP.setText(getOwnIP());
         methodCaller = new SOAPMethodCaller(
             this,
-            "http://141.32.28.226:8080/soap/servlet/rpcrouter",
+            "http://" + soapServerIP + ":8080/soap/servlet/rpcrouter",
             "urn:sip_server:soapserver:appscope");
 //        toggleOutputWindow();
         setStatusLogin();
@@ -253,7 +256,7 @@ public class ThinClientGUI extends JFrame{
     public void jButtonInitCall_actionPerformed(ActionEvent e) {
         setStatusMAKECALL();
         try{
-            methodCaller.callSOAPServer("initCall", getOwnIP(), "141.32.28.227");
+            methodCaller.callSOAPServer("initCall", getOwnIP(), ipToCall);
         }catch(Exception ex){
             setStatusPICKUP();
         }
