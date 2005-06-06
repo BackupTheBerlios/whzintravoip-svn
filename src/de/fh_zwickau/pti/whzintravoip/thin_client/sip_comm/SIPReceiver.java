@@ -156,25 +156,6 @@ public class SIPReceiver implements SipListener {
     }
 
     /**
-     * Ask for possibilities of the "other side"
-     *
-     * @throws Exception
-     */
-    public void askForOptions() throws Exception {
-    try {
-            userGUI.stdOutput("Asking for Options: " + dialog);
-            Request options = dialog.createRequest(Request.OPTIONS);
-//            ClientTransaction ct = sipProviderToUse.getNewClientTransaction(options);
-            ClientTransaction ct = sipProviderUDPReceiver.getNewClientTransaction(options);
-            dialog.sendRequest(ct);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            userGUI.errOutput("Exception bei Options-Request...");
-            //             System.exit(0);
-        }
-    }
-
-    /**
      * Wait until the thread is not working and then remove the SIP-Stack
      * by removing the listeners, deleting the providers and set the variables
      * to NULL
@@ -260,52 +241,23 @@ public class SIPReceiver implements SipListener {
 
         if (userGUI.getStatus() == TALKING ) {
             userGUI.stdOutput("besetzt");
+            userGUI.denyCall();
         } else if (userGUI.getStatus() != PICKUP) {
             userGUI.stdOutput("z. Z. nicht möglich");
+            userGUI.denyCall();
         } else if (this.request.getMethod().equals(Request.INVITE)) {
-            userGUI.stdOutput("\nINVITE empfangen\n");
+            userGUI.stdOutput("\nRingedingding!!!!!!!!!!!!!!!!!!!\n");
+            userGUI.setStatusINCOMING();
             userGUI.setAcceptButtonTrue();
-//            processInvite(requestEvent, serverTransaction);
+            userGUI.setDenyButtonTrue();
         } else if (this.request.getMethod().equals(Request.ACK)) {
             userGUI.stdOutput("\nACK empfangen\n");
-//            processAck(requestEvent, serverTransaction);
+            userGUI.callEstablished();
         } else if (this.request.getMethod().equals(Request.BYE)) {
             userGUI.stdOutput("\nBYE empfangen\n");
-//            processBye(requestEvent, serverTransaction);
+            userGUI.endCall();
         } else if (this.request.getMethod().equals(Request.OPTIONS)) {
             userGUI.stdOutput("\nOPTIONS empfangen\n");
-//            processOptions(requestEvent, serverTransaction);
-        }
-    }
-
-    /**
-     * Create and send a BYE-Request. If the servertransaction is NULL, a new
-     * servertransaction will be created.
-     *
-     * @param requestEvent RequestEvent
-     * @param tid ServerTransaction
-     */
-    public void sendBye(RequestEvent requestEvent, ServerTransaction tid){
-    try {
-            userGUI.stdOutput("Sending bye from Receiver: " + tid);
-
-            if (tid == null) {
-                tid = sipProviderToUse.getNewServerTransaction(request);
-                if (tid.getDialog().getApplicationData() == null) {
-                    tid.getDialog().setApplicationData(new ApplicationData());
-                }
-            }
-
-            Dialog dialog = tid.getDialog();
-            Request bye = dialog.createRequest(Request.BYE);
-            SipProvider provider;
-            provider = sipProviderUDPReceiver;
-            ClientTransaction ct = provider.getNewClientTransaction(bye);
-            dialog.sendRequest(ct);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            userGUI.errOutput("Exception bei sendBye...");
-            //             System.exit(0);
         }
     }
 
@@ -362,223 +314,6 @@ public class SIPReceiver implements SipListener {
         userGUI.errOutput("dialogState = " + transaction.getDialog().getState());
         userGUI.errOutput("Transaction Time out");
         userGUI.errOutput("--------------------------------------");
-    }
-
-    /**
-     * Process the ACK request.
-     *
-     * @param requestEvent RequestEvent
-     * @param serverTransaction ServerTransaction
-     */
-    public void processAck(RequestEvent requestEvent, ServerTransaction serverTransaction) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
-        try {
-            userGUI.stdOutput("----------------------- SIPPacketReceiver: got an ACK\n " + requestEvent.getRequest());
-            int ackCount = ((ApplicationData) dialog.getApplicationData()).ackCount;
-            if (ackCount == 1) {
-                dialog = serverTid.getDialog();
-                this.sendReInvite(sipProvider);
-                /*
-                 Request byeRequest = dialog.createRequest(Request.BYE);
-                 ClientTransaction tr = sipProvider.getNewClientTransaction(byeRequest);
-                 userGUI.stdOutput("Receiver: Got an ACK -- sending Bye! ");
-                 dialog.sendRequest(tr);
-                 System.out.println("Dialog State = " + dialog.getState());
-                 */
-            } else {
-                ((ApplicationData) dialog.getApplicationData()).ackCount++;
-            }
-            userGUI.stdOutput("Dialog State = " + dialog.getState());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            userGUI.errOutput("Exception bei processAck...");
-            System.exit(0);
-        }
-    }
-
-    /**
-     * Process the invite request.
-     *
-     * @param requestEvent RequestEvent
-     * @param serverTransaction ServerTransaction
-     */
-    public void processInvite(RequestEvent requestEvent, ServerTransaction serverTransaction) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
-        Request request = requestEvent.getRequest();
-        userGUI.stdOutput("Got an INVITE"
-                             + "\n-------------------------- This is the request:\n"
-                             + request
-                             + "\n-------------------------- This was the request\n");
-        try {
-            userGUI.stdOutput("SIPPacketReceiver: got an Invite sending 180 (Ringing)\n");
-            Response response = messageFactoryReceiver.createResponse(180, request);
-            ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
-            toHeader.setTag("4321"); // Application is supposed to set.
-            Address address = addressFactoryReceiver.createAddress("SIPPacketReceiver <sip:"
-                    + m_sMyAddress + ":"
-//                    + m_iMyPort + ">");
-                    + m_iReceiverPort + "> \n");
-            ContactHeader contactHeader = headerFactoryReceiver.createContactHeader(address);
-            response.addHeader(contactHeader);
-            ServerTransaction st = requestEvent.getServerTransaction();
-
-            if (st == null) {
-                st = sipProvider.getNewServerTransaction(request);
-                if (st.getDialog().getApplicationData() == null) {
-                    st.getDialog().setApplicationData(new ApplicationData());
-                }
-            } else {
-                // If Server transaction is not null, then
-                // this is a re-invite.
-                userGUI.stdOutput("This is a RE-INVITE ");
-                if (st.getDialog() != dialog) {
-                    userGUI.errOutput("Whoopsa Daisy Dialog Mismatch");
-                    System.exit(0);
-                }
-            }
-            serverTransactionFromInvite = st;
-            // Thread.sleep(5000);
-            userGUI.stdOutput("got a server transaction: " + st);
-            byte[] content = request.getRawContent();
-            if (content != null) {
-                userGUI.stdOutput(" content = " + new String(content));
-                ContentTypeHeader contentTypeHeader =
-                        headerFactoryReceiver.createContentTypeHeader("application",
-                        "sdp");
-                userGUI.stdOutput("response = " + response);
-                response.setContent(content, contentTypeHeader);
-            }
-            dialog = st.getDialog();
-            if (dialog != null) {
-                userGUI.stdOutput("Dialog " + dialog);
-                userGUI.stdOutput("Dialog state " + dialog.getState());
-            }
-            st.sendResponse(response);
-            userGUI.stdOutput("\n--- Response 180 (Ringing) gesendet ---\n");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            userGUI.errOutput("Exception bei processInvite...");
-            System.exit(0);
-        }
-    }
-
-    /**
-     * Accept the INVITE-Request by sending a "200"-Response. This means the
-     * "OK"-Response
-     *
-     * @param requestEvent RequestEvent
-     * @param serverTransactionFromInvite ServerTransaction
-     */
-    private void acceptCall(RequestEvent requestEvent, ServerTransaction serverTransactionFromInvite) {
-    SipProvider sipProvider = (SipProvider) requestEvent.getSource();
-        Request request = requestEvent.getRequest();
-        try {
-            userGUI.stdOutput("SIPPacketReceiver: got an Invite sending OK now\n");
-            Response response = messageFactoryReceiver.createResponse(200, request);
-            ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
-            toHeader.setTag("4321");
-            Address address = addressFactoryReceiver.createAddress("SIPPacketReceiver <sip:"
-                    + m_sMyAddress + ":"
-                    + m_iReceiverPort + "> \n");
-            ContactHeader contactHeader = headerFactoryReceiver.createContactHeader(address);
-            response.addHeader(contactHeader);
-//            ServerTransaction st = requestEvent.getServerTransaction();
-            ServerTransaction st = serverTransactionFromInvite;
-
-            if (st == null) {
-                st = sipProvider.getNewServerTransaction(request);
-                if (st.getDialog().getApplicationData() == null) {
-                    st.getDialog().setApplicationData(new ApplicationData());
-                }
-            } else {
-                // If Server transaction is not null, then
-                // this is a re-invite.
-                userGUI.stdOutput("This is a RE-INVITE ");
-                if (st.getDialog() != dialog) {
-                    userGUI.errOutput("Whoopsa Daisy Dialog Mismatch");
-                    System.exit(0);
-                }
-            }
-            // Thread.sleep(5000);
-            userGUI.stdOutput("got a server transaction: " + st);
-            byte[] content = request.getRawContent();
-            if (content != null) {
-                userGUI.stdOutput(" content = " + new String(content));
-                ContentTypeHeader contentTypeHeader =
-                        headerFactoryReceiver.createContentTypeHeader("application",
-                        "sdp");
-                userGUI.stdOutput("response = " + response);
-                response.setContent(content, contentTypeHeader);
-            }
-            dialog = st.getDialog();
-            if (dialog != null) {
-                userGUI.stdOutput("Dialog " + dialog);
-                userGUI.stdOutput("Dialog state " + dialog.getState());
-            }
-            st.sendResponse(response);
-            userGUI.stdOutput("\n--- Response 200 (OK) gesendet --------\n");
-            this.serverTid = serverTransactionFromInvite;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            userGUI.errOutput("Exception bei processInvite...");
-            System.exit(0);
-        }
-    }
-
-    /**
-     * sendReInvite
-     *
-     * @param sipProvider SipProvider
-     * @throws Exception
-     */
-    public void sendReInvite(SipProvider sipProvider) throws Exception {
-        Request inviteRequest = dialog.createRequest(Request.INVITE);
-        ((SipURI) inviteRequest.getRequestURI()).removeParameter("transport");
-        ((ViaHeader) inviteRequest.getHeader(ViaHeader.NAME)).setTransport(
-                "udp");
-        Address address = addressFactoryReceiver.createAddress
-                          ("SIPPacketReceiver <sip:"
-                           + m_sMyAddress + ":"
-//                           + m_iMyPort + ">");
-                           + m_iReceiverPort + ">");
-        ContactHeader contactHeader = headerFactoryReceiver.createContactHeader(address);
-        inviteRequest.addHeader(contactHeader);
-        ClientTransaction ct = sipProvider.getNewClientTransaction(inviteRequest);
-        this.clientTid = ct;
-        dialog.sendRequest(ct);
-        userGUI.stdOutput("\n--- ReInvite Request gesendet -------------\n");
-    }
-
-    /**
-     * Process the BYE request by sending out the 200-Response (OK)
-     *
-     * @param requestEvent RequestEvent
-     * @param serverTransactionId ServerTransaction
-     */
-    public void processBye(RequestEvent requestEvent, ServerTransaction serverTransactionId) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
-        Request request = requestEvent.getRequest();
-        try {
-            userGUI.stdOutput("SIPPacketReceiver: got a bye, sending OK.");
-            Response response;
-/**
-            if (serverTransactionId == null) {
-                serverTransactionId = sipProvider.getNewServerTransaction(request);
-                if (serverTransactionId.getDialog().getApplicationData() == null) {
-                    serverTransactionId.getDialog().setApplicationData(new ApplicationData());
-                }
-            }
-   **/
-            response = messageFactoryReceiver.createResponse(200, request);
-            serverTransactionId.sendResponse(response);
-            userGUI.stdOutput("\n--- Response 200 nach Bye gesendet ----\n");
-            userGUI.stdOutput("Dialog State is " + serverTransactionId.getDialog().getState());
-//            this.stopAndRemoveSIPStack();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            userGUI.errOutput("Exception bei processBye...");
-            System.exit(0);
-        }
     }
 
     public void processOptions(RequestEvent requestEvent, ServerTransaction serverTransaction){

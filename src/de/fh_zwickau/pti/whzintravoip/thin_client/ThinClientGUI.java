@@ -121,6 +121,22 @@ public class ThinClientGUI extends JFrame{
         jButtonAccept.setEnabled(false);
     }
 
+    public void setDenyButtonTrue(){
+        jButtonDeny.setEnabled(true);
+    }
+
+    public void setDenyButtonFalse(){
+        jButtonDeny.setEnabled(false);
+    }
+
+    public void setEndCallButtonTrue(){
+        jButtonEndCall.setEnabled(true);
+    }
+
+    public void setEndCallButtonFalse(){
+        jButtonEndCall.setEnabled(false);
+    }
+
     private String getOwnIP(){
         String ip = null;
         try {
@@ -153,9 +169,9 @@ public class ThinClientGUI extends JFrame{
         jButtonDeny.setText("Ablehnen");
         jButtonDeny.addActionListener(new
                                       ThinClientGUI_jButtonDeny_actionAdapter(this));
-        jButtonBye.setEnabled(false);
-        jButtonBye.setText("Beenden");
-        jButtonBye.addActionListener(new ThinClientGUI_jButtonBye_actionAdapter(this));
+        jButtonEndCall.setEnabled(false);
+        jButtonEndCall.setText("Beenden");
+        jButtonEndCall.addActionListener(new ThinClientGUI_jButtonBye_actionAdapter(this));
         jButtonToggleOutputWindow.setText("Ausgabefenster öffnen");
         jButtonToggleOutputWindow.addActionListener(new
                 ThinClientGUI_jButtonToggleOutputWindow_actionAdapter(this));
@@ -175,7 +191,7 @@ public class ThinClientGUI extends JFrame{
                                   new XYConstraints(10, 494, 100, 30));
         this.getContentPane().add(jButtonDeny,
                                   new XYConstraints(113, 494, 100, 30));
-        this.getContentPane().add(jButtonBye,
+        this.getContentPane().add(jButtonEndCall,
                                   new XYConstraints(216, 494, 100, 30));
         this.getContentPane().add(jButtonMakeCall,
                                   new XYConstraints(327, 494, 100, 30));
@@ -196,7 +212,7 @@ public class ThinClientGUI extends JFrame{
     TitledBorder titledBorder2 = new TitledBorder("");
     public JButton jButtonAccept = new JButton();
     public JButton jButtonDeny = new JButton();
-    public JButton jButtonBye = new JButton();
+    public JButton jButtonEndCall = new JButton();
     TitledBorder titledBorder3 = new TitledBorder("");
     JButton jButtonToggleOutputWindow = new JButton();
     JButton jButtonInitCall = new JButton();
@@ -217,17 +233,54 @@ public class ThinClientGUI extends JFrame{
     }
 
     public void jButtonAccept_actionPerformed(ActionEvent e) {
+        acceptCall();
+    }
+
+    public void jButtonDeny_actionPerformed(ActionEvent e) {
+        denyCall();
+    }
+
+    public void jButtonEndCall_actionPerformed(ActionEvent e) {
+        endCall();
+    }
+
+    public void acceptCall() {
         try{
             methodCaller.callSOAPServer("acceptCall", getOwnIP(), null);
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
+        setAcceptButtonFalse();
+        setDenyButtonFalse();
+        setEndCallButtonTrue();
+        setStatusTALKING();
     }
 
-    public void jButtonDeny_actionPerformed(ActionEvent e) {
+    public void denyCall(){
+        try{
+            methodCaller.callSOAPServer("denyCall", getOwnIP(), null);
+        }catch(Exception ex){
+            errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
+        }
+        setAcceptButtonFalse();
+        setDenyButtonFalse();
     }
 
-    public void jButtonBye_actionPerformed(ActionEvent e) {
+    public void endCall(){
+        try{
+            methodCaller.callSOAPServer("endCall", getOwnIP(), null);
+        }catch(Exception ex){
+            errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
+        }
+        setEndCallButtonFalse();
+        setStatusPICKUP();
+    }
+
+    public void callEstablished(){
+        setAcceptButtonFalse();
+        setDenyButtonFalse();
+        setEndCallButtonTrue();
+        setStatusTALKING();
     }
 
     public void jButtonToggleOutputWindow_actionPerformed(ActionEvent e) {
@@ -331,7 +384,7 @@ class ThinClientGUI_jButtonBye_actionAdapter implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
-        adaptee.jButtonBye_actionPerformed(e);
+        adaptee.jButtonEndCall_actionPerformed(e);
     }
 }
 
