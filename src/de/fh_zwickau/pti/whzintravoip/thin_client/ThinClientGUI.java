@@ -1,14 +1,12 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
-import java.awt.*;
 import java.awt.event.*;
+import java.net.*;
 
 import javax.swing.*;
 import javax.swing.border.*;
 
 import com.borland.jbcl.layout.*;
 import de.fh_zwickau.pti.whzintravoip.thin_client.sip_comm.*;
-import java.net.UnknownHostException;
-import java.net.InetAddress;
 
 /**
  * <p>Überschrift: ThinClientGUI</p>
@@ -56,6 +54,8 @@ public class ThinClientGUI extends JFrame{
             this,
             "http://141.32.28.226:8080/soap/servlet/rpcrouter",
             "urn:sip_server:soapserver:appscope");
+//        toggleOutputWindow();
+        setStatusLogin();
     }
 
     public static void main(String[] args) {
@@ -78,32 +78,36 @@ public class ThinClientGUI extends JFrame{
 
     public void setStatusLogin(){
         status = LOGIN;
-        stdOutput("Status ist jetzt " + status);
+        stdOutput("Status ist jetzt LOGIN (" + status + ")\n");
     }
 
     public void setStatusPICKUP(){
         status = PICKUP;
-        stdOutput("Status ist jetzt " + status);
+        stdOutput("Status ist jetzt PICKUP (" + status + ")\n");
     }
 
     public void setStatusINCOMING(){
         status = INCOMING;
-        stdOutput("Status ist jetzt " + status);
+        stdOutput("Status ist jetzt INCOMING (" + status + ")\n");
     }
 
     public void setStatusMAKECALL(){
         status = MAKECALL;
-        stdOutput("Status ist jetzt " + status);
+        stdOutput("Status ist jetzt MAKECALL (" + status + ")\n");
     }
 
     public void setStatusCALLING(){
         status = CALLING;
-        stdOutput("Status ist jetzt " + status);
+        stdOutput("Status ist jetzt CALLING (" + status + ")\n");
     }
 
     public void setStatusTALKING(){
         status = TALKING;
-        stdOutput("Status ist jetzt " + status);
+        stdOutput("Status ist jetzt TALKING (" + status + ")\n");
+    }
+
+    public byte getStatus(){
+        return status;
     }
 
     public void setAcceptButtonTrue(){
@@ -124,10 +128,6 @@ public class ThinClientGUI extends JFrame{
           System.err.println(ex);
         }
         return ip;
-    }
-
-    public byte getStatus(){
-        return status;
     }
 
     private void jbInit() throws Exception {
@@ -174,13 +174,16 @@ public class ThinClientGUI extends JFrame{
                                   new XYConstraints(113, 494, 100, 30));
         this.getContentPane().add(jButtonBye,
                                   new XYConstraints(216, 494, 100, 30));
-        this.getContentPane().add(jButtonToggleOutputWindow,
-                                  new XYConstraints(126, 12, 165, -1));
         this.getContentPane().add(jButtonMakeCall,
                                   new XYConstraints(327, 494, 100, 30));
         this.getContentPane().add(jButtonInitCall,
                                   new XYConstraints(327, 460, 100, 30));
         this.getContentPane().add(jButtonStartReceiver, new XYConstraints(11, 12, 104, -1));
+        this.getContentPane().add(jScrollPane1,
+                                  new XYConstraints(41, 74, 226, 216));
+        jScrollPane1.getViewport().add(jTree1);
+        this.getContentPane().add(jButtonToggleOutputWindow,
+                                  new XYConstraints(119, 12, 184, -1));
     }
 
     XYLayout xYLayout1 = new XYLayout();
@@ -196,6 +199,8 @@ public class ThinClientGUI extends JFrame{
     JButton jButtonInitCall = new JButton();
     JButton jButtonMakeCall = new JButton();
     JButton jButtonStartReceiver = new JButton();
+    JTree jTree1 = new JTree();
+    JScrollPane jScrollPane1 = new JScrollPane();
 
     public void jButtonStartReceiver_actionPerformed(ActionEvent e) {
         receiver = new SIPReceiver(this, jTextFieldMyIP.getText());
@@ -212,7 +217,7 @@ public class ThinClientGUI extends JFrame{
         try{
             methodCaller.callSOAPServer("acceptCall", getOwnIP(), null);
         }catch(Exception ex){
-
+            errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
     }
 
@@ -223,30 +228,44 @@ public class ThinClientGUI extends JFrame{
     }
 
     public void jButtonToggleOutputWindow_actionPerformed(ActionEvent e) {
+        toggleOutputWindow();
+    }
+
+    public void toggleOutputWindow() {
         if(outputWindow == null){
             outputWindow = new Output(this);
             outputWindow.setSize(530, 600);
             outputWindow.setVisible(true);
+            jButtonToggleOutputWindow.setText("Ausgabefenster schließen");
         } else if (outputWindow.isVisible() == false) {
             outputWindow.setVisible(true);
+            jButtonToggleOutputWindow.setText("Ausgabefenster schließen");
         } else {
             outputWindow.setVisible(false);
+            jButtonToggleOutputWindow.setText("Ausgabefenster öffnen");
         }
     }
 
+    public void setToggleWindowButtonName(String string){
+        jButtonToggleOutputWindow.setText(string);
+    }
+
     public void jButtonInitCall_actionPerformed(ActionEvent e) {
+        setStatusMAKECALL();
         try{
             methodCaller.callSOAPServer("initCall", getOwnIP(), "141.32.28.227");
         }catch(Exception ex){
-
+            setStatusPICKUP();
         }
     }
 
     public void jButtonMakeCall_actionPerformed(ActionEvent e) {
+        setStatusMAKECALL();
         try{
             methodCaller.callSOAPServer("makeCall", getOwnIP(), null);
+            setStatusTALKING();
         }catch(Exception ex){
-
+            setStatusPICKUP();
         }
     }
 }

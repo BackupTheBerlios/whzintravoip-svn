@@ -23,12 +23,15 @@ import java.awt.event.WindowAdapter;
  */
 public class Output extends JFrame{
 
+    ThinClientGUI userGUI = null;
+
     public Output(ThinClientGUI gui) {
         try {
             jbInit();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        this.userGUI = gui;
     }
 
     public static void main(String[] args) {
@@ -37,12 +40,16 @@ public class Output extends JFrame{
 
     public void stdOutput(String std) {
 //        jTextArea.append("Info: " + std + "\n");
-        jTextArea1.append("Info: " + std + "\n");
+        jTextArea1.append("-------------------------------------\nInfo: "
+                          + std
+                          + "\n");
     }
 
     public void errOutput(String err) {
 //        jTextArea.append("Error: " + err + "\n");
-        jTextArea1.append("Error: " + err + "\n");
+        jTextArea1.append("=====================================\nError: "
+                          + err
+                          + "\n");
     }
 
 
@@ -67,11 +74,17 @@ public class Output extends JFrame{
     JButton jButtonCloseWindow = new JButton();
 
     public void jButtonCloseWindow_actionPerformed(ActionEvent e) {
-        setVisible(false);
+//        setVisible(false);
+        userGUI.toggleOutputWindow();
     }
 
     public void this_windowClosed(WindowEvent e) {
-        setVisible(false);
+//        setVisible(false);
+        userGUI.setToggleWindowButtonName("Ausgabefenster öffnen");
+    }
+
+    public void this_windowClosing(WindowEvent e) {
+        userGUI.setToggleWindowButtonName("Ausgabefenster öffnen");
     }
 }
 
