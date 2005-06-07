@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 2.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-2.0.dtd">
+<hibernate-mapping>
+  <class name="de.fh_zwickau.pti.whzintravoip.db_access.Buddys" table="Buddys">
+    <id name="id" column="ID" type="integer">
+      <generator class="increment"/>
+    </id>
+    <property name="user_id"  column="User_ID"  type="integer" not-null="true"/>
+    <property name="buddy_id"   column="Buddy_ID"   type="integer" not-null="true"/>
+  </class>
+</hibernate-mapping>
+

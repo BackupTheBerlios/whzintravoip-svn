@@ -1,0 +1,30 @@
+<project name="voip-db" default="compile">
+  <property name="mysrcdir" value="${basedir}/src/de/fh_zwickau/pti/whzintravoip/db_access"/>
+  <property name="mydestdir" value="${basedir}/classes/de/fh_zwickau/pti/whzintravoip/db_access"/>
+  <property name="mylibdir" value="${basedir}/lib/hibernate"/>
+  <property name="cfgsrcdir" value="${basedir}/src"/>
+  <property name="cfgdestdir" value="${basedir}/classes"/>
+
+  <target name="compile" depends="copy-resources">
+    <javac srcdir="${mysrcdir}" destdir="${mydestdir}" debug="on">
+      <classpath>
+        <fileset dir="${mylibdir}">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="copy-resources">
+    <copy todir="${mydestdir}">
+      <fileset dir="${mysrcdir}">
+        <exclude name="*.java"/>
+      </fileset>
+    </copy>
+    <copy todir="${cfgdestdir}">
+      <fileset dir="${cfgsrcdir}">
+        <include name="*.xml"/>
+      </fileset>
+    </copy>
+  </target>
+</project>

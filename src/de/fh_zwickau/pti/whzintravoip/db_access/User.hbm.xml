@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 2.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-2.0.dtd">
+<hibernate-mapping>
+  <class name="de.fh_zwickau.pti.whzintravoip.db_access.User" table="User">
+    <id name="idUser" column="idUser" type="integer">
+      <generator class="increment"/>
+    </id>
+    <property name="initial" column="Initial" type="string"/>
+    <property name="mail" column="Mail" type="string"/>
+    <property name="matrikel" column="Matrikel" type="string"/>
+    <property name="fname" column="Fname" type="string"/>
+    <property name="lname" column="Lname" type="string"/>
+    <property name="nick" column="Nick" type="string"/>
+  </class>
+</hibernate-mapping>

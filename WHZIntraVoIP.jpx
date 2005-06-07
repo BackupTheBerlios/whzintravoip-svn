@@ -26,7 +26,7 @@
   <property category="runtime.0" name="BuildTargetOnRun" value="com.borland.jbuilder.build.ProjectBuilder$ProjectBuildAction;make"/>
   <property category="runtime.0" name="ConfigurationName" value="WHZIntraVoIP"/>
   <property category="runtime.0" name="RunnableType" value="com.borland.jbuilder.runtime.ApplicationRunner"/>
-  <property category="runtime.0" name="application.class" value="de.fh_zwickau.pti.whzintravoip.soap_client.Client"/>
+  <property category="runtime.0" name="application.class" value="de.fh_zwickau.pti.whzintravoip.db_access.db_test"/>
   <property category="serverservices" name="single.server.name" value=""/>
   <property category="sys" name="AuthorLabel" value="@author"/>
   <property category="sys" name="BackupPath" value="bak"/>
@@ -42,10 +42,10 @@
   <property category="sys" name="ExcludeClassEnabled" value="0"/>
   <property category="sys" name="IncludeTestPath" value="1"/>
   <property category="sys" name="InstanceVisibility" value="2"/>
-  <property category="sys" name="JDK" value="java version 1.5.0-b64"/>
+  <property category="sys" name="JDK" value="java version 1.5.0_01-b08"/>
   <property category="sys" name="JvmVersion" value="1.2"/>
   <property category="sys" name="LastTag" value="0"/>
-  <property category="sys" name="Libraries" value="JBCL;SoapClientLibs;nist-sip-1.2;JMF;Log4J_1.2.9"/>
+  <property category="sys" name="Libraries" value="JBCL;SoapClientLibs;nist-sip-1.2;JMF;Log4J_1.2.9;Hibernate"/>
   <property category="sys" name="MakeStable" value="0"/>
   <property category="sys" name="OutPath" value="classes"/>
   <property category="sys" name="SourcePath" value="src;test"/>
@@ -58,4 +58,9 @@
   <property category="sys" name="uidesign.size.de.fh_zwickau.pti.whzintravoip.sip_connection.SIPConnector" value="602,300"/>
   <property category="sys" name="uidesign.size.de.fh_zwickau.pti.whzintravoip.sip_connection.SIPPacketReceiver_Dialog" value="631,300"/>
   <property category="sys" name="uidesign.size.de.fh_zwickau.pti.whzintravoip.thin_client.ThinClientGUI" value="491,565"/>
+  <file path="src/de/fh_zwickau/pti/whzintravoip/db_access/Buddys.hbm.xml"/>
+  <file path="build.xml"/>
+  <file path="src/hibernate.cfg.xml"/>
+  <file path="src/log4j.properties"/>
+  <file path="src/de/fh_zwickau/pti/whzintravoip/db_access/User.hbm.xml"/>
 </project>
