@@ -7,6 +7,16 @@ import javax.swing.border.*;
 
 import com.borland.jbcl.layout.*;
 import de.fh_zwickau.pti.whzintravoip.thin_client.sip_comm.*;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.tree.DefaultTreeSelectionModel;
+import java.awt.Dimension;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.TreePath;
+import java.awt.*;
+import java.awt.GridBagLayout;
 
 /**
  * <p>Überschrift: ThinClientGUI</p>
@@ -44,6 +54,13 @@ public class ThinClientGUI extends JFrame{
 
     private Status status2 = Status.LOGIN;
  */
+
+    private DefaultMutableTreeNode root = null;
+    private DefaultTreeModel treeModel = null;
+    private TreePath m_currentTreePath = null;
+    private JEditorPane Output = new JEditorPane();
+    private JTree treeView = new JTree();
+
     public ThinClientGUI() {
         try {
             jbInit();
@@ -51,6 +68,8 @@ public class ThinClientGUI extends JFrame{
             ex.printStackTrace();
         }
         this.setSize(500, 700);
+//        Dimension minimumSize = new Dimension(540, 350);
+//        this.setMinimumSize(minimumSize);
         this.setLocation(764, 2);
         jTextFieldMyIP.setText(getOwnIP());
         methodCaller = new SOAPMethodCaller(
@@ -59,6 +78,7 @@ public class ThinClientGUI extends JFrame{
             "urn:sip_server:soapserver:appscope");
 //        toggleOutputWindow();
         setStatusLogin();
+        initTreeView();
     }
 
     public static void main(String[] args) {
@@ -150,9 +170,11 @@ public class ThinClientGUI extends JFrame{
     }
 
     private void jbInit() throws Exception {
-        this.getContentPane().setLayout(xYLayout1);
+        this.setMinimumSize(new Dimension(540, 350));
+        this.getContentPane().setLayout(gridBagLayout1);
         this.setDefaultCloseOperation(HIDE_ON_CLOSE);
-//        jButtonStartReceiver.setBorder(titledBorder3);
+        jTextFieldMyIP.setMinimumSize(new Dimension(50, 21));
+        //        jButtonStartReceiver.setBorder(titledBorder3);
 //        jButtonStartReceiver.setMargin(new Insets(2, 2, 2, 2));
 //        jButtonStartReceiver.setText("Wait for Call");
 //        jButtonStartReceiver.addActionListener(new
@@ -160,7 +182,6 @@ public class ThinClientGUI extends JFrame{
         jTextFieldMyIP.setText("127.0.0.1");
         jLabel1.setText("My IP");
         this.addWindowListener(new ThinClientGUI_this_windowAdapter(this));
-        xYLayout1.setWidth(465);
         jButtonAccept.setEnabled(false);
         jButtonAccept.setText("Annehmen");
         jButtonAccept.addActionListener(new
@@ -184,28 +205,91 @@ public class ThinClientGUI extends JFrame{
         jButtonStartReceiver.setText("Start Receiver");
         jButtonStartReceiver.addActionListener(new
                 ThinClientGUI_jButtonStartReceiver_actionAdapter(this));
-        this.getContentPane().add(jTextFieldMyIP,
-                                  new XYConstraints(354, 10, 123, 26));
-        this.getContentPane().add(jLabel1, new XYConstraints(317, 15, 35, 18));
-        this.getContentPane().add(jButtonAccept,
-                                  new XYConstraints(10, 494, 100, 30));
-        this.getContentPane().add(jButtonDeny,
-                                  new XYConstraints(113, 494, 100, 30));
+        jScrollPane1.setPreferredSize(new Dimension(40, 40));
+        jSplitPane1.add(jScrollPane1, JSplitPane.RIGHT);
+        jScrollPane1.getViewport().add(Output);
+        jSplitPane1.add(treeViewScrollPane, JSplitPane.LEFT);
+        this.getContentPane().add(jLabel1,
+                                  new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.WEST, GridBagConstraints.NONE,
+                new Insets(10, 0, 0, 0), 10, 3));
         this.getContentPane().add(jButtonEndCall,
-                                  new XYConstraints(216, 494, 100, 30));
+                                  new GridBagConstraints(2, 3, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jButtonDeny,
+                                  new GridBagConstraints(1, 3, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jButtonAccept,
+                                  new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
         this.getContentPane().add(jButtonMakeCall,
-                                  new XYConstraints(327, 494, 100, 30));
+                                  new GridBagConstraints(3, 3, 2, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
         this.getContentPane().add(jButtonInitCall,
-                                  new XYConstraints(327, 460, 100, 30));
-        this.getContentPane().add(jButtonStartReceiver, new XYConstraints(11, 12, 104, -1));
-        this.getContentPane().add(jScrollPane1,
-                                  new XYConstraints(41, 74, 226, 216));
-        jScrollPane1.getViewport().add(jTree1);
+                                  new GridBagConstraints(3, 2, 2, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jSplitPane1,
+                                  new GridBagConstraints(0, 1, 5, 1, 1.0, 1.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
         this.getContentPane().add(jButtonToggleOutputWindow,
-                                  new XYConstraints(119, 12, 184, -1));
+                                  new GridBagConstraints(1, 0, 2, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jButtonStartReceiver,
+                                  new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jTextFieldMyIP,
+                                  new GridBagConstraints(4, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
+                new Insets(10, 10, 10, 10), 50, 10));
+        root = new DefaultMutableTreeNode("Root");
+        treeModel = new DefaultTreeModel(root);
     }
 
-    XYLayout xYLayout1 = new XYLayout();
+    /**
+     * init the scrollpane and the JTree and set the valueChanged Listener
+     */
+    public void initTreeView()
+    {
+      //jTree1 = new JTree();
+      TreeSelectionModel tsm = new DefaultTreeSelectionModel();
+      tsm.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        treeViewScrollPane.setPreferredSize(new Dimension(300, 150));
+    }
+
+    public void fillOutputPage()
+    {
+        switch (m_currentTreePath.getPathCount()) {
+        case 1:
+            // The selected Index ist the Root
+//            Output.setText((String) m_vTemplates.get(0));
+            Output.setText("bla 1");
+            break;
+        case 2:
+            // The selected Index is a manufacturer
+//            this.parseManufacturersPage();
+            Output.setText("bla 1");
+            break;
+        case 3:
+            // The selected Index is a SerialID Group
+            Output.setText("bla 1");
+            break;
+        case 4:
+            // The selected Index is a leaf, which means it is a mobile device
+//            this.parseOutputPage();
+            Output.setText("bla 1");
+            break;
+        }
+        Output.setText("bla 1");
+    }
+
     JTextField jTextFieldMyIP = new JTextField();
     JLabel jLabel1 = new JLabel();
     TitledBorder titledBorder1 = new TitledBorder("");
@@ -217,9 +301,11 @@ public class ThinClientGUI extends JFrame{
     JButton jButtonToggleOutputWindow = new JButton();
     JButton jButtonInitCall = new JButton();
     JButton jButtonMakeCall = new JButton();
-    JButton jButtonStartReceiver = new JButton();
-    JTree jTree1 = new JTree();
+    JButton jButtonStartReceiver = new JButton(); //    JTree treeView = new JTree();
+    JScrollPane treeViewScrollPane = new JScrollPane(null);
+    JSplitPane jSplitPane1 = new JSplitPane();
     JScrollPane jScrollPane1 = new JScrollPane();
+    GridBagLayout gridBagLayout1 = new GridBagLayout();
 
     public void jButtonStartReceiver_actionPerformed(ActionEvent e) {
         receiver = new SIPReceiver(this, jTextFieldMyIP.getText());

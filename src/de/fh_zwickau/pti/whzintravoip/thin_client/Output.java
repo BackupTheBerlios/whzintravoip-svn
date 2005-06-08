@@ -55,23 +55,28 @@ public class Output extends JFrame{
 
     private void jbInit() throws Exception {
         jPanel1 = (JPanel) getContentPane();
-        jPanel1.setLayout(xYLayout1);
+        jPanel1.setLayout(gridBagLayout1);
         jTextArea1.setText("");
         jButtonCloseWindow.setText("Fenster schlieﬂen");
         jButtonCloseWindow.addActionListener(new
                 Output_jButtonCloseWindow_actionAdapter(this));
         this.addWindowListener(new Output_this_windowAdapter(this));
-        jPanel1.add(jScrollPane1, new XYConstraints(15, 15, 500, 500));
-        jPanel1.add(jButtonCloseWindow, new XYConstraints(15, 525, 500, 25));
         jScrollPane1.getViewport().add(jTextArea1);
-        jPanel1.setLayout(xYLayout1);
+        jPanel1.add(jScrollPane1, new GridBagConstraints(0, 0, 1, 1, 1.0, 1.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(15, 15, 0, 15), 500, 500));
+        jPanel1.add(jButtonCloseWindow,
+                    new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0
+                                           , GridBagConstraints.CENTER,
+                                           GridBagConstraints.HORIZONTAL,
+                                           new Insets(15, 15, 15, 15), 380, 0));
     }
 
     JPanel jPanel1;
-    XYLayout xYLayout1 = new XYLayout();
     JScrollPane jScrollPane1 = new JScrollPane();
     JTextArea jTextArea1 = new JTextArea();
     JButton jButtonCloseWindow = new JButton();
+    GridBagLayout gridBagLayout1 = new GridBagLayout();
 
     public void jButtonCloseWindow_actionPerformed(ActionEvent e) {
 //        setVisible(false);

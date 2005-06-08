@@ -43,6 +43,9 @@ public class IntraVoIP_main  extends JFrame{
         */
         IntraVoIP_main intraVoIP_main = new IntraVoIP_main();
         intraVoIP_main.setVisible(true);
+//        GridBagTest gridBagTest = new GridBagTest();
+//        gridBagTest.setSize(600, 600);
+//        gridBagTest.setVisible(true);
     }
 
     private void jbInit() throws Exception {
