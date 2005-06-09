@@ -6,8 +6,8 @@ import javax.sip.*;
 import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+
+import org.apache.log4j.*;
 
 /**
  * <p>Title: sip_server</p>
@@ -26,80 +26,73 @@ public class ServerSipCallerImpl implements SipListener {
 
     private static final Logger logger = Logger.getLogger("PacketCaller.log");
 
-    public static String test = "";
+    ///////////////////////////////////////////////////////////////////////////
     // Factories
+    ///////////////////////////////////////////////////////////////////////////
     private static AddressFactory addressFactoryCaller;
     private static MessageFactory messageFactoryCaller;
     private static HeaderFactory headerFactoryCaller;
     private static SipFactory sipFactoryCaller = null;
 
+    ///////////////////////////////////////////////////////////////////////////
     // classes etc.
-    // private static SIPConnector userdialog;
     private ServerSipCallerImpl listenerCaller;
 
+    ///////////////////////////////////////////////////////////////////////////
     // Providers
-    private SipProvider sipProviderUDPCaller;
-    private SipProvider sipProviderTCPCaller;
-    private SipProvider sipProviderToUse;
+    ///////////////////////////////////////////////////////////////////////////
+    private static SipProvider sipProviderUDPCaller;
+    private static SipProvider sipProviderTCPCaller;
+    private static SipProvider sipProviderToUse;
 
-    // SIP-Stacks
-    public SipStack sipStackCaller;
+    ///////////////////////////////////////////////////////////////////////////
+    // SIP-Stack
+    ///////////////////////////////////////////////////////////////////////////
+    private static SipStack sipStackCaller;
 
-    protected ServerTransaction serverTid;
-    protected ClientTransaction clientTid;
-    protected ServerTransaction serverTransactionFromInvite;
-    private ServerTransaction serverTransaction;
-    private Request request;
-    private RequestEvent requestEvent;
-
-
+    ///////////////////////////////////////////////////////////////////////////
     // Listeningpoints
-    private ListeningPoint udpListeningPointCaller;
-    private ListeningPoint tcpListeningPointCaller;
+    ///////////////////////////////////////////////////////////////////////////
+    private static ListeningPoint udpListeningPointCaller;
+    private static ListeningPoint tcpListeningPointCaller;
 
-    private Dialog dialog;
 
-    class ApplicationData {
-        protected int ackCount;
-    }
+    protected static ClientTransaction clientTid;
 
-    private ContactHeader contactHeader;
-    private String m_sTransport;
-    public String m_sPeerHostPort;
-    private String m_sCallerStackName = "Caller";
-    private int m_iCallerPort = 5060;
-    private int m_iReceiverPort = 5070;
-
-//    private static String PEER_ADDRESS = Shootme.myAddress;
-
-//    public static final String m_sMyAddress = "127.0.0.1";
-    public String m_sCurrentInviterIP = "0.0.0.0";
-    public String m_sCurrentRecipientIP = "0.0.0.0";
-
-    public static final String m_sServerAddress = "141.32.28.226";
-
-    public static String to = "";
-
-    /**
-    public Server_SIPPacketCaller(SIPConnector dialog, String myIP, String callIP) {
-        this.userdialog = dialog;
-        m_sMyAddress = myIP;
-        m_sOtherAddress = callIP;
-    }*/
+    ///////////////////////////////////////////////////////////////////////////
+    // User related Stuff
+    ///////////////////////////////////////////////////////////////////////////
+    private static ContactHeader contactHeader;
+    private static String m_sTransport;
+    private static String m_sPeerHostPort;
+    private static String m_sCallerStackName = "Server_Caller";
+    private static int m_iCallerPort = 5060;
+    private static String m_iReceiverPort = "5070";
+    private static String m_iReceiverIP = "";
+    private static String m_sServerAddress = "141.32.28.226";
+    private static String m_sInitReceiverIP = "127.0.0.1";
 
     public ServerSipCallerImpl() {
         PropertyConfigurator.configure("/log4j.properties");
         logger.info("Object created!");
     }
 
-    public ServerSipCallerImpl(String to)
+    public ServerSipCallerImpl(String serverIP)
     {
-        this.to = to;
+        this.m_sServerAddress = serverIP;
         sipFactoryCaller = SipFactory.getInstance();
         sipFactoryCaller.setPathName("gov.nist");
         PropertyConfigurator.configure("/log4j.properties");
-        logger.info("Object created! With IP: " + to);
+        logger.info("Object created! With Server IP: " + m_sServerAddress);
     }
+
+    public boolean initServerSipCaller() throws Exception
+    {
+        this.initCallerSIPStack();
+        this.initCallerFactories();
+        return true;
+    }
+
 
     /**
      * Initialize the SIP-Stack with the necessary properties
@@ -107,7 +100,7 @@ public class ServerSipCallerImpl implements SipListener {
      * @return boolean
      * @throws Exception
      */
-    public boolean initCallerSIPStack(String toIP) throws Exception {
+    public boolean initCallerSIPStack() throws Exception {
         // userdialog.stdOutput("Using Port " + m_iCallerPort);
         sipStackCaller = null;
         //sipFactoryCaller = null;
@@ -133,12 +126,12 @@ public class ServerSipCallerImpl implements SipListener {
 //        m_sTransport = "tcp";
         m_sTransport = "udp";
 //        String peerHostPort = PEER_ADDRESS+":5070";
-        m_sPeerHostPort = toIP + ":" + m_iReceiverPort;
+        m_sPeerHostPort = m_sInitReceiverIP + ":" + m_iReceiverPort;
         //properties.setProperty("javax.sip.OUTBOUND_PROXY", m_sPeerHostPort + "/" + m_sTransport);
         //properties.setProperty("javax.sip.OUTBOUND_PROXY", "141.32.28.226/" + m_sTransport);
         sipStackCaller = sipFactoryCaller.createSipStack(properties);     // this can throw an exception
         logger.info("Creating Sip Stack fromIP " + m_sServerAddress);
-        logger.info("Creating Sip Stack toIP " + toIP);
+        logger.info("Creating Sip Stack toIP " + m_sInitReceiverIP);
         logger.info("Sip Stack Impl : " + sipStackCaller.toString());
         return true;
     }
@@ -153,9 +146,11 @@ public class ServerSipCallerImpl implements SipListener {
      * @throws Exception
      */
     public boolean initCallerFactories() throws Exception {
+        logger.info("Sip Stack Impl : " + sipStackCaller.toString());
         headerFactoryCaller = sipFactoryCaller.createHeaderFactory();
         addressFactoryCaller = sipFactoryCaller.createAddressFactory();
         messageFactoryCaller = sipFactoryCaller.createMessageFactory();
+
         logger.info("Header / Adress / Message Factory created!");
         udpListeningPointCaller = sipStackCaller.createListeningPoint(m_iCallerPort, "udp");
         tcpListeningPointCaller = sipStackCaller.createListeningPoint(m_iCallerPort, "tcp");
@@ -249,6 +244,7 @@ public class ServerSipCallerImpl implements SipListener {
                                 toHeader,
                                 viaHeaders,
                                 maxForwards);
+                logger.info("Sending Invite to: " + m_sPeerHostPort);
             } else if (requestMethod.equals("ACK")) {
                 request =
                         messageFactoryCaller.createRequest(
@@ -260,6 +256,7 @@ public class ServerSipCallerImpl implements SipListener {
                                 toHeader,
                                 viaHeaders,
                                 maxForwards);
+                logger.info("Sending ACK to: " + m_sPeerHostPort);
             } else if (requestMethod.equals("BYE")){
                 request =
                         messageFactoryCaller.createRequest(
@@ -271,6 +268,7 @@ public class ServerSipCallerImpl implements SipListener {
                                 toHeader,
                                 viaHeaders,
                                 maxForwards);
+                logger.info("Sending BYE to: " + m_sPeerHostPort);
             } else {
                 request =
                         messageFactoryCaller.createRequest(
@@ -282,6 +280,7 @@ public class ServerSipCallerImpl implements SipListener {
                                 toHeader,
                                 viaHeaders,
                                 maxForwards);
+                logger.info("Sending CANCEL to: " + m_sPeerHostPort);
             }
 
             // Create contact headers
@@ -400,32 +399,6 @@ public class ServerSipCallerImpl implements SipListener {
     }
 
     /**
-     * call the sendBye-method
-     */
-    public void sendBye(){
-        sendBye(dialog, sipProviderToUse);
-    }
-
-    /**
-     * create a BYE-request to terminate the dialog and send the request out
-     *
-     * @param dialog Dialog
-     * @param sipProviderToUse SipProvider
-     */
-    public void sendBye(Dialog dialog, SipProvider sipProviderToUse){
-        try {
-            // userdialog.stdOutput("Sending bye from Caller: " + dialog);
-            Request bye = dialog.createRequest(Request.BYE);
-            ClientTransaction ct = sipProviderToUse.getNewClientTransaction(bye);
-            dialog.sendRequest(ct);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            // userdialog.errOutput("Exception bei sendBye...");
-            //             System.exit(0);
-        }
-    }
-
-    /**
      * Don't need this method on server
      *
      * @param responseReceivedEvent ResponseEvent
@@ -449,7 +422,7 @@ public class ServerSipCallerImpl implements SipListener {
      * @param requestEvent RequestEvent
      * @param serverTransaction ServerTransaction
      */
-
+    /**
     public void processOptions(RequestEvent requestEvent, ServerTransaction serverTransaction){
         // userdialog.stdOutput(requestEvent.getRequest().toString());
         try {
@@ -466,9 +439,19 @@ public class ServerSipCallerImpl implements SipListener {
                 // userdialog.errOutput("Exception bei processOptions...");
         }
     }
-
+*/
     public void processRequest(RequestEvent requestEvent){
 
+    }
+
+    public String getPeerHostPort()
+    {
+        return this.m_sPeerHostPort;
+    }
+
+    public String getSipStackAdress()
+    {
+        return this.sipStackCaller.toString();
     }
 
 }

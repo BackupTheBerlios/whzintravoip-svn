@@ -5,6 +5,12 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.Logger;
 
 import java.util.*;
+import java.net.UnknownHostException;
+import java.net.InetAddress;
+
+import de.fh_zwickau.pti.whzintravoip.sip_server.ldapconn.*;
+import de.fh_zwickau.pti.whzintravoip.sip_server.hibernate.*;
+import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 
 /**
  *
@@ -31,12 +37,22 @@ public class SOAPServerImpl implements SOAPServer {
     /**
      * Handle the SIPPacketCaller
      */
-    public ServerSipCallerImpl m_SIPPacketCaller;
+    private static ServerSipCallerImpl m_SIPPacketCaller;
+
+    /**
+     * Instance of the LDAPRequest class for LDAP requests
+     */
+    private static ldaprequest m_LDAPRequest = new ldaprequest();
+
+    /**
+     * Instance of the Hibernate UserMapping to save/load user Objects
+     */
+    private static UserMapping m_UserMapping = new UserMapping();
 
     /**
      * A List of user ip's, which are on
      */
-    //public static Vector m_vUserIPList = new Vector();
+    public static UserManager m_UserManager= new UserManager();
 
     public static HashMap m_mUserIPMap = new HashMap();
 
@@ -46,45 +62,90 @@ public class SOAPServerImpl implements SOAPServer {
     public static HashMap m_mUserCallerMap = new HashMap();
 
     /**
-     * First add the users ip to list (if not exists) and then initiate a
-     * SIPPacketCaller to initiate the call. The SipPacketCaller will be saved
-     * in the map with the corresponding ip of the user. So you can use this
-     * SIPPacketCaller later to make an Invite and so on.
-     *
-     * Initiating the SIPStack / SIPProvider and ListeningPoints for later use
+     * Every time a SOAPServerObject will be intantiated the ServerSipCallerImpl
+     * must be intantiated with the correct IP! The logger must be configured
+     * with the current properties. And the SipStack and Factories must be
+     * initiated!.
+     */
+    public SOAPServerImpl()
+    {
+        PropertyConfigurator.configure("/log4j.properties");
+        this.m_SIPPacketCaller = new ServerSipCallerImpl(this.getOwnIP());
+        this.initSipServer();
+    }
+
+    private String initSipServer()
+    {
+        logger.info("Init SIP started!");
+        try {
+            this.m_SIPPacketCaller.initServerSipCaller();
+        } catch (Exception ex) {
+            logger.error("Error during init SIP:" + ex.toString());
+            return new String("Error during init SIP: " + ex.toString());
+        }
+        logger.info("Init SIP ended!");
+        return new String("Init SIP sucessful!");
+    }
+
+    public String registerUser(String userIP, String userToken)
+    {
+        logger.info("Register User with IP: " + userIP + " and Token " + userToken);
+        // LDAP request with userToken
+        logger.info("Getting User Properties from LDAP Server!");
+        Properties userProbs = this.m_LDAPRequest.getUserProbs(userToken);
+        // Build the User Object with the Probs from the LDAP Request
+        logger.info("Build User Object and Map it!");
+        User regUser = new User(userProbs);
+        // Map the User Object to Database with Hibernate
+        try {
+            this.m_UserMapping.mapUserObject(regUser);
+        } catch (Exception ex){
+            logger.error("Error during User Mapping: " + ex.toString());
+            return new String("ERROR");
+        }
+        logger.info("User succesful registered!");
+
+        return new String("OK");
+    }
+
+    /**
+     * Add the Users with the INVITER and the RECIPIENT Role to the UserManager.
+     * With the Data from the Hibernate Database.
      *
      * @param fromIP String the IP from the user who want to init a session
      * @param toIP String the IP from the other user who want to be invited
      * @return String Just a simple logging back to ThinClient
      */
-    public String initCall(String InviterIP, String RecipiantIP)
+    public String initCall(User aUser)
     {
-        m_SIPPacketCaller = null;
-        if(! m_mUserIPMap.containsKey(InviterIP))
-        {
-            // add the IP from the Inviter
-            //m_vUserIPList.add(InviterIP);
-            // add the IP from the Recipiant
-            m_mUserIPMap.put(InviterIP, RecipiantIP);
-            // add a SIPPacketCallerClass for the Inviter Map
-            m_SIPPacketCaller = new ServerSipCallerImpl(InviterIP);
-            m_mUserCallerMap.put(InviterIP, m_SIPPacketCaller);
-        }
-        else return new String("You are already listed. Fuck Up!");
-        PropertyConfigurator.configure("/log4j.properties");
-        logger.info("Init Call started!");
-        //m_SIPPacketCaller = new Server_SIPPacketCaller(fromIP);
-        try {
-            this.m_SIPPacketCaller.initCallerSIPStack(RecipiantIP);
-        } catch (Exception ex) {
-            logger.error("Error during init SIP Stack :" + ex.toString());
-        }
-        try {
-            this.m_SIPPacketCaller.initCallerFactories();
-        } catch (Exception ex) {
-            logger.error("Error during init Factories: " + ex.toString());
-        }
-        logger.info("Init Call ended!");
+        logger.info("Test: IP " + aUser.getUserIP() + " Name " + aUser.getUserName());
+        /**
+        Properties inviterProbs = new Properties();
+        inviterProbs.setProperty("sip_server.user.USER_IP", inviterIP);
+        inviterProbs.setProperty("sip_server.user.USER_NAME", "Harald");
+        inviterProbs.setProperty("sip_server.user.SIP_ADDRESS", "Harald@Schaf");
+        inviterProbs.setProperty("sip_server.user.SCREEN_NAME", "Mähhh");
+        inviterProbs.setProperty("sip_server.user.ROLE", User.INVITER);
+        inviterProbs.setProperty("sip_server.user.STATUS", User.PICKUP);
+        // add the User with the Inviter role
+
+        logger.info("Added User " + "Harald" + " with IP: " + inviterIP + " as Inviter!");
+        this.m_UserManager.addNewUser(inviterProbs);
+        // add the User with the Recipient role
+        Properties recipientProbs = new Properties();
+        inviterProbs.setProperty("sip_server.user.USER_IP", inviterIP);
+        inviterProbs.setProperty("sip_server.user.USER_NAME", "Harald");
+        inviterProbs.setProperty("sip_server.user.SIP_ADDRESS", "Harald@Schaf");
+        inviterProbs.setProperty("sip_server.user.SCREEN_NAME", "Mähhh");
+        inviterProbs.setProperty("sip_server.user.ROLE", User.INVITER);
+        inviterProbs.setProperty("sip_server.user.STATUS", User.PICKUP);
+        this.m_UserManager.addNewUser(recipientProbs);
+
+        logger.info("Added User " + "Mist" + " with IP: " + inviterIP + " as Recipient!");
+        m_mUserIPMap.put(inviterIP, recipientIP);
+
+        //this.initCall(recipientIP);
+        //logger.info("Init Call ended!");*/
         return new String("init Call sucessful!");
     }
 
@@ -97,37 +158,58 @@ public class SOAPServerImpl implements SOAPServer {
      * @return String Just a simple logging back to ThinClient
      */
 
-    public String makeCall(String InviterIP)
+    public String makeCall(String inviterIP, String recipientIP)
     {
-        PropertyConfigurator.configure("/log4j.properties");
-        if(m_mUserIPMap.containsKey(InviterIP))
+        // Init the Call, get the User Objects and place them in UserManager
+        logger.info("Get the User Objects from Database!");
+        try {
+            this.m_UserManager.addNewUser(this.m_UserMapping.getUserWithIp(inviterIP));
+        } catch (Exception ex){
+            logger.error("Error during getUser (Inviter) with IP! " + ex.toString());
+            return new String("Something is going wrong getting the Inviter Data!");
+        }
+        try {
+            this.m_UserManager.addNewUser(this.m_UserMapping.getUserWithIp(recipientIP));
+        } catch (Exception ex){
+            logger.error("Error during getUser (Recipient) with IP! " + ex.toString());
+            return new String("Something is going wrong getting the Recipient Data!");
+        }
+        logger.info("User Objects succesfully retrieved from Database!");
+        // Test if the Inviter and the Recipient really exists, and test for
+        // the right Status of the Recipient
+        if(m_UserManager.containsUserWithIP(inviterIP) &&
+                m_UserManager.containsUserWithIP(recipientIP))
         {
-            logger.info("Make Call started!");
-            String recipientIP = (String) m_mUserIPMap.get(InviterIP);
-            m_SIPPacketCaller = (ServerSipCallerImpl) m_mUserCallerMap.get(InviterIP);
-            m_SIPPacketCaller.setRecipientIPforRequest(recipientIP);
-            logger.info("Send INVITE to IPAdress: " + recipientIP);
-            logger.info("PacketCaller INVITE TO: " + m_SIPPacketCaller.m_sPeerHostPort);
-            logger.info("INVITE with SIPStack: " + m_SIPPacketCaller.sipStackCaller.toString());
-            try {
-                m_SIPPacketCaller.sendRequest("INVITE");
-            } catch (Exception ex) {
-                logger.error("Error during makeCall(): " + ex.toString());
+            if (m_UserManager.getUserStatusFromIP(recipientIP).equals(User.
+                    PICKUP)) {
+                logger.info("Make Call started!");
+                /** @todo Init the Header from the Request */
+                m_SIPPacketCaller.setRecipientIPforRequest(recipientIP);
+                logger.info("Send INVITE to IPAdress: " + recipientIP);
+                logger.info("PacketCaller INVITE TO: " +
+                            m_SIPPacketCaller.getPeerHostPort());
+                logger.info("INVITE with SIPStack: " +
+                            m_SIPPacketCaller.getSipStackAdress());
+                try {
+                    m_SIPPacketCaller.sendRequest("INVITE");
+                } catch (Exception ex) {
+                    logger.error("Error during makeCall(): " + ex.toString());
+                    return new String("Error during makeCall()!" + ex.toString());
+                }
+            } else {
+                return new String("Recipient is not in PICKUP Mode: " +
+                                  m_UserManager.getUserStatusFromIP(recipientIP));
             }
-
-        } else return new String("Inviter has no initiated SIPStack here! ");
+        } else return new String("Inviter oder Recipient ist not known!");
         logger.info("Make Call ended!");
-        return new String("make Call sucessful!" + this.m_SIPPacketCaller.to);
-    }
-
-    public boolean removeInviterSIPPacketCaller(String InviterIP) {
-        //m_vUserIPList.remove(InviterIP);
-        m_mUserIPMap.remove(InviterIP);
-        m_mUserCallerMap.remove(InviterIP);
-        m_SIPPacketCaller.stopAndRemoveSIPStack();
-        m_SIPPacketCaller = null;
-        logger.info("Number ob Items in Inviter Map: " + m_mUserCallerMap.size());
-        return true;
+        logger.info("Set Users to new Status");
+        if(this.m_UserManager.setUserStatusFromIP(inviterIP, User.CALLING))
+            logger.info("Status from Inviter succesfully set to CALLING!");
+        else logger.error("Set Inviter to CALLING failed!");
+        if(this.m_UserManager.setUserStatusFromIP(recipientIP, User.INCOMING))
+            logger.info("Status from Recipient succesfully set to INCOMING!");
+        else logger.error("Set Recipient to INCOMING failed!");
+        return new String("make Call sucessful!");
     }
 
     public String acceptCall(String RecipientIP)
@@ -143,9 +225,10 @@ public class SOAPServerImpl implements SOAPServer {
                 if(entry.getValue().equals(RecipientIP))
                 {
                     m_SIPPacketCaller = (ServerSipCallerImpl) m_mUserCallerMap.get(entry.getKey());
+                    m_SIPPacketCaller.setRecipientIPforRequest((String) entry.getKey());
                     logger.info("Accept Call with Recipient: " + RecipientIP);
                     logger.info("Accept Call with Inviter:   " + entry.getKey());
-                    logger.info("Accept Call with SIPStack: " + m_SIPPacketCaller.sipStackCaller.toString());
+                    logger.info("Accept Call with SIPStack: " + m_SIPPacketCaller.getSipStackAdress());
                 }
             }
         } else return new String("Recipient not known!");
@@ -153,6 +236,7 @@ public class SOAPServerImpl implements SOAPServer {
             m_SIPPacketCaller.sendRequest("ACK");
         } catch (Exception ex) {
             logger.error("Error during acceptCall(): " + ex.toString());
+            return new String("Error during acceptCall(): " + ex.toString());
         }
         logger.info("Accept Call ended!");
         return new String("Accept Call succesful");
@@ -197,11 +281,12 @@ public class SOAPServerImpl implements SOAPServer {
         }
 
         logger.info("CANCEL with SIPStack: " +
-                    m_SIPPacketCaller.sipStackCaller.toString());
+                    m_SIPPacketCaller.getSipStackAdress());
         try {
             m_SIPPacketCaller.sendRequest("CANCEL");
         } catch (Exception ex) {
             logger.error("Error during denyCall(): " + ex.toString());
+            return new String("Error during denyCall(): " + ex.toString());
         }
         logger.info("Deny Call ended!");
 
@@ -247,16 +332,54 @@ public class SOAPServerImpl implements SOAPServer {
         }
 
         logger.info("BYE with SIPStack: " +
-                    m_SIPPacketCaller.sipStackCaller.toString());
+                    m_SIPPacketCaller.getSipStackAdress());
         try {
             m_SIPPacketCaller.sendRequest("BYE");
         } catch (Exception ex) {
-            logger.error("Error during denyCall(): " + ex.toString());
+            logger.error("Error during endCall(): " + ex.toString());
+            return new String("Error during endCall(): " + ex.toString());
         }
         logger.info("End Call ended!");
 
-        return new String("End Call succesful");
+        return new String("End Call succesful!");
     }
+
+    public String testDB()
+    {
+        /**
+        logger.info("Starting DB Test");
+        db_work work = new db_work();
+        try {
+            work.saveTestUser();
+        } catch (Exception ex) {
+            logger.info("Error during meld down! " + ex.toString());
+        }*/
+        return new String("Test DB succesful!");
+    }
+
+    private String getOwnIP(){
+       String ip = null;
+       try {
+         InetAddress myIP = InetAddress.getLocalHost();
+         ip = myIP.getHostAddress();
+       }
+       catch (UnknownHostException ex) {
+         System.err.println(ex);
+       }
+       return ip;
+   }
+
+   public boolean removeInviterSIPPacketCaller(String InviterIP) {
+       //m_vUserIPList.remove(InviterIP);
+       m_mUserIPMap.remove(InviterIP);
+       m_mUserCallerMap.remove(InviterIP);
+       m_SIPPacketCaller.stopAndRemoveSIPStack();
+       m_SIPPacketCaller = null;
+       logger.info("Number ob Items in Inviter Map: " + m_mUserCallerMap.size());
+       return true;
+   }
+
+
 
 
 }
