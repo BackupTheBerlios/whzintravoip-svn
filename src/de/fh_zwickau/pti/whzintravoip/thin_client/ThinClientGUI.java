@@ -1,4 +1,5 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
+import java.awt.*;
 import java.awt.event.*;
 import java.net.*;
 
@@ -6,18 +7,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.tree.*;
 
-import com.borland.jbcl.layout.*;
 import de.fh_zwickau.pti.whzintravoip.thin_client.sip_comm.*;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.tree.DefaultTreeSelectionModel;
-import java.awt.Dimension;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.TreeSelectionModel;
-import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.awt.GridBagLayout;
 
 /**
  * <p>Überschrift: ThinClientGUI</p>
@@ -55,13 +45,13 @@ public class ThinClientGUI extends JFrame{
 
 //    private Status status2 = Status.LOGIN;
 
-    private JTree jTree = null;
+//    private JTree jTree = null;
     private DefaultMutableTreeNode root = null;
     private DefaultMutableTreeNode child = null;
     private DefaultMutableTreeNode subchild = null;
-    private DefaultTreeModel treeModel = null;
-    private TreePath m_currentTreePath = null;
-    private JEditorPane userInfoField = new JEditorPane();
+//    private DefaultTreeModel treeModel = null;
+//    private TreePath m_currentTreePath = null;
+//    private JEditorPane userInfoField = new JEditorPane();
 
     private String loginName = null;
 
@@ -85,89 +75,157 @@ public class ThinClientGUI extends JFrame{
         userTreeGenerator.initTreeView();
     }
 
+    /**
+     * Mainmethode um das Hauptfenster einzublenden
+     *
+     * @param args String[]
+     */
     public static void main(String[] args) {
-        new ThinClientGUI().setVisible(true);
+    new ThinClientGUI().setVisible(true);
     }
 
+    /**
+     * Gibt Text als Infomessage im Ausgabefenster aus. Dies geschieht nur,
+     * wenn es bereits einmal geöffnet worden ist.
+     *
+     * @param std String - der auszugebende Text als String
+     */
     public void stdOutput(String std) {
-//        jTextArea.append("Info: " + std + "\n");
+    //        jTextArea.append("Info: " + std + "\n");
         if(outputWindow != null){
             outputWindow.stdOutput(std);
         }
     }
 
+    /**
+     * Gibt Text als Fehlermessage im Ausgabefenster aus. Dies geschieht nur,
+     * wenn es bereits einmal geöffnet worden ist.
+     *
+     * @param err String - der auszugebende Text als String
+     */
     public void errOutput(String err) {
-//        jTextArea.append("Error: " + err + "\n");
+    //        jTextArea.append("Error: " + err + "\n");
         if(outputWindow != null){
             outputWindow.errOutput(err);
         }
     }
 
+    /**
+     * Gibt im Textarea rechts neben dem Tree einen Infotext aus
+     *
+     * @param string String - auszugebender Infotext
+     */
     public void showUserInfo(String string){
-//        jUserInfoField.setText("");
+    //        jUserInfoField.setText("");
         jUserInfoField.setText(string);
     }
 
+    /**
+     * Setzt den eigenen Status
+     */
     public void setStatusLogin(){
-        status = LOGIN;
+    status = LOGIN;
         stdOutput("Status ist jetzt LOGIN (" + status + ")\n");
     }
 
+    /**
+     * Setzt den eigenen Status
+     */
     public void setStatusPICKUP(){
         status = PICKUP;
         stdOutput("Status ist jetzt PICKUP (" + status + ")\n");
     }
 
+    /**
+     * Setzt den eigenen Status
+     */
     public void setStatusINCOMING(){
         status = INCOMING;
         stdOutput("Status ist jetzt INCOMING (" + status + ")\n");
     }
 
+    /**
+     * Setzt den eigenen Status
+     */
     public void setStatusMAKECALL(){
         status = MAKECALL;
         stdOutput("Status ist jetzt MAKECALL (" + status + ")\n");
     }
 
+    /**
+     * Setzt den eigenen Status
+     */
     public void setStatusCALLING(){
         status = CALLING;
         stdOutput("Status ist jetzt CALLING (" + status + ")\n");
     }
 
+    /**
+     * Setzt den eigenen Status
+     */
     public void setStatusTALKING(){
         status = TALKING;
         stdOutput("Status ist jetzt TALKING (" + status + ")\n");
     }
 
+    /**
+     * Liefert den eigenen Status.
+     *
+     * @return byte - Der eigene Status.
+     */
     public byte getStatus(){
-        return status;
+    return status;
     }
 
+    /**
+     * Setzt den entsprechenden Button auf TRUE
+     */
     public void setAcceptButtonTrue(){
-        jButtonAccept.setEnabled(true);
+    jButtonAccept.setEnabled(true);
     }
 
+    /**
+     * Setzt den entsprechenden Button auf FALSE
+     */
     public void setAcceptButtonFalse(){
         jButtonAccept.setEnabled(false);
     }
 
+    /**
+     * Setzt den entsprechenden Button auf TRUE
+     */
     public void setDenyButtonTrue(){
         jButtonDeny.setEnabled(true);
     }
 
+    /**
+     * Setzt den entsprechenden Button auf FALSE
+     */
     public void setDenyButtonFalse(){
         jButtonDeny.setEnabled(false);
     }
 
+    /**
+     * Setzt den entsprechenden Button auf TRUE
+     */
     public void setEndCallButtonTrue(){
         jButtonEndCall.setEnabled(true);
     }
 
+    /**
+     * Setzt den entsprechenden Button auf FALSE
+     */
     public void setEndCallButtonFalse(){
         jButtonEndCall.setEnabled(false);
     }
 
+    /**
+     * Ermittelt die eigene IP und gibt diese als String zurück.
+     *
+     * @return String - Die eigene IP
+     */
     private String getOwnIP(){
-        String ip = null;
+    String ip = null;
         try {
           InetAddress myIP = InetAddress.getLocalHost();
           ip = myIP.getHostAddress();
@@ -178,8 +236,13 @@ public class ThinClientGUI extends JFrame{
         return ip;
     }
 
+    /**
+     * Init-Methode um das Hauptfenster zu etablieren
+     *
+     * @throws Exception
+     */
     private void jbInit() throws Exception {
-        this.getContentPane().setLayout(gridBagLayout1);
+    this.getContentPane().setLayout(gridBagLayout1);
         this.setDefaultCloseOperation(HIDE_ON_CLOSE);
         jTextFieldMyIP.setMinimumSize(new Dimension(50, 21));
         jTextFieldMyIP.setText("127.0.0.1");
@@ -278,10 +341,19 @@ public class ThinClientGUI extends JFrame{
 
     }
 
+    /**
+     * Liefert den Scrollpane für den UserTree
+     *
+     * @return JScrollPane - darin wird der UserTree dargestellt
+     */
     public JScrollPane getTreeViewScrollPane(){
         return treeViewScrollPane;
     }
 
+    /**
+     * Löscht den momentan aktivierten Eintrag im UserTree
+     * @param e ActionEvent
+     */
     public void jButtonDeleteTreeEntry_actionPerformed(ActionEvent e) {
         userTreeGenerator.removeUserTreeEntry();
     }
@@ -307,29 +379,59 @@ public class ThinClientGUI extends JFrame{
     JButton jButtonDeleteAllEntries = new JButton();
     JButton jButtonAddEntries = new JButton();
 
+    /**
+     * Startet den Receiver-Stack und setzt den eigenen Status auf PICKUP
+     *
+     * @param e ActionEvent
+     */
     public void jButtonStartReceiver_actionPerformed(ActionEvent e) {
         receiver = new SIPReceiver(this, jTextFieldMyIP.getText());
         setStatusPICKUP();
         jButtonStartReceiver.setEnabled(false);
     }
 
+    /**
+     * Wenn das Fenster geschlossen wird, wird der SIPStack gelöscht und dann
+     * das Programm beendet
+     *
+     * @param e WindowEvent
+     */
     public void this_windowClosing(WindowEvent e) {
-        if(receiver != null) receiver.stopAndRemoveSIPStack();
+    if(receiver != null) receiver.stopAndRemoveSIPStack();
         System.exit(0);
     }
 
+    /**
+     * Button AcceptCall wurde gedrückt
+     *
+     * @param e ActionEvent
+     */
     public void jButtonAccept_actionPerformed(ActionEvent e) {
         acceptCall();
     }
 
+    /**
+     * Button DenyCall wurde gedrückt
+     *
+     * @param e ActionEvent
+     */
     public void jButtonDeny_actionPerformed(ActionEvent e) {
         denyCall();
     }
 
+    /**
+     * Button EndCall wurde gedrückt
+     *
+     * @param e ActionEvent
+     */
     public void jButtonEndCall_actionPerformed(ActionEvent e) {
         endCall();
     }
 
+    /**
+     * Ruft am SOAP-Server die Methode zum Annehmen eines Anrufs auf und setzt
+     * dann die Buttons dementsprechend.
+     */
     public void acceptCall() {
         try{
             methodCaller.callSOAPServer("acceptCall", getOwnIP(), null);
@@ -342,6 +444,10 @@ public class ThinClientGUI extends JFrame{
         setStatusTALKING();
     }
 
+    /**
+     * Ruft am SOAP-Server die Methode zum Ablehnen eines Anrufs auf und setzt
+     * dann die Buttons wieder dementsprechend.
+     */
     public void denyCall(){
         try{
             methodCaller.callSOAPServer("denyCall", getOwnIP(), null);
@@ -352,8 +458,12 @@ public class ThinClientGUI extends JFrame{
         setDenyButtonFalse();
     }
 
+    /**
+     * Ruft am SOAP-Server die Methode zum Beenden des Anrufs auf und setzt dann
+     * den eigenen Status wieder auf PICKUP
+     */
     public void endCall(){
-        try{
+    try{
             methodCaller.callSOAPServer("endCall", getOwnIP(), null);
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
@@ -362,22 +472,37 @@ public class ThinClientGUI extends JFrame{
         setStatusPICKUP();
     }
 
+    /**
+     * Setzt die entsrechenden Buttons true bzw. false, wenn der Anruf
+     * erfolgreich aufgebaut wurde.
+     */
     public void callEstablished(){
-        setAcceptButtonFalse();
+    setAcceptButtonFalse();
         setDenyButtonFalse();
         setEndCallButtonTrue();
         setStatusTALKING();
     }
 
+    /**
+     * Button zum Ein- bzw. Ausblenden des Textfensters wurde gedrückt
+     *
+     * @param e ActionEvent
+     */
     public void jButtonToggleOutputWindow_actionPerformed(ActionEvent e) {
         toggleOutputWindow();
     }
 
+    /**
+     * Legt eine neue Instanz des Textausgabefensters an und öffnet bzw.
+     * schließt es. Dabei wird die Beschriftung des zuständigen Buttons
+     * angepasst.
+     */
     public void toggleOutputWindow() {
-        if(outputWindow == null){
+    if(outputWindow == null){
             outputWindow = new Output(this);
             outputWindow.setSize(530, 600);
             outputWindow.setVisible(true);
+            outputWindow.stdOutput("eingeloggt als '" + loginName + "'");
             jButtonToggleOutputWindow.setText("Ausgabefenster schließen");
         } else if (outputWindow.isVisible() == false) {
             outputWindow.setVisible(true);
@@ -388,10 +513,21 @@ public class ThinClientGUI extends JFrame{
         }
     }
 
+    /**
+     * Setzt die Beschriftung des Buttons für Ein-/Ausblenden des Textausgabe-
+     * fensters. Wird benötigt, wenn Textfenster durch eigenen Button
+     * ausgeblendet wird.
+     * @param string String - der Text für den Button
+     */
     public void setToggleWindowButtonName(String string){
-        jButtonToggleOutputWindow.setText(string);
+    jButtonToggleOutputWindow.setText(string);
     }
 
+    /**
+     * Button zum Initialisieren eines Calls wurde gedrückt
+     *
+     * @param e ActionEvent
+     */
     public void jButtonInitCall_actionPerformed(ActionEvent e) {
         setStatusMAKECALL();
         try{
@@ -401,6 +537,11 @@ public class ThinClientGUI extends JFrame{
         }
     }
 
+    /**
+     * Button zum Anrufen wurde gedrückt
+     *
+     * @param e ActionEvent
+     */
     public void jButtonMakeCall_actionPerformed(ActionEvent e) {
         setStatusMAKECALL();
         try{
@@ -411,10 +552,20 @@ public class ThinClientGUI extends JFrame{
         }
     }
 
+    /**
+     * Button zum Löschen der Einträge wurde gedrückt
+     *
+     * @param e ActionEvent
+     */
     public void jButtonDeleteAllEntries_actionPerformed(ActionEvent e) {
-        userTreeGenerator.removeAllEntries();
+    userTreeGenerator.removeAllEntries();
     }
 
+    /**
+     * Button zum Hinzufügen von Einträgen wurde gedrückt
+     *
+     * @param e ActionEvent
+     */
     public void jButtonAddEntries_actionPerformed(ActionEvent e) {
         userTreeGenerator.addUserTreeEntry(null);
     }

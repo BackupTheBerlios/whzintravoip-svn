@@ -42,6 +42,10 @@ public class UserTreeGenerator {
         this.userGUI = userGUI;
     }
 
+    /**
+     * Initialisiert den JTree der User, die gerade online sind und bindet
+     * ihn in das Hauptfenster ein
+     */
     public void initTreeView()
     {
         root = new DefaultMutableTreeNode("Root");
@@ -84,8 +88,11 @@ public class UserTreeGenerator {
         );
     }
 
+    /**
+     * löscht den momentan selektierten Eintrag aus dem JTree
+     */
     public void removeUserTreeEntry(){
-        userGUI.stdOutput("löschen...");
+    userGUI.stdOutput("löschen...");
         TreePath tp = jTree.getLeadSelectionPath();
         DefaultMutableTreeNode node;
         node = (DefaultMutableTreeNode)tp.getLastPathComponent();
@@ -97,17 +104,24 @@ public class UserTreeGenerator {
         }
     }
 
+    /**
+     * Entfernt alle Einträge aus dem JTree der User
+     */
     public void removeAllEntries(){
-        int childCount = root.getChildCount();
-        userGUI.stdOutput("" + childCount);
+    int childCount = root.getChildCount();
         for (int i=childCount; i > 0; i--) {
             DefaultMutableTreeNode child = root.getNextNode();
             treeModel.removeNodeFromParent(child);
         }
     }
 
+    /**
+     * Fügt die im übergebenen Vector aufgelisteten User der JTree hinzu
+     *
+     * @param uuuuuserVector Vector die Userobjekte, welche momentan online sind
+     */
     public void addUserTreeEntry(Vector uuuuuserVector){
-        createDummyVector();
+    createDummyVector();
         for(Enumeration el = userVector.elements(); el.hasMoreElements();){
             String name = "Child - " + el.nextElement().toString();
             child = new DefaultMutableTreeNode(name);
@@ -115,8 +129,12 @@ public class UserTreeGenerator {
         }
     }
 
+    /**
+     * legt für Testzwecke einen Dummy-Vector an
+     * und füllt ihn mit einigen Werten
+     */
     private void createDummyVector(){
-        userVector = new Vector();
+    userVector = new Vector();
         userVector.addElement("a");
         userVector.addElement("b");
         userVector.addElement("c");
