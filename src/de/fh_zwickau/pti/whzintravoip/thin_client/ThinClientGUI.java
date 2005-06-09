@@ -4,6 +4,7 @@ import java.net.*;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.tree.*;
 
 import com.borland.jbcl.layout.*;
 import de.fh_zwickau.pti.whzintravoip.thin_client.sip_comm.*;
@@ -32,12 +33,13 @@ import java.awt.GridBagLayout;
  */
 public class ThinClientGUI extends JFrame{
 
-    private String soapServerIP = "192.168.0.4";
-    private String ipToCall =     "192.168.0.2";
+    private String soapServerIP = "141.32.28.226";
+    private String ipToCall =     "141.32.28.227";
 
     private SIPReceiver receiver = null;
     private Output outputWindow = null;
     private SOAPMethodCaller methodCaller = null;
+    private UserTreeGenerator userTreeGenerator = null;
 
     private static final byte LOGIN    = 1;
     private static final byte PICKUP   = 2;
@@ -47,19 +49,21 @@ public class ThinClientGUI extends JFrame{
     private static final byte TALKING  = 6;
     private byte status = LOGIN; // Login, Pickup, Incoming, MakeCall, Calling, Talking
 
-/**
-    private enum Status {
-        LOGIN, PICKUP, INCOMING, MAKECALL, CALLING, TALKING;
-    }
+//    private enum Status {
+//        LOGIN, PICKUP, INCOMING, MAKECALL, CALLING, TALKING;
+//    }
 
-    private Status status2 = Status.LOGIN;
- */
+//    private Status status2 = Status.LOGIN;
 
+    private JTree jTree = null;
     private DefaultMutableTreeNode root = null;
+    private DefaultMutableTreeNode child = null;
+    private DefaultMutableTreeNode subchild = null;
     private DefaultTreeModel treeModel = null;
     private TreePath m_currentTreePath = null;
-    private JEditorPane Output = new JEditorPane();
-    private JTree treeView = new JTree();
+    private JEditorPane userInfoField = new JEditorPane();
+
+    private String loginName = null;
 
     public ThinClientGUI() {
         try {
@@ -67,18 +71,18 @@ public class ThinClientGUI extends JFrame{
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        loginName = System.getProperty("user.name");
         this.setSize(500, 700);
-//        Dimension minimumSize = new Dimension(540, 350);
-//        this.setMinimumSize(minimumSize);
+        this.setMinimumSize(new Dimension(540, 350));
         this.setLocation(764, 2);
         jTextFieldMyIP.setText(getOwnIP());
         methodCaller = new SOAPMethodCaller(
             this,
             "http://" + soapServerIP + ":8080/soap/servlet/rpcrouter",
             "urn:sip_server:soapserver:appscope");
-//        toggleOutputWindow();
         setStatusLogin();
-        initTreeView();
+        userTreeGenerator = new UserTreeGenerator(null, this);
+        userTreeGenerator.initTreeView();
     }
 
     public static void main(String[] args) {
@@ -97,6 +101,11 @@ public class ThinClientGUI extends JFrame{
         if(outputWindow != null){
             outputWindow.errOutput(err);
         }
+    }
+
+    public void showUserInfo(String string){
+//        jUserInfoField.setText("");
+        jUserInfoField.setText(string);
     }
 
     public void setStatusLogin(){
@@ -170,15 +179,9 @@ public class ThinClientGUI extends JFrame{
     }
 
     private void jbInit() throws Exception {
-        this.setMinimumSize(new Dimension(540, 350));
         this.getContentPane().setLayout(gridBagLayout1);
         this.setDefaultCloseOperation(HIDE_ON_CLOSE);
         jTextFieldMyIP.setMinimumSize(new Dimension(50, 21));
-        //        jButtonStartReceiver.setBorder(titledBorder3);
-//        jButtonStartReceiver.setMargin(new Insets(2, 2, 2, 2));
-//        jButtonStartReceiver.setText("Wait for Call");
-//        jButtonStartReceiver.addActionListener(new
-//                ThinClientGUI_jButtonStartReceiver_actionAdapter(this));
         jTextFieldMyIP.setText("127.0.0.1");
         jLabel1.setText("My IP");
         this.addWindowListener(new ThinClientGUI_this_windowAdapter(this));
@@ -206,13 +209,20 @@ public class ThinClientGUI extends JFrame{
         jButtonStartReceiver.addActionListener(new
                 ThinClientGUI_jButtonStartReceiver_actionAdapter(this));
         jScrollPane1.setPreferredSize(new Dimension(40, 40));
+        jUserInfoField.setEditable(false);
+        jUserInfoField.setText("");
+        jButtonDeleteTreeEntry.setText("löschen");
+        jButtonDeleteTreeEntry.addActionListener(new
+                ThinClientGUI_jButtonDeleteTreeEntry_actionAdapter(this));
+        jButtonDeleteAllEntries.setText("alles löschen");
+        jButtonDeleteAllEntries.addActionListener(new
+                ThinClientGUI_jButtonDeleteAllEntries_actionAdapter(this));
+        jButtonAddEntries.setText("Add Entries");
+        jButtonAddEntries.addActionListener(new
+                ThinClientGUI_jButtonAddEntries_actionAdapter(this));
         jSplitPane1.add(jScrollPane1, JSplitPane.RIGHT);
-        jScrollPane1.getViewport().add(Output);
+        jScrollPane1.getViewport().add(jUserInfoField);
         jSplitPane1.add(treeViewScrollPane, JSplitPane.LEFT);
-        this.getContentPane().add(jLabel1,
-                                  new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0
-                , GridBagConstraints.WEST, GridBagConstraints.NONE,
-                new Insets(10, 0, 0, 0), 10, 3));
         this.getContentPane().add(jButtonEndCall,
                                   new GridBagConstraints(2, 3, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
@@ -249,45 +259,31 @@ public class ThinClientGUI extends JFrame{
                                   new GridBagConstraints(4, 0, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.NONE,
                 new Insets(10, 10, 10, 10), 50, 10));
-        root = new DefaultMutableTreeNode("Root");
-        treeModel = new DefaultTreeModel(root);
+        this.getContentPane().add(jLabel1,
+                                  new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.EAST, GridBagConstraints.NONE,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jButtonDeleteTreeEntry,
+                                  new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
+                new Insets(0, 0, 0, 0), 0, 0));
+        this.getContentPane().add(jButtonDeleteAllEntries,
+                                  new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
+                new Insets(0, 0, 0, 0), 0, 0));
+        this.getContentPane().add(jButtonAddEntries,
+                                  new GridBagConstraints(2, 2, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
+                new Insets(0, 0, 0, 0), 0, 0));
+
     }
 
-    /**
-     * init the scrollpane and the JTree and set the valueChanged Listener
-     */
-    public void initTreeView()
-    {
-      //jTree1 = new JTree();
-      TreeSelectionModel tsm = new DefaultTreeSelectionModel();
-      tsm.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        treeViewScrollPane.setPreferredSize(new Dimension(300, 150));
+    public JScrollPane getTreeViewScrollPane(){
+        return treeViewScrollPane;
     }
 
-    public void fillOutputPage()
-    {
-        switch (m_currentTreePath.getPathCount()) {
-        case 1:
-            // The selected Index ist the Root
-//            Output.setText((String) m_vTemplates.get(0));
-            Output.setText("bla 1");
-            break;
-        case 2:
-            // The selected Index is a manufacturer
-//            this.parseManufacturersPage();
-            Output.setText("bla 1");
-            break;
-        case 3:
-            // The selected Index is a SerialID Group
-            Output.setText("bla 1");
-            break;
-        case 4:
-            // The selected Index is a leaf, which means it is a mobile device
-//            this.parseOutputPage();
-            Output.setText("bla 1");
-            break;
-        }
-        Output.setText("bla 1");
+    public void jButtonDeleteTreeEntry_actionPerformed(ActionEvent e) {
+        userTreeGenerator.removeUserTreeEntry();
     }
 
     JTextField jTextFieldMyIP = new JTextField();
@@ -306,6 +302,10 @@ public class ThinClientGUI extends JFrame{
     JSplitPane jSplitPane1 = new JSplitPane();
     JScrollPane jScrollPane1 = new JScrollPane();
     GridBagLayout gridBagLayout1 = new GridBagLayout();
+    JTextArea jUserInfoField = new JTextArea();
+    JButton jButtonDeleteTreeEntry = new JButton();
+    JButton jButtonDeleteAllEntries = new JButton();
+    JButton jButtonAddEntries = new JButton();
 
     public void jButtonStartReceiver_actionPerformed(ActionEvent e) {
         receiver = new SIPReceiver(this, jTextFieldMyIP.getText());
@@ -409,6 +409,52 @@ public class ThinClientGUI extends JFrame{
         }catch(Exception ex){
             setStatusPICKUP();
         }
+    }
+
+    public void jButtonDeleteAllEntries_actionPerformed(ActionEvent e) {
+        userTreeGenerator.removeAllEntries();
+    }
+
+    public void jButtonAddEntries_actionPerformed(ActionEvent e) {
+        userTreeGenerator.addUserTreeEntry(null);
+    }
+}
+
+
+class ThinClientGUI_jButtonAddEntries_actionAdapter implements ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jButtonAddEntries_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButtonAddEntries_actionPerformed(e);
+    }
+}
+
+
+class ThinClientGUI_jButtonDeleteAllEntries_actionAdapter implements
+        ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jButtonDeleteAllEntries_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButtonDeleteAllEntries_actionPerformed(e);
+    }
+}
+
+
+class ThinClientGUI_jButtonDeleteTreeEntry_actionAdapter implements
+        ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jButtonDeleteTreeEntry_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButtonDeleteTreeEntry_actionPerformed(e);
     }
 }
 
