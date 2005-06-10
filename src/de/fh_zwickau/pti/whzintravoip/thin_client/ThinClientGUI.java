@@ -567,7 +567,8 @@ public class ThinClientGUI extends JFrame{
      * @param e ActionEvent
      */
     public void jButtonAddEntries_actionPerformed(ActionEvent e) {
-        userTreeGenerator.addUserTreeEntry(null);
+//        userTreeGenerator.addUserTreeEntry(null);
+        userTreeGenerator.addUserTreeEntries(null);
     }
 }
 

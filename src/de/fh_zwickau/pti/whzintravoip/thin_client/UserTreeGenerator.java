@@ -1,4 +1,5 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
+import de.fh_zwickau.pti.whzintravoip.db_access.*;
 
 import java.util.*;
 import javax.swing.JScrollPane;
@@ -27,6 +28,7 @@ import javax.swing.event.TreeSelectionListener;
 public class UserTreeGenerator {
 
     private Vector userVector = null;
+    private Vector userVector2 = null;
     private ThinClientGUI userGUI = null;
     private JTree jTree = null;
     private DefaultMutableTreeNode root = null;
@@ -79,7 +81,7 @@ public class UserTreeGenerator {
             public void valueChanged(TreeSelectionEvent event) {
                 TreePath tp = event.getNewLeadSelectionPath();
                 if (tp != null) {
-                    userGUI.showUserInfo("Selektiert: " + tp.toString());
+                    userGUI.showUserInfo(getUserInfos(tp.toString()));
                 } else {
                     userGUI.showUserInfo("nix selektiert");
                 }
@@ -120,10 +122,11 @@ public class UserTreeGenerator {
      *
      * @param uuuuuserVector Vector die Userobjekte, welche momentan online sind
      */
-    public void addUserTreeEntry(Vector uuuuuserVector){
-    createDummyVector();
-        for(Enumeration el = userVector.elements(); el.hasMoreElements();){
-            String name = "Child - " + el.nextElement().toString();
+    public void addUserTreeEntries(Vector uuuuuserVector){
+        createDummyUsers();
+        for(Enumeration el = userVector2.elements(); el.hasMoreElements();){
+            User user = (User)el.nextElement();
+            String name = user.getFname() + " " + user.getLname();
             child = new DefaultMutableTreeNode(name);
             treeModel.insertNodeInto(child, root, treeModel.getChildCount(root));
         }
@@ -131,14 +134,27 @@ public class UserTreeGenerator {
 
     /**
      * legt für Testzwecke einen Dummy-Vector an
-     * und füllt ihn mit einigen Werten
      */
-    private void createDummyVector(){
-    userVector = new Vector();
-        userVector.addElement("a");
-        userVector.addElement("b");
-        userVector.addElement("c");
-        userVector.addElement("d");
-        userVector.addElement("e");
+    private String getUserInfos(String fullName){
+        return "bla";
+    }
+
+    /**
+     * legt für Testzwecke einen Dummy-Vector an
+     * und füllt ihn mit einigen User-Objekten
+     */
+    private void createDummyUsers(){
+        userVector2 = new Vector();
+        for (int i=0; i<=5; ++i) {
+            User user = new User();
+            user.setIdUser(i);
+            user.setInitial("initial-" + i);
+            user.setMail("mail-" + i);
+            user.setMatrikel("matrikel-" + i);
+            user.setFname("fname-" + i);
+            user.setLname("lname-" + i);
+            user.setNick("ni-" + i);
+            userVector2.addElement(user);
+        }
     }
 }
