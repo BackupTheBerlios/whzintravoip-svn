@@ -28,13 +28,13 @@ import javax.swing.event.TreeSelectionListener;
 public class UserTreeGenerator {
 
     private Vector userVector = null;
-    private Vector userVector2 = null;
     private ThinClientGUI userGUI = null;
     private JTree jTree = null;
     private DefaultMutableTreeNode root = null;
     private DefaultMutableTreeNode child = null;
     private DefaultMutableTreeNode subchild = null;
     private DefaultTreeModel treeModel = null;
+    private String ipOfChoosenUser = null;
 
     public UserTreeGenerator() {
     }
@@ -52,6 +52,7 @@ public class UserTreeGenerator {
     {
         root = new DefaultMutableTreeNode("Root");
         treeModel = new DefaultTreeModel(root);
+        /**
         for(int i=1; i<=5; ++i){
             String name = "Child - " + i;
             child = new DefaultMutableTreeNode(name);
@@ -61,6 +62,8 @@ public class UserTreeGenerator {
                 child.add(subchild);
             }
         }
+        */
+        addUserTreeEntries(userVector);
 
         // Tree erzeugen
         jTree = new JTree(treeModel);
@@ -118,25 +121,61 @@ public class UserTreeGenerator {
     }
 
     /**
-     * Fügt die im übergebenen Vector aufgelisteten User der JTree hinzu
+     * Fügt die im übergebenen Vector aufgelisteten User dem JTree hinzu
      *
      * @param uuuuuserVector Vector die Userobjekte, welche momentan online sind
      */
     public void addUserTreeEntries(Vector uuuuuserVector){
         createDummyUsers();
-        for(Enumeration el = userVector2.elements(); el.hasMoreElements();){
+        for(Enumeration el = userVector.elements(); el.hasMoreElements();){
             User user = (User)el.nextElement();
-            String name = user.getFname() + " " + user.getLname();
+            String name = user.getFname() + " " + user.getLname() + " (" + user.getInitial() + ")";
             child = new DefaultMutableTreeNode(name);
             treeModel.insertNodeInto(child, root, treeModel.getChildCount(root));
         }
     }
 
     /**
-     * legt für Testzwecke einen Dummy-Vector an
+     * Ließt die Userdaten aus dem UserVector für den User aus, welcher im JTree
+     * selektiert wurde. Daraus wird das Login-Kürzel extrahiert, dieses im
+     * UserVector gesucht und die entsprechenden Daten werden angezeigt.
+     * Der übergebene Name setzt sich wie folgt zusammen:
+     * "Max Mustermann (MaMu)". Dabei wird der Ausdruck zwischen den Klammern
+     * extrahiert und ausgewertet.
+     *
+     * @param fullName String - der angeklickte Eintrag aus dem JTree
+     * @return String - der komplette Info-String
      */
     private String getUserInfos(String fullName){
-        return "bla";
+        User user = null;
+        Enumeration el = userVector.elements();
+        while(el.hasMoreElements()){
+            User dummyUser = (User)el.nextElement();
+            StringTokenizer tokenizer = new StringTokenizer(fullName, "()");
+            String loginName = null;
+            try{
+                // erstes Token ist der volle Name
+                loginName = tokenizer.nextToken();
+                // dieses Token ist das Login-Kürzel
+                loginName = tokenizer.nextToken();
+            }catch(NoSuchElementException ex){
+            }
+            if (loginName.equals(dummyUser.getInitial())) {
+                user = dummyUser;
+                break;
+            }
+        }
+        if (user != null) {
+            ipOfChoosenUser = "123.123.123.123";
+            String choosenUser = "Name:\t" + user.getFname()
+                                 + "\nVorname:\t" + user.getLname()
+                                 + "\nEmail:\t" + user.getMail()
+                                 + "\nMatrikel:\t" + user.getMatrikel();
+            return choosenUser;
+        } else {
+            ipOfChoosenUser = null;
+            return "Kein User gefunden";
+        }
     }
 
     /**
@@ -144,7 +183,7 @@ public class UserTreeGenerator {
      * und füllt ihn mit einigen User-Objekten
      */
     private void createDummyUsers(){
-        userVector2 = new Vector();
+        userVector = new Vector();
         for (int i=0; i<=5; ++i) {
             User user = new User();
             user.setIdUser(i);
@@ -154,7 +193,11 @@ public class UserTreeGenerator {
             user.setFname("fname-" + i);
             user.setLname("lname-" + i);
             user.setNick("ni-" + i);
-            userVector2.addElement(user);
+            userVector.addElement(user);
         }
+    }
+
+    public String getIPOfChoosenUser(){
+        return ipOfChoosenUser;
     }
 }

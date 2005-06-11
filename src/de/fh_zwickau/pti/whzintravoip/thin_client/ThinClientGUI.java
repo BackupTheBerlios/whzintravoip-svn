@@ -545,7 +545,7 @@ public class ThinClientGUI extends JFrame{
     public void jButtonMakeCall_actionPerformed(ActionEvent e) {
         setStatusMAKECALL();
         try{
-            methodCaller.callSOAPServer("makeCall", getOwnIP(), null);
+            methodCaller.callSOAPServer("makeCall", getOwnIP(), userTreeGenerator.getIPOfChoosenUser());
             setStatusTALKING();
         }catch(Exception ex){
             setStatusPICKUP();
