@@ -92,7 +92,7 @@ public class SOAPServerImpl implements SOAPServer {
         logger.info("Register User with IP: " + userIP + " and Token " + userToken);
         // LDAP request with userToken
         logger.info("Getting User Properties from LDAP Server!");
-        Properties userProbs = this.m_LDAPRequest.getUserProbs(userToken);
+        Properties userProbs = this.m_LDAPRequest.getUserProps(userToken);
         // Build the User Object with the Probs from the LDAP Request
         logger.info("Build User Object and Map it!");
         User regUser = new User(userProbs);
