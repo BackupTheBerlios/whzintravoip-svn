@@ -103,7 +103,7 @@ public class IntraVoIP_main  extends JFrame{
     }
 
     public void jButtonLDAPTest_actionPerformed(ActionEvent e) {
-        TestConnect testConnect = new TestConnect();
+        LDAPConnectionTest testConnect = new LDAPConnectionTest();
         testConnect.main(null);
     }
 }
