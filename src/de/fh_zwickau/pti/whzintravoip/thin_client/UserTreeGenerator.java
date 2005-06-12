@@ -97,7 +97,7 @@ public class UserTreeGenerator {
      * löscht den momentan selektierten Eintrag aus dem JTree
      */
     public void removeUserTreeEntry(){
-    userGUI.stdOutput("löschen...");
+        userGUI.stdOutput("löschen...");
         TreePath tp = jTree.getLeadSelectionPath();
         DefaultMutableTreeNode node;
         node = (DefaultMutableTreeNode)tp.getLastPathComponent();
@@ -113,7 +113,7 @@ public class UserTreeGenerator {
      * Entfernt alle Einträge aus dem JTree der User
      */
     public void removeAllEntries(){
-    int childCount = root.getChildCount();
+        int childCount = root.getChildCount();
         for (int i=childCount; i > 0; i--) {
             DefaultMutableTreeNode child = root.getNextNode();
             treeModel.removeNodeFromParent(child);
