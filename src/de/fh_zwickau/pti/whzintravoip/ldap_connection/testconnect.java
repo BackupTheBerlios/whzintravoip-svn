@@ -4,7 +4,7 @@ import java.util.*;
 
 import de.fh_zwickau.pti.whzintravoip.sip_server.ldapconn.*;
 
-public class testconnect {
+public class TestConnect {
     private static String m_sUser_inits = "sip_server.user.USER_INITIAL";
     private static String m_sUser_fname = "sip_server.user.USER_FNAME";
     private static String m_sUser_lname = "sip_server.user.USER_LNAME";
