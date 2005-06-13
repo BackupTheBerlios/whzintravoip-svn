@@ -20,15 +20,32 @@ public class PlayTunes {
     private boolean m_bDebug = true;
 
     // the Sounds
-    private String m_sRing = "file:///../../../../s1.wav";
+    private String m_sRing = "file:///s1.wav";
 
     // Now work on
     public PlayTunes() {
-        playRing();
+        initRing();
+                playRing();
     }
 
     public static void main(String[] args) {
         new PlayTunes();
+    }
+
+
+    /**
+     * Play the ringing.
+     */
+    public void playRing() {
+        m_Player.start();
+    }
+
+    /**
+     * Stop Ringing on ackknowledge call before sounds finished.
+     */
+    public void stopRing() {
+        m_Player.stop();
+        close_Player();
     }
 
     /**
@@ -54,13 +71,13 @@ public class PlayTunes {
     /**
      * Create a Player over JMF Api to play some ringing tune.
      */
-    public void playRing() {
+    private void initRing() {
         try {
             m_Player = Manager.createRealizedPlayer(new MediaLocator(m_sRing));
             m_Player.addControllerListener(new ControllerAdapter() {
                 public void endOfMedia(EndOfMediaEvent e) {
                     m_Player.stop();
-                        close_Player();
+                    close_Player();
                 }
             });
 
@@ -68,7 +85,6 @@ public class PlayTunes {
             errMsg("Error during playRing: " + ex.getMessage());
         }
         infMsg("Player init!");
-        m_Player.start();
     }
 
     /**
@@ -76,11 +92,11 @@ public class PlayTunes {
      */
     private void close_Player() {
         if (m_Player != null) {
-            try{
+            try {
                 m_Player.deallocate();
                 m_Player.close();
-             infMsg("Player closed!");
-            }catch (Exception ex){
+                infMsg("Player closed!");
+            } catch (Exception ex) {
                 errMsg("Error while closing Player: " + ex.getMessage());
             }
         } else {
