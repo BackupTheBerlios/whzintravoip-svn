@@ -74,6 +74,12 @@ public class SOAPServerImpl implements SOAPServer {
         this.initSipServer();
     }
 
+    /**
+     * Init the SIPPacketCaller on startup or better first use. This means
+     * the SIPPacketCaller initiate the SIPStack and the Factorys for later use.
+     *
+     * @return String Just a Comment
+     */
     private String initSipServer()
     {
         logger.info("Init SIP started!");
@@ -87,15 +93,23 @@ public class SOAPServerImpl implements SOAPServer {
         return new String("Init SIP sucessful!");
     }
 
-    public String registerUser(String userIP, String userToken)
+    /**
+     * The ThinClient will use the Method to register himself oder better his
+     * user to the Server.
+     *
+     * @param userIP String The IP from the thinclient user
+     * @param userToken String The users token.
+     * @return String Just a Comment
+     */
+    public String registerUser(User regUser)
     {
-        logger.info("Register User with IP: " + userIP + " and Token " + userToken);
+        logger.info("Register User with IP: " + regUser.getUserIP() + " and Initial " + regUser.getUserInitial());
         // LDAP request with userToken
         logger.info("Getting User Properties from LDAP Server!");
-        Properties userProbs = this.m_LDAPRequest.getUserProps(userToken);
+        Properties ldapProps = this.m_LDAPRequest.getUserProps(regUser.getUserInitial());
         // Build the User Object with the Probs from the LDAP Request
         logger.info("Build User Object and Map it!");
-        User regUser = new User(userProbs);
+        regUser.setLDAPProps(ldapProps);
         // Map the User Object to Database with Hibernate
         try {
             this.m_UserMapping.mapUserObject(regUser);
@@ -109,47 +123,6 @@ public class SOAPServerImpl implements SOAPServer {
     }
 
     /**
-     * Add the Users with the INVITER and the RECIPIENT Role to the UserManager.
-     * With the Data from the Hibernate Database.
-     *
-     * @param fromIP String the IP from the user who want to init a session
-     * @param toIP String the IP from the other user who want to be invited
-     * @return String Just a simple logging back to ThinClient
-     */
-    public String initCall(User aUser)
-    {
-        logger.info("Test: IP " + aUser.getUserIP() + " Name " + aUser.getUserName());
-        /**
-        Properties inviterProbs = new Properties();
-        inviterProbs.setProperty("sip_server.user.USER_IP", inviterIP);
-        inviterProbs.setProperty("sip_server.user.USER_NAME", "Harald");
-        inviterProbs.setProperty("sip_server.user.SIP_ADDRESS", "Harald@Schaf");
-        inviterProbs.setProperty("sip_server.user.SCREEN_NAME", "Mähhh");
-        inviterProbs.setProperty("sip_server.user.ROLE", User.INVITER);
-        inviterProbs.setProperty("sip_server.user.STATUS", User.PICKUP);
-        // add the User with the Inviter role
-
-        logger.info("Added User " + "Harald" + " with IP: " + inviterIP + " as Inviter!");
-        this.m_UserManager.addNewUser(inviterProbs);
-        // add the User with the Recipient role
-        Properties recipientProbs = new Properties();
-        inviterProbs.setProperty("sip_server.user.USER_IP", inviterIP);
-        inviterProbs.setProperty("sip_server.user.USER_NAME", "Harald");
-        inviterProbs.setProperty("sip_server.user.SIP_ADDRESS", "Harald@Schaf");
-        inviterProbs.setProperty("sip_server.user.SCREEN_NAME", "Mähhh");
-        inviterProbs.setProperty("sip_server.user.ROLE", User.INVITER);
-        inviterProbs.setProperty("sip_server.user.STATUS", User.PICKUP);
-        this.m_UserManager.addNewUser(recipientProbs);
-
-        logger.info("Added User " + "Mist" + " with IP: " + inviterIP + " as Recipient!");
-        m_mUserIPMap.put(inviterIP, recipientIP);
-
-        //this.initCall(recipientIP);
-        //logger.info("Init Call ended!");*/
-        return new String("init Call sucessful!");
-    }
-
-    /**
      * Processing the Invite with the m_SIPPacketCaller object which was saved
      * in the init process. If the the users IP is unknown there is something
      * wrong --> exit.
@@ -158,7 +131,7 @@ public class SOAPServerImpl implements SOAPServer {
      * @return String Just a simple logging back to ThinClient
      */
 
-    public String makeCall(String inviterIP, String recipientIP)
+    public String processCall(String inviterIP, String recipientIP)
     {
         // Init the Call, get the User Objects and place them in UserManager
         logger.info("Get the User Objects from Database!");
@@ -202,35 +175,52 @@ public class SOAPServerImpl implements SOAPServer {
             }
         } else return new String("Inviter oder Recipient ist not known!");
         logger.info("Make Call ended!");
+
+        // If all is going well we can now refresh the state of the Users
+        // in the UserManager
         logger.info("Set Users to new Status");
         if(this.m_UserManager.setUserStatusFromIP(inviterIP, User.CALLING))
-            logger.info("Status from Inviter succesfully set to CALLING!");
+            logger.info("Status from Inviter successfully set to CALLING!");
         else logger.error("Set Inviter to CALLING failed!");
         if(this.m_UserManager.setUserStatusFromIP(recipientIP, User.INCOMING))
-            logger.info("Status from Recipient succesfully set to INCOMING!");
+            logger.info("Status from Recipient successfully set to INCOMING!");
         else logger.error("Set Recipient to INCOMING failed!");
+
+        // in the User Database
+        try {
+            if (this.m_UserMapping.updateUserWithIP(inviterIP, User.CALLING))
+                logger.info("Updated Inviter successfully to CALLING (Database)");
+            else logger.info("Update Inviter to CALLING failed");
+            if (this.m_UserMapping.updateUserWithIP(recipientIP, User.INCOMING))
+                logger.info("Updated Recipient successfully to INCOMING (Database)");
+            else logger.info("Update Recipient to INCOMING failed");
+        } catch (Exception ex) {
+            logger.error("Error close Session during Update: " + ex.toString());
+        }
         return new String("make Call sucessful!");
     }
 
-    public String acceptCall(String RecipientIP)
+    /**
+     * The thinclient will use this method to accept the Call of an
+     * Inviter. The ThinClient who calls this is in the recipient Role.
+     * A ACK will be send to the inviter thinclient and if all ist going well
+     * the thinclients will be in state TALKING.
+     *
+     * @param inviterIP String The one who has send the INVITE
+     * @param recipientIP String The one who has pressed the Button ACCEPT
+     * @return String Just a Comment
+     */
+
+    public String acceptCall(String inviterIP, String recipientIP)
     {
-        m_SIPPacketCaller = null;
-        if(m_mUserIPMap.containsValue(RecipientIP))
+        if(this.m_UserManager.containsUserWithIP(inviterIP))
         {
             logger.info("Accept Call started!");
-            Set entries = m_mUserIPMap.entrySet();
-            Iterator it = entries.iterator();
-            while (it.hasNext()) {
-                Map.Entry entry = (Map.Entry) it.next();
-                if(entry.getValue().equals(RecipientIP))
-                {
-                    m_SIPPacketCaller = (ServerSipCallerImpl) m_mUserCallerMap.get(entry.getKey());
-                    m_SIPPacketCaller.setRecipientIPforRequest((String) entry.getKey());
-                    logger.info("Accept Call with Recipient: " + RecipientIP);
-                    logger.info("Accept Call with Inviter:   " + entry.getKey());
-                    logger.info("Accept Call with SIPStack: " + m_SIPPacketCaller.getSipStackAdress());
-                }
-            }
+            m_SIPPacketCaller.setRecipientIPforRequest(inviterIP);
+            logger.info("Accept Call with Recipient: " + recipientIP);
+            logger.info("Accept Call with Inviter:   " + inviterIP);
+            logger.info("Accept Call with SIPStack: " +
+                        m_SIPPacketCaller.getSipStackAdress());
         } else return new String("Recipient not known!");
         try {
             m_SIPPacketCaller.sendRequest("ACK");
@@ -239,11 +229,35 @@ public class SOAPServerImpl implements SOAPServer {
             return new String("Error during acceptCall(): " + ex.toString());
         }
         logger.info("Accept Call ended!");
+
+        // If all is going well refresh state of the Users
+        // In the UserManager
+        logger.info("Set Users to new Status");
+        if(this.m_UserManager.setUserStatusFromIP(inviterIP, User.TALKING))
+            logger.info("Status from Inviter succesfully set to TALKING!");
+        else logger.error("Set Inviter to TALKING failed!");
+        if(this.m_UserManager.setUserStatusFromIP(recipientIP, User.TALKING))
+            logger.info("Status from Recipient succesfully set to TALKING!");
+        else logger.error("Set Recipient to TALKING failed!");
+
+        // in the database
+        try {
+            if (this.m_UserMapping.updateUserWithIP(inviterIP, User.TALKING))
+                logger.info("Updated Inviter successfully to TALKING (Database)");
+            else logger.info("Update Inviter to TALKING failed");
+            if (this.m_UserMapping.updateUserWithIP(recipientIP, User.TALKING))
+                logger.info("Updated Recipient successfully to TALKING (Database)");
+            else logger.info("Update Recipient to TALKING failed");
+        } catch (Exception ex) {
+            logger.error("Error close Session during Update: " + ex.toString());
+        }
         return new String("Accept Call succesful");
     }
 
-    public String denyCall(String fromIP, boolean isInviter)
+    public String denyCall(String fromIP, String toIP)
     {
+
+        /**
         logger.info("Deny Call started!");
         if(isInviter)
         {
@@ -279,7 +293,7 @@ public class SOAPServerImpl implements SOAPServer {
             }
 
         }
-
+        */
         logger.info("CANCEL with SIPStack: " +
                     m_SIPPacketCaller.getSipStackAdress());
         try {
@@ -293,44 +307,16 @@ public class SOAPServerImpl implements SOAPServer {
         return new String("deny Call succesful");
     }
 
-    public String endCall(String fromIP, boolean isInviter) {
+    public String endCall(String fromIP, String toIP) {
         logger.info("End Call started!");
-        if (isInviter) {
-            logger.info("End Call from Inviter with IP: " + fromIP);
-            if (m_mUserIPMap.containsKey(fromIP)) {
-                logger.info("Inviter verified!");
-                m_SIPPacketCaller = (ServerSipCallerImpl) m_mUserCallerMap.
-                                    get(fromIP);
-                m_SIPPacketCaller.setRecipientIPforRequest((String)
-                        m_mUserIPMap.get(fromIP));
-                logger.info("Send BYE to IPAdress: " +
-                            (String) m_mUserIPMap.get(fromIP));
-            } else {
-                return new String("Your InviterIP is not registered! " + fromIP);
-            }
+        if (this.m_UserManager.containsUserWithIP(fromIP) &&
+            this.m_UserManager.containsUserWithIP(toIP)) {
+            logger.info("Send BYE to IPAdress: " + toIP);
+            m_SIPPacketCaller.setRecipientIPforRequest(toIP);
         } else {
-            logger.info("End Call from Recipient with IP: " + fromIP);
-            if (m_mUserIPMap.containsValue(fromIP)) {
-                logger.info("Recipient verified!");
-                Set entries = m_mUserIPMap.entrySet();
-                Iterator it = entries.iterator();
-                while (it.hasNext()) {
-                    Map.Entry entry = (Map.Entry) it.next();
-                    if (entry.getValue().equals(fromIP)) {
-                        m_SIPPacketCaller = (ServerSipCallerImpl)
-                                            m_mUserCallerMap.get(entry.getKey());
-                        m_SIPPacketCaller.setRecipientIPforRequest((String)
-                                entry.getKey());
-                        logger.info("Send BYE to IPAdress: " + entry.getKey());
-                    }
-                }
-            } else {
-                return new String("Your RecipientIP ist not registered! " +
-                                  fromIP);
-            }
-
+            return new String(
+                    "The Users for the giben IP's cannot found in the UserManager!");
         }
-
         logger.info("BYE with SIPStack: " +
                     m_SIPPacketCaller.getSipStackAdress());
         try {
@@ -341,6 +327,25 @@ public class SOAPServerImpl implements SOAPServer {
         }
         logger.info("End Call ended!");
 
+        // If all is going well, we can now delete the Users from UserManager
+        if(this.m_UserManager.removeUser(this.m_UserManager.getUserFromIP(fromIP)))
+            logger.info("User with IP " + fromIP + " successfully removed!");
+        else logger.error("Error removing User with IP " + fromIP);
+        if(this.m_UserManager.removeUser(this.m_UserManager.getUserFromIP(toIP)))
+            logger.info("User with IP " + toIP + " succesfully removed!");
+        else logger.error("Error removing User with IP " + toIP);
+
+        // Update the states for the user in the database
+        try {
+            if (this.m_UserMapping.updateUserWithIP(fromIP, User.PICKUP))
+                logger.info("Updated FromIP successfully to PICKUP (Database)");
+            else logger.info("Update FromIP to PICKUP failed");
+            if (this.m_UserMapping.updateUserWithIP(toIP, User.PICKUP))
+                logger.info("Updated ToIP successfully to PICKUP (Database)");
+            else logger.info("Update ToIP to PICKUP failed");
+        } catch (Exception ex) {
+            logger.error("Error close Session during Update: " + ex.toString());
+        }
         return new String("End Call succesful!");
     }
 

@@ -8,6 +8,21 @@ import org.apache.log4j.PropertyConfigurator;
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 import java.util.Iterator;
 
+/**
+ *
+ * <p>Überschrift: User Mapping Class</p>
+ *
+ * <p>Beschreibung: This Class will be used to map / get User Objects to / from
+ * the Database via Hibernate.</p>
+ *
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ * <p>Organisation: </p>
+ *
+ * @author Knight / Blurb
+ * @version 0.0.1
+ */
+
 public class UserMapping {
 
     /**
@@ -15,17 +30,36 @@ public class UserMapping {
      */
     private static final Logger logger = Logger.getLogger("PacketCaller.log");
 
+    /**
+     * Session Factory
+     */
+    private SessionFactory sessionFactory;
 
+    /**
+     * init the Logger and init the sessionFactory
+     */
     public UserMapping() {
         PropertyConfigurator.configure("/log4j.properties");
+        try {
+            logger.info("Initializing Hibernate!");
+            sessionFactory = new Configuration().configure().
+                             buildSessionFactory();
+            logger.info("Finished Initializing Hibernate!");
+        } catch (HibernateException ex) {
+            logger.error("Error initializing Hibernate: " + ex.toString());
+        }
     }
 
+    /**
+     * Map a User Object to Database.
+     *
+     * @param aUser User The user which you want to map.
+     * @return boolean Is everything going right?
+     * @throws Exception
+     */
     public boolean mapUserObject(User aUser) throws Exception {
         Session session = null;
         try {
-            // This step will read hibernate.cfg.xml and prepare hibernate for use
-            SessionFactory sessionFactory = new Configuration().configure().
-                                            buildSessionFactory();
             session = sessionFactory.openSession();
             //Create new instance of Contact and set values in it by reading them from form object
             logger.info("Inserting User to Database");
@@ -42,14 +76,19 @@ public class UserMapping {
         return true;
     }
 
+    /**
+     * Get the User Object from database specified by his userIP.
+     *
+     * @param userIP String The userIP from the desired User Object
+     * @return User The desired User Object
+     * @throws Exception
+     */
     public User getUserWithIp(String userIP) throws Exception {
         Session session = null;
         Transaction trx = null;
         User user = null;
         logger.info("Gettin User from Database with IP: " + userIP);
         try {
-            SessionFactory sessionFactory = new Configuration().configure().
-                                            buildSessionFactory();
             session = sessionFactory.openSession();
             trx = session.beginTransaction();
             String hql =
@@ -65,13 +104,63 @@ public class UserMapping {
             if (trx != null) {
                 try {
                     trx.rollback();
-                } catch (HibernateException exRb) {}
+                } catch (HibernateException exRb) {
+                    logger.error("Error during getUserWithIP: " + exRb.toString());
+                    return null;
+                }
             }
-            throw new RuntimeException(ex.getMessage());
+            return null;
         } finally {
             session.flush();
             session.close();
         }
+        logger.info("Getting User successful!");
         return user;
+    }
+
+    /**
+     * Update a UserObject to a new State.
+     *
+     * @param userIP String The userIP of the UserObject you want to update.
+     * @param newState String The desired new state of the UserObject
+     * @return boolean Is everything going right?
+     * @throws Exception
+     */
+    public boolean updateUserWithIP(String userIP, String newState)
+            throws Exception
+    {
+        Session session = null;
+        Transaction trx = null;
+        logger.info("Update User from Database with IP: " + userIP + " to state: " + newState);
+        try {
+            session = sessionFactory.openSession();
+            trx = session.beginTransaction();
+            String hql =
+                    "select user from User as user where user.userip = :userip";
+            Query query = session.createQuery(hql);
+            query.setString("userip", userIP);
+            Iterator it = query.iterate();
+            if (it.hasNext()) {
+                User user = (User) it.next();
+                user.setStatus(newState);
+                session.update(user);
+            }
+            trx.commit();
+        } catch (HibernateException ex) {
+            if (trx != null) {
+                try {
+                    trx.rollback();
+                } catch (HibernateException exRb) {
+                    logger.error("Error during updateUserWithIP: " + exRb.toString());
+                    return false;
+                }
+            }
+            return false;
+        } finally {
+            session.flush();
+            session.close();
+        }
+        logger.info("Getting User successful!");
+        return true;
     }
 }

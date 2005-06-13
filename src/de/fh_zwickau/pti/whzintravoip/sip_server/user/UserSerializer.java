@@ -1,14 +1,26 @@
 package de.fh_zwickau.pti.whzintravoip.sip_server.user;
 
-import org.apache.soap.util.xml.*;
+import java.io.*;
+
+import org.apache.soap.encoding.soapenc.*;
 import org.apache.soap.rpc.*;
-import java.io.Writer;
-import org.apache.soap.encoding.soapenc.SoapEncUtils;
-import java.io.IOException;
-import org.apache.soap.util.StringUtils;
-import org.apache.soap.util.Bean;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
+import org.apache.soap.util.*;
+import org.apache.soap.util.xml.*;
+
+/**
+ *
+ * <p>Überschrift: Serializer for UserObjects</p>
+ *
+ * <p>Beschreibung: A Serializer must overwrite the Serializer Interface and
+ * must implement a No Argument Constructor.</p>
+ *
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ * <p>Organisation: </p>
+ *
+ * @author blurb
+ * @version 0.0.1
+ */
 
 public class UserSerializer extends Object implements Serializer {
 
@@ -38,21 +50,85 @@ public class UserSerializer extends Object implements Serializer {
         //obtaining the User object out of the argument
         User user = (User) src;
         String userIP = user.getUserIP();
-        String userName = user.getUserName();
+        String sipName = user.getSipName();
+
 
         if(userIP != null)
         {
             xjmr.marshall(inScopeEncStyle,
                           String.class,
-                          userIP,
+                          user.getUserIP(),
                           "userIP",
                           sink,
                           nsStack,
                           ctx);
             xjmr.marshall(inScopeEncStyle,
                           String.class,
-                          userName,
-                          "userName",
+                          user.getUserInitial(),
+                          "userInitial",
+                          sink,
+                          nsStack,
+                          ctx);
+            xjmr.marshall(inScopeEncStyle,
+                          String.class,
+                          user.getUserFName(),
+                          "userFName",
+                          sink,
+                          nsStack,
+                          ctx);
+            xjmr.marshall(inScopeEncStyle,
+                          String.class,
+                          user.getUserLName(),
+                          "userLName",
+                          sink,
+                          nsStack,
+                          ctx);
+            xjmr.marshall(inScopeEncStyle,
+                          String.class,
+                          user.getUserCompany(),
+                          "userCompany",
+                          sink,
+                          nsStack,
+                          ctx);
+            xjmr.marshall(inScopeEncStyle,
+                          String.class,
+                          user.getUserMail(),
+                          "userMail",
+                          sink,
+                          nsStack,
+                          ctx);
+            xjmr.marshall(inScopeEncStyle,
+                          String.class,
+                          user.getSipName(),
+                          "sipName",
+                          sink,
+                          nsStack,
+                          ctx);
+            xjmr.marshall(inScopeEncStyle,
+                          String.class,
+                          user.getSipAddress(),
+                          "sipAddress",
+                          sink,
+                          nsStack,
+                          ctx);
+            xjmr.marshall(inScopeEncStyle,
+                          String.class,
+                          user.getSipScreenName(),
+                          "sipScreenName",
+                          sink,
+                          nsStack,
+                          ctx);
+            xjmr.marshall(inScopeEncStyle,
+                          String.class,
+                          user.getRole(),
+                          "role",
+                          sink,
+                          nsStack,
+                          ctx);
+            xjmr.marshall(inScopeEncStyle,
+                          String.class,
+                          user.getStatus(),
+                          "status",
                           sink,
                           nsStack,
                           ctx);

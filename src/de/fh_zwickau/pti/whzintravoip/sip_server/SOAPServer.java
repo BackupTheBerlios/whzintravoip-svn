@@ -3,10 +3,9 @@ package de.fh_zwickau.pti.whzintravoip.sip_server;
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 
 public interface SOAPServer {
-    public String initCall(User aUser);
-    public String makeCall(String inviterIP, String recipientIP);
-    public String acceptCall(String recipientIP);
-    public String denyCall(String fromIP, boolean isInviter);
-    public String endCall(String fromIP, boolean isInviter);
-    public String testDB();
+    public String registerUser(User regUser);
+    public String processCall(String inviterIP, String recipientIP);
+    public String acceptCall(String inviterIP, String recipientIP);
+    public String denyCall(String fromIP, String toIP);
+    public String endCall(String fromIP, String toIP);
 }
