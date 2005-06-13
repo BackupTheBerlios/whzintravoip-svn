@@ -4,6 +4,8 @@ import org.apache.soap.rpc.*;
 import org.apache.soap.util.*;
 import org.apache.soap.util.xml.*;
 import org.w3c.dom.*;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 /**
  *
@@ -22,7 +24,14 @@ import org.w3c.dom.*;
 
 public class UserDeserializer extends Object implements Deserializer {
 
+    /**
+     * Init the logger named PacketCaller.log
+     */
+    private static final Logger logger = Logger.getLogger("PacketCaller.log");
+
+
     public UserDeserializer() {
+         PropertyConfigurator.configure("/log4j.properties");
     }
 
     public Bean unmarshall(String inScopeEncStyle,
@@ -32,6 +41,7 @@ public class UserDeserializer extends Object implements Deserializer {
                            SOAPContext ctx)
             throws IllegalArgumentException
     {
+        logger.info("Starting Deserializing!");
         // Creating an Instance of the User Oject
         User user = new User();
         Element userElement = (Element) src;
@@ -140,6 +150,7 @@ public class UserDeserializer extends Object implements Deserializer {
             }
             childElement = DOMUtils.getNextSiblingElement(childElement);
         }
+        logger.info("Deserializing finished!");
         return new Bean(User.class, user);
     }
 

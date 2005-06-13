@@ -75,7 +75,6 @@ public class Client {
             System.err.println("SOAPException= " + e.getFaultCode() + ", " +
                                e.getMessage());
         }
-
     }
 
     /**

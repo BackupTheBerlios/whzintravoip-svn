@@ -6,6 +6,8 @@ import org.apache.soap.encoding.soapenc.*;
 import org.apache.soap.rpc.*;
 import org.apache.soap.util.*;
 import org.apache.soap.util.xml.*;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 /**
  *
@@ -24,7 +26,14 @@ import org.apache.soap.util.xml.*;
 
 public class UserSerializer extends Object implements Serializer {
 
+    /**
+     * Init the logger named PacketCaller.log
+     */
+    private static final Logger logger = Logger.getLogger("PacketCaller.log");
+
+
     public UserSerializer() {
+        PropertyConfigurator.configure("/log4j.properties");
     }
 
     public void marshall(String inScopeEncStyle,
@@ -37,6 +46,7 @@ public class UserSerializer extends Object implements Serializer {
                          SOAPContext ctx)
             throws IllegalArgumentException, IOException
     {
+        logger.info("Serializing started!");
         //pushing the Scope
         nsStack.pushScope();
         //generating the header structure
@@ -49,11 +59,7 @@ public class UserSerializer extends Object implements Serializer {
         sink.write(StringUtils.lineSeparator);
         //obtaining the User object out of the argument
         User user = (User) src;
-        String userIP = user.getUserIP();
-        String sipName = user.getSipName();
-
-
-        if(userIP != null)
+        if(user != null)
         {
             xjmr.marshall(inScopeEncStyle,
                           String.class,
@@ -136,6 +142,7 @@ public class UserSerializer extends Object implements Serializer {
         }
         // closing the element
         sink.write("</" + context + ">");
+        logger.info("Serializing finished!");
     }
 
 

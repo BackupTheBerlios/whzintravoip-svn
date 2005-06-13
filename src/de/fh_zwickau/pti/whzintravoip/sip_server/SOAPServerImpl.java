@@ -107,10 +107,22 @@ public class SOAPServerImpl implements SOAPServer {
         logger.info("Register User with IP: " + regUser.getUserIP() + " and Initial " + regUser.getUserInitial());
         // LDAP request with userToken
         logger.info("Getting User Properties from LDAP Server!");
-        Properties ldapProps = this.m_LDAPRequest.getUserProps(regUser.getUserInitial());
+        logger.info("Object specified by: ");
+        logger.info("UserIP: " + regUser.getUserIP());
+        logger.info("UserInitial : " + regUser.getUserInitial());
+        logger.info("UserFName: " + regUser.getUserFName());
+        logger.info("UserLName: " + regUser.getUserLName());
+        logger.info("UserCompany: " + regUser.getUserCompany());
+        logger.info("UserMail: " + regUser.getUserMail());
+        logger.info("SipName: " + regUser.getSipName());
+        logger.info("SipAddress: " + regUser.getSipAddress());
+        logger.info("SipScreenName: " + regUser.getSipScreenName());
+        logger.info("Role: " + regUser.getRole());
+        logger.info("Status: " + regUser.getStatus());
+        //Properties ldapProps = this.m_LDAPRequest.getUserProps(regUser.getUserInitial());
         // Build the User Object with the Probs from the LDAP Request
         logger.info("Build User Object and Map it!");
-        regUser.setLDAPProps(ldapProps);
+        //regUser.setLDAPProps(ldapProps);
         // Map the User Object to Database with Hibernate
         try {
             this.m_UserMapping.mapUserObject(regUser);
