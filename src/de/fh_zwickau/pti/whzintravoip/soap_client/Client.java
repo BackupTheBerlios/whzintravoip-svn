@@ -31,7 +31,7 @@ public class Client {
 
     public static void main(String[] args) throws Exception {
         try {
-            makeUserTest();
+            //makeUserTest();
 
             //makeDBTest();
 
@@ -78,6 +78,7 @@ public class Client {
 
     }
 
+    /**
     public static void makeUserTest() throws
             Exception {
         URL url = new URL("http://localhost:8080/soap/servlet/rpcrouter");
@@ -101,6 +102,8 @@ public class Client {
                               "sheepy",
                               User.INVITER,
                               User.PICKUP);
+
+
         params.addElement(new Parameter("aUser", User.class, aUser, null));
         //params.addElement(new Parameter("RecipiantIP", String.class, otherIP, null));
         call.setParams(params);
@@ -123,7 +126,7 @@ public class Client {
         }
 
     }
-
+*/
 
     public static void makeDBTest() throws
             Exception {

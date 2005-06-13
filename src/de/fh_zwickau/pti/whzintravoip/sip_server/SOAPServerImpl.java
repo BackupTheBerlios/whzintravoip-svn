@@ -54,6 +54,7 @@ public class SOAPServerImpl implements SOAPServer {
      */
     public static UserManager m_UserManager= new UserManager();
 
+
     public static HashMap m_mUserIPMap = new HashMap();
 
     /**
