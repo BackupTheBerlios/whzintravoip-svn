@@ -18,14 +18,21 @@ public class PlayTunes {
 
     private Player m_Player = null;
     private boolean m_bDebug = true;
+    private ThinClientGUI userGUI = null;
 
     // the Sounds
-    private String m_sRing = "file:///s1.wav";
+//    private String m_sRing = "file:///s1.wav";
+    private String m_sRing = "file://D:/Coding/Java/WHZIntraVoIP/s1.wav";
 
     // Now work on
     public PlayTunes() {
         initRing();
-                playRing();
+        playRing();
+    }
+
+    public PlayTunes(ThinClientGUI userGUI) {
+        this.userGUI = userGUI;
+        initRing();
     }
 
     public static void main(String[] args) {
@@ -55,6 +62,8 @@ public class PlayTunes {
     private void errMsg(String msg) {
         if (m_bDebug) {
             System.out.println(msg);
+        }else{
+            userGUI.errOutput(msg);
         }
     }
 
@@ -65,6 +74,8 @@ public class PlayTunes {
     private void infMsg(String msg) {
         if (m_bDebug) {
             System.out.println(msg);
+        }else{
+            userGUI.stdOutput(msg);
         }
     }
 

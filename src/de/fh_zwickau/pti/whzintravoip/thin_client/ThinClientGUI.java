@@ -30,6 +30,7 @@ public class ThinClientGUI extends JFrame{
     private Output outputWindow = null;
     private SOAPMethodCaller methodCaller = null;
     private UserTreeGenerator userTreeGenerator = null;
+    private PlayTunes playTunes = null;
 
     private static final byte LOGIN    = 1;
     private static final byte PICKUP   = 2;
@@ -66,13 +67,17 @@ public class ThinClientGUI extends JFrame{
         this.setMinimumSize(new Dimension(540, 350));
         this.setLocation(764, 2);
         jTextFieldMyIP.setText(getOwnIP());
+        // SOAP-Caller initialisieren
         methodCaller = new SOAPMethodCaller(
             this,
             "http://" + soapServerIP + ":8080/soap/servlet/rpcrouter",
             "urn:sip_server:soapserver:appscope");
         setStatusLogin();
+        // User-Tree bauen
         userTreeGenerator = new UserTreeGenerator(null, this);
         userTreeGenerator.initTreeView();
+        // Ringtone-Player initialisieren
+        playTunes = new PlayTunes(this);
     }
 
     /**
@@ -236,6 +241,10 @@ public class ThinClientGUI extends JFrame{
         return ip;
     }
 
+    public void playRingTone(){
+        playTunes.playRing();
+    }
+
     /**
      * Init-Methode um das Hauptfenster zu etablieren
      *
@@ -355,7 +364,8 @@ public class ThinClientGUI extends JFrame{
      * @param e ActionEvent
      */
     public void jButtonDeleteTreeEntry_actionPerformed(ActionEvent e) {
-        userTreeGenerator.removeUserTreeEntry();
+//        userTreeGenerator.removeUserTreeEntry();
+        playRingTone();
     }
 
     JTextField jTextFieldMyIP = new JTextField();

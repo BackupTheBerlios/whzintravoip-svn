@@ -250,6 +250,8 @@ public class SIPReceiver implements SipListener {
             userGUI.setStatusINCOMING();
             userGUI.setAcceptButtonTrue();
             userGUI.setDenyButtonTrue();
+            //** @todo wiederholtes Abspielen des Ringtones */
+            userGUI.playRingTone();
         } else if (this.request.getMethod().equals(Request.ACK)) {
             userGUI.stdOutput("\nACK empfangen\n");
             userGUI.callEstablished();
