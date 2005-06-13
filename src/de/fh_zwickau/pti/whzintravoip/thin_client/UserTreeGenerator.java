@@ -1,5 +1,5 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
-import de.fh_zwickau.pti.whzintravoip.db_access.*;
+import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 
 import java.util.*;
 import javax.swing.JScrollPane;
@@ -125,11 +125,10 @@ public class UserTreeGenerator {
      *
      * @param uuuuuserVector Vector die Userobjekte, welche momentan online sind
      */
-    public void addUserTreeEntries(Vector uuuuuserVector){
-        createDummyUsers();
+    public void addUserTreeEntries(Vector userVector){
         for(Enumeration el = userVector.elements(); el.hasMoreElements();){
             User user = (User)el.nextElement();
-            String name = user.getFname() + " " + user.getLname() + " (" + user.getInitial() + ")";
+            String name = user.getUserFName() + " " + user.getUserLName() + " (" + user.getUserInitial() + ")";
             child = new DefaultMutableTreeNode(name);
             treeModel.insertNodeInto(child, root, treeModel.getChildCount(root));
         }
@@ -160,40 +159,21 @@ public class UserTreeGenerator {
                 loginName = tokenizer.nextToken();
             }catch(NoSuchElementException ex){
             }
-            if (loginName.equals(dummyUser.getInitial())) {
+            if (loginName.equals(dummyUser.getUserInitial())) {
                 user = dummyUser;
                 break;
             }
         }
         if (user != null) {
             ipOfChoosenUser = "123.123.123.123";
-            String choosenUser = "Name:\t" + user.getFname()
-                                 + "\nVorname:\t" + user.getLname()
-                                 + "\nEmail:\t" + user.getMail()
-                                 + "\nMatrikel:\t" + user.getMatrikel();
+            String choosenUser = "Name:\t" + user.getUserFName()
+                                 + "\nVorname:\t" + user.getUserLName()
+                                 + "\nEmail:\t" + user.getUserMail()
+                                 + "\nMatrikel:\t" + user.getUserCompany();
             return choosenUser;
         } else {
             ipOfChoosenUser = null;
             return "Kein User gefunden";
-        }
-    }
-
-    /**
-     * legt für Testzwecke einen Dummy-Vector an
-     * und füllt ihn mit einigen User-Objekten
-     */
-    private void createDummyUsers(){
-        userVector = new Vector();
-        for (int i=0; i<=5; ++i) {
-            User user = new User();
-            user.setIdUser(i);
-            user.setInitial("initial-" + i);
-            user.setMail("mail-" + i);
-            user.setMatrikel("matrikel-" + i);
-            user.setFname("fname-" + i);
-            user.setLname("lname-" + i);
-            user.setNick("ni-" + i);
-            userVector.addElement(user);
         }
     }
 
