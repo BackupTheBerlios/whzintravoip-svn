@@ -420,7 +420,10 @@ public class ThinClientGUI extends JFrame{
     public void jButtonDeleteTreeEntry_actionPerformed(ActionEvent e) {
 //        userTreeGenerator.removeUserTreeEntry();
 //        playRingTone();
-        createAndRegisterMe();
+//        createAndRegisterMe();
+            MessageWindow messageWindow = new MessageWindow();
+            messageWindow.setMessageText("Hurz - es klingelt!");
+            messageWindow.setVisible(true);
     }
 
     JTextField jTextFieldMyIP = new JTextField();
