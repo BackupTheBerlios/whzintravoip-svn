@@ -30,8 +30,12 @@ public class PlayTunes {
     // Now work on
     public PlayTunes() {
         // just for test, may be deleted if no longer need
-        /*initTune("file:///s2.wav", "ring", 2000);
-        playTune("ring");*/
+        /*initTune("file:///s1.wav", "ring0", 600);
+                 initTune("file:///s2.wav", "ring1", 200);
+                 initTune("file:///trick17.mp3", "ring2", 0);
+                 playTune("ring2");
+                 playTune("ring1");
+                 playTune("ring0");*/
     }
 
     /**
@@ -45,7 +49,7 @@ public class PlayTunes {
     // just for test, may be deleted if no longer need
     /*public static void main(String[] args) {
         new PlayTunes();
-    }*/
+         }*/
 
     /**
      * Start Playing.
@@ -53,16 +57,22 @@ public class PlayTunes {
      */
     public void playTune(String key) {
         this.m_sSoundKey = key;
+        // get the player outa map
         if (m_PlayerMap.containsKey(m_sSoundKey)) {
-            this.m_Player = (Player) m_PlayerMap.get(m_sSoundKey);
+            this.m_Player = ((TuneObject) m_PlayerMap.get(m_sSoundKey)).
+                            getPlayer();
+            if (m_Player != null) {
+                // start if found
+                m_Player.start();
+            } else {
+                this.m_Player = null;
+                errMsg(
+                        "Error during playTune -> No valid Player found for key: " +
+                        m_sSoundKey);
+            }
         } else {
             m_Player = null;
-        }
-        if (m_Player != null) {
-            this.m_Player = (Player) m_PlayerMap.get(m_sSoundKey);
-            m_Player.start();
-        } else {
-            errMsg("Error during playTune -> no Player found on key: " +
+            errMsg("Error during playTune -> No Player found on key: " +
                    m_sSoundKey);
         }
     }
@@ -73,16 +83,22 @@ public class PlayTunes {
      */
     public void stopTune(String key) {
         this.m_sSoundKey = key;
+        // get the player outa map
         if (m_PlayerMap.containsKey(m_sSoundKey)) {
-            this.m_Player = (Player) m_PlayerMap.get(m_sSoundKey);
+            this.m_Player = ((TuneObject) m_PlayerMap.get(m_sSoundKey)).
+                            getPlayer();
+            if (m_Player != null) {
+                // stop if found
+                m_Player.stop();
+            } else {
+                m_Player = null;
+                errMsg(
+                        "Error during stopTune -> No valid Player found on key: " +
+                        m_sSoundKey);
+            }
         } else {
             m_Player = null;
-        }
-        if (m_Player != null) {
-            this.m_Player = (Player) m_PlayerMap.get(m_sSoundKey);
-            m_Player.stop();
-        } else {
-            errMsg("Error during stopTune -> no Player found on key: " +
+            errMsg("Error during stopTune -> No Player found on key: " +
                    m_sSoundKey);
         }
     }
@@ -113,43 +129,64 @@ public class PlayTunes {
 
     /**
      * Create a Player over JMF Api to play some ringing tune.
+     * In Cause of more Players they got added to a hashmap for further access.
      * @param file String The Filename in Java norm
-     * @param key String The Player Key
-     * @param delay int Delay for playing endles than one times in millis
-     * @throws Exception
+     * @param key String The Player Key to find later
+     * @param delay int Delay for playing endles but one times in millis
      */
     public void initTune(String file, String key, int delay) {
         this.m_sFile = file;
         this.m_sSoundKey = key;
         this.m_iDelay = delay;
         try {
+            // create a new player with a controler sets an event for end of
+            // given media
             m_Player = Manager.createRealizedPlayer(new MediaLocator(m_sFile));
-            Time ti = m_Player.getMediaTime();
             m_Player.addControllerListener(new ControllerAdapter() {
                 public void endOfMedia(EndOfMediaEvent e) {
-                    boolean delay = true;
-                    if (m_iDelay != 0) {
+                    Player p = ((Player) e.getSourceController());
+                    TuneObject tu;
+                    // now iterate the map to get the player's delay the event's for
+                    Iterator it = m_PlayerMap.values().iterator();
+                    int delay = 0;
+                    while (it.hasNext()) {
+                        tu = (TuneObject) it.next();
+                        if ((tu.getPlayer()).equals(p)) {
+                            // the delay, on sero there's no repeat for this one
+                            delay = tu.getDelay();
+                        }
+                    }
+                    // test for repeat or not
+                    if (delay != 0) {
+                        // on repeat with delay
+                        p.stop();
                         long startTime = System.currentTimeMillis();
-                        m_Player.stop();
                         Time time = new Time(0);
-                        m_Player.setMediaTime(time);
-                        while (true) {
-                            if ((System.currentTimeMillis() - startTime) >
-                                m_iDelay) {
-                                m_Player.start();
-                                break;
+                        p.setMediaTime(time);
+
+                        /** @todo optimize the while for lesser resource allocation */
+                        synchronized (this) {
+                            while (true) {
+                                if ((System.currentTimeMillis() - startTime) >
+                                    delay) {
+                                    p.start();
+                                    break;
+                                }
                             }
                         }
                     } else {
-                        m_Player.stop();
+                        // theres no delay so we just got to stop playing
+                        p.stop();
                     }
                 }
             });
+            // now get the new player into the map (so here we got no errors while creating)
+            TuneObject tune = new TuneObject();
+            tune.setPlayer(m_Player);
+            tune.setDelay(m_iDelay);
+            m_PlayerMap.put(m_sSoundKey, tune);
         } catch (Exception ex) {
             errMsg("Error on initTune: " + ex.toString());
-        }
-        if (m_Player != null) {
-            m_PlayerMap.put(m_sSoundKey, m_Player);
         }
     }
 
@@ -159,21 +196,28 @@ public class PlayTunes {
      */
     public void close_Player(String key) {
         this.m_sSoundKey = key;
+        // get the player outa map
         if (m_PlayerMap.containsKey(m_sSoundKey)) {
-            this.m_Player = (Player) m_PlayerMap.get(m_sSoundKey);
-        } else {
-            m_Player = null;
-        }
-        if (m_Player != null) {
-            try {
-                m_Player.deallocate();
-                m_Player.close();
-                infMsg("Player closed!");
-            } catch (Exception ex) {
-                errMsg("Error while closing Player: " + ex.getMessage());
+            this.m_Player = ((TuneObject) m_PlayerMap.get(m_sSoundKey)).
+                            getPlayer();
+            if (m_Player != null) {
+                try {
+                    // finaly on exit we have to deallocate
+                    m_Player.deallocate();
+                    m_Player.close();
+                    infMsg("Player closed!");
+                } catch (Exception ex) {
+                    errMsg("Error while close_Player: " + ex.getMessage());
+                }
+            } else {
+                m_Player = null;
+                errMsg(
+                        "Error during close_Player -> No valid Player found for key: " +
+                        m_sSoundKey);
             }
         } else {
-            errMsg("No Player found for key: " + m_sSoundKey);
+            errMsg("Error during close_Player -> No Player found for key: " +
+                   m_sSoundKey);
         }
     }
 }
