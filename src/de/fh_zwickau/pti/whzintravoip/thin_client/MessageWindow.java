@@ -15,6 +15,8 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class MessageWindow extends JFrame {
     private int m_iSizeX = 330;
@@ -53,7 +55,11 @@ public class MessageWindow extends JFrame {
         this.getContentPane().setLayout(gridBagLayout1);
         jPanel1.setLayout(gridBagLayout2);
         jButtonLinks.setText("OK");
+        jButtonLinks.addActionListener(new
+                                       MessageWindow_jButtonLinks_actionAdapter(this));
         jButtonRechts.setText("Abbrechen");
+        jButtonRechts.addActionListener(new
+                MessageWindow_jButtonRechts_actionAdapter(this));
         jPanel1.add(jText, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0
                 , GridBagConstraints.WEST, GridBagConstraints.BOTH,
                 new Insets(10, 10, 10, 10), 0, 0));
@@ -69,5 +75,37 @@ public class MessageWindow extends JFrame {
         jPanel2.add(jButtonRechts);
         jText.setText("");
         jPanel1.setBorder(BorderFactory.createEtchedBorder());
+    }
+
+    public void jButtonLinks_actionPerformed(ActionEvent e) {
+        setVisible(false);
+    }
+
+    public void jButtonRechts_actionPerformed(ActionEvent e) {
+        setVisible(false);
+    }
+}
+
+
+class MessageWindow_jButtonRechts_actionAdapter implements ActionListener {
+    private MessageWindow adaptee;
+    MessageWindow_jButtonRechts_actionAdapter(MessageWindow adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButtonRechts_actionPerformed(e);
+    }
+}
+
+
+class MessageWindow_jButtonLinks_actionAdapter implements ActionListener {
+    private MessageWindow adaptee;
+    MessageWindow_jButtonLinks_actionAdapter(MessageWindow adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButtonLinks_actionPerformed(e);
     }
 }

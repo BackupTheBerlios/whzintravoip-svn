@@ -1,17 +1,13 @@
 package de.fh_zwickau.pti.whzintravoip;
 
+import java.awt.event.*;
+
+import javax.swing.*;
+
+import com.borland.jbcl.layout.*;
+import de.fh_zwickau.pti.whzintravoip.ldap_connection.*;
 import de.fh_zwickau.pti.whzintravoip.sip_connection.*;
 import de.fh_zwickau.pti.whzintravoip.thin_client.*;
-import de.fh_zwickau.pti.whzintravoip.ldap_connection.*;
-//import de.fh_zwickau.pti.whzintravoip.db_access.*;
-import javax.swing.JFrame;
-import com.borland.jbcl.layout.XYLayout;
-import com.borland.jbcl.layout.*;
-import javax.swing.JButton;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowAdapter;
 
 /**
  * <p>Überschrift: WHZIntraVoIP</p>
@@ -53,7 +49,7 @@ public class IntraVoIP_main  extends JFrame{
         this.getContentPane().setLayout(xYLayout1);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("VoIP Main Test Window");
-        jButtonCaller.setText("Start Caller");
+        jButtonCaller.setText("SIP-Tester");
         jButtonCaller.addActionListener(new
                 IntraVoIP_main_jButtonCaller_actionAdapter(this));
         jButtonReceiver.addActionListener(new
@@ -68,13 +64,14 @@ public class IntraVoIP_main  extends JFrame{
         jButtonLDAPTest.setText("Test LDAP");
         jButtonLDAPTest.addActionListener(new
                 IntraVoIP_main_jButtonLDAPTest_actionAdapter(this));
+        jButtonReceiver.setToolTipText("");
         this.getContentPane().add(jButtonCaller, new XYConstraints(11, 12, 116, 36));
         this.getContentPane().add(jButtonReceiver, new XYConstraints(11, 55, 116, 36));
         this.getContentPane().add(jButtonHib,
                                   new XYConstraints(10, 100, 163, 36));
         this.getContentPane().add(jButtonLDAPTest, new XYConstraints(11, 145, 116, 36));
 
-        jButtonReceiver.setText("Start Receiver");
+        jButtonReceiver.setText("Thin Client");
     }
 
     XYLayout xYLayout1 = new XYLayout();
