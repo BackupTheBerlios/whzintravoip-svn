@@ -1,18 +1,7 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
-import java.awt.*;
-import java.awt.event.*;
-import java.net.*;
-import java.util.*;
-
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.tree.*;
-
-import de.fh_zwickau.pti.whzintravoip.thin_client.sip_comm.*;
-import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 
 /**
- * <p>Überschrift: ThinClientGUI</p>
+ * <p>Überschrift: WHZIntraVoIP, ThinClientGUI</p>
  *
  * <p>Beschreibung: Oberfläche für den Client</p>
  *
@@ -23,22 +12,35 @@ import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
  * @author Y. Schumann ys@fh-zwickau.de
  * @version 0.0.1
  */
+
+import java.awt.*;
+import java.awt.event.*;
+import java.net.*;
+import java.util.*;
+
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.tree.*;
+
+import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
+
 public class ThinClientGUI extends JFrame{
 
-    private String soapServerIP = "192.168.0.7";
-    private String ipToCall =     "192.168.0.6";
-    private String mySIPAddress = "My SIP Address";
-    private String mySIPName = "SWF";
-    private String myScreenName = "StarWarsFan";
-    private String loginName = null;
+    private String m_sSOAPServerIP = "192.168.0.7";
+    private String m_sIPToCall     = "192.168.0.6";
+    private String m_sMySIPAddress = "My SIP Address";
+    private String m_sMySIPName    = "SWF";
+    private String m_sMyScreenName = "StarWarsFan";
+    private String m_sLoginName    = null;
 
-    private SIPReceiver receiver = null;
-    private Output outputWindow = null;
-    private SOAPMethodCaller methodCaller = null;
-    private UserTreeGenerator userTreeGenerator = null;
-    private PlayTunes playTunes = null;
-    private User myself = null;
-    private Vector userVector = null;
+    private SIPStack m_ThinClientSIPStack = null;
+    private Output m_OutputWindow = null;
+    private SOAPMethodCaller m_MethodCaller = null;
+    private UserTreeGenerator m_UserTreeGenerator = null;
+    private PlayTunes m_PlayTunes = null;
+    private User m_Myself = null;
+    private Vector m_UserVector = null;
+    private boolean m_bDebug = true;
 
     private static final byte LOGIN    = 1;
     private static final byte PICKUP   = 2;
@@ -46,7 +48,7 @@ public class ThinClientGUI extends JFrame{
     private static final byte MAKECALL = 4;
     private static final byte CALLING  = 5;
     private static final byte TALKING  = 6;
-    private byte status = LOGIN; // Login, Pickup, Incoming, MakeCall, Calling, Talking
+    private byte m_bStatus = LOGIN; // Login, Pickup, Incoming, MakeCall, Calling, Talking
 
 //    private enum Status {
 //        LOGIN, PICKUP, INCOMING, MAKECALL, CALLING, TALKING;
@@ -68,24 +70,24 @@ public class ThinClientGUI extends JFrame{
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        loginName = System.getProperty("user.name");
+        m_sLoginName = System.getProperty("user.name");
         this.setSize(500, 700);
         this.setMinimumSize(new Dimension(540, 350));
         this.setLocation(764, 2);
         jTextFieldMyIP.setText(getOwnIP());
 
         // SOAP-Caller initialisieren
-        methodCaller = new SOAPMethodCaller(
+        m_MethodCaller = new SOAPMethodCaller(
             this,
-            "http://" + soapServerIP + ":8080/soap/servlet/rpcrouter",
+            "http://" + m_sSOAPServerIP + ":8080/soap/servlet/rpcrouter",
             "urn:sip_server:soapserver:appscope",
             "de.fh_zwickau.pti.whzintravoip.sip_server.user.User");
         setStatusLogin();
 
         // User-Tree bauen
         createDummyUsers();
-        userTreeGenerator = new UserTreeGenerator(userVector, this);
-        userTreeGenerator.initTreeView();
+        m_UserTreeGenerator = new UserTreeGenerator(m_UserVector, this);
+        m_UserTreeGenerator.initTreeView();
 
         // Ringtone-Player initialisieren
 //        playTunes = new PlayTunes(this);
@@ -106,10 +108,13 @@ public class ThinClientGUI extends JFrame{
      *
      * @param std String - der auszugebende Text als String
      */
-    public void stdOutput(String std) {
-    //        jTextArea.append("Info: " + std + "\n");
-        if(outputWindow != null){
-            outputWindow.stdOutput(std);
+    public void stdOutput(String msg) {
+        //        jTextArea.append("Info: " + std + "\n");
+        if (m_bDebug == true) {
+            System.out.println("Info: " + msg);
+        }
+        if (m_OutputWindow != null) {
+            m_OutputWindow.stdOutput(msg);
         }
     }
 
@@ -120,9 +125,12 @@ public class ThinClientGUI extends JFrame{
      * @param err String - der auszugebende Text als String
      */
     public void errOutput(String err) {
-    //        jTextArea.append("Error: " + err + "\n");
-        if(outputWindow != null){
-            outputWindow.errOutput(err);
+        //        jTextArea.append("Error: " + err + "\n");
+        if (m_bDebug == true) {
+            System.out.println("Error: " + err);
+        }
+        if (m_OutputWindow != null) {
+            m_OutputWindow.errOutput(err);
         }
     }
 
@@ -140,48 +148,48 @@ public class ThinClientGUI extends JFrame{
      * Setzt den eigenen Status
      */
     public void setStatusLogin(){
-        status = LOGIN;
-        stdOutput("Status ist jetzt LOGIN (" + status + ")\n");
+        m_bStatus = LOGIN;
+        stdOutput("Status ist jetzt LOGIN (" + m_bStatus + ")\n");
     }
 
     /**
      * Setzt den eigenen Status
      */
     public void setStatusPICKUP(){
-        status = PICKUP;
-        stdOutput("Status ist jetzt PICKUP (" + status + ")\n");
+        m_bStatus = PICKUP;
+        stdOutput("Status ist jetzt PICKUP (" + m_bStatus + ")\n");
     }
 
     /**
      * Setzt den eigenen Status
      */
     public void setStatusINCOMING(){
-        status = INCOMING;
-        stdOutput("Status ist jetzt INCOMING (" + status + ")\n");
+        m_bStatus = INCOMING;
+        stdOutput("Status ist jetzt INCOMING (" + m_bStatus + ")\n");
     }
 
     /**
      * Setzt den eigenen Status
      */
     public void setStatusMAKECALL(){
-        status = MAKECALL;
-        stdOutput("Status ist jetzt MAKECALL (" + status + ")\n");
+        m_bStatus = MAKECALL;
+        stdOutput("Status ist jetzt MAKECALL (" + m_bStatus + ")\n");
     }
 
     /**
      * Setzt den eigenen Status
      */
     public void setStatusCALLING(){
-        status = CALLING;
-        stdOutput("Status ist jetzt CALLING (" + status + ")\n");
+        m_bStatus = CALLING;
+        stdOutput("Status ist jetzt CALLING (" + m_bStatus + ")\n");
     }
 
     /**
      * Setzt den eigenen Status
      */
     public void setStatusTALKING(){
-        status = TALKING;
-        stdOutput("Status ist jetzt TALKING (" + status + ")\n");
+        m_bStatus = TALKING;
+        stdOutput("Status ist jetzt TALKING (" + m_bStatus + ")\n");
     }
 
     /**
@@ -190,7 +198,7 @@ public class ThinClientGUI extends JFrame{
      * @return byte - Der eigene Status.
      */
     public byte getStatus(){
-        return status;
+        return m_bStatus;
     }
 
     /**
@@ -238,7 +246,7 @@ public class ThinClientGUI extends JFrame{
     private void createAndRegisterMe(){
         createMyIdentity();
         try{
-            methodCaller.registerMyselfAtServer("registerUser", myself, null);
+            m_MethodCaller.registerMyselfAtServer("registerUser", m_Myself, null);
         }catch(Exception ex){
             errOutput(ex.toString());
         }
@@ -250,12 +258,12 @@ public class ThinClientGUI extends JFrame{
     private void createMyIdentity(){
         Properties myProperties = new Properties();
         myProperties.setProperty("sip_server.user.USER_IP", getOwnIP());
-        myProperties.setProperty("sip_server.user.USER_INITIAL", loginName);
-        myProperties.setProperty("sip_server.user.SIP_ADDRESS", mySIPAddress);
-        myProperties.setProperty("sip_server.user.SIP_NAME", mySIPName);
-        myProperties.setProperty("sip_server.user.SCREEN_NAME", myScreenName);
-        myself = new User();
-        myself.setThinClientProps(myProperties);
+        myProperties.setProperty("sip_server.user.USER_INITIAL", m_sLoginName);
+        myProperties.setProperty("sip_server.user.SIP_ADDRESS", m_sMySIPAddress);
+        myProperties.setProperty("sip_server.user.SIP_NAME", m_sMySIPName);
+        myProperties.setProperty("sip_server.user.SCREEN_NAME", m_sMyScreenName);
+        m_Myself = new User();
+        m_Myself.setThinClientProps(myProperties);
     }
 
     /**
@@ -276,7 +284,7 @@ public class ThinClientGUI extends JFrame{
     }
 
     public void playRingTone(){
-        playTunes.playRing();
+        m_PlayTunes.playTune(null);
     }
 
     /**
@@ -287,6 +295,7 @@ public class ThinClientGUI extends JFrame{
     private void jbInit() throws Exception {
         this.getContentPane().setLayout(gridBagLayout1);
         this.setDefaultCloseOperation(HIDE_ON_CLOSE);
+        this.setJMenuBar(jMenuBar1);
         jTextFieldMyIP.setMinimumSize(new Dimension(50, 21));
         jTextFieldMyIP.setText("127.0.0.1");
         jLabel1.setText("My IP");
@@ -327,6 +336,12 @@ public class ThinClientGUI extends JFrame{
         jButtonAddEntries.setText("Add Entries");
         jButtonAddEntries.addActionListener(new
                 ThinClientGUI_jButtonAddEntries_actionAdapter(this));
+        jMenu1.setText("Datei");
+        jMenu2.setText("?");
+        jMenuExit.setText("Ende");
+        jMenuExit.addActionListener(new ThinClientGUI_jMenuExit_actionAdapter(this));
+        jMenuInfo.setText("Info");
+        jMenuInfo.addActionListener(new ThinClientGUI_jMenuInfo_actionAdapter(this));
         jSplitPane1.add(jScrollPane1, JSplitPane.RIGHT);
         jScrollPane1.getViewport().add(jUserInfoField);
         jSplitPane1.add(treeViewScrollPane, JSplitPane.LEFT);
@@ -382,6 +397,10 @@ public class ThinClientGUI extends JFrame{
                                   new GridBagConstraints(2, 2, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.NONE,
                 new Insets(0, 0, 0, 0), 0, 0));
+        jMenuBar1.add(jMenu1);
+        jMenuBar1.add(jMenu2);
+        jMenu1.add(jMenuExit);
+        jMenu2.add(jMenuInfo);
 
     }
 
@@ -424,6 +443,11 @@ public class ThinClientGUI extends JFrame{
     JButton jButtonDeleteTreeEntry = new JButton();
     JButton jButtonDeleteAllEntries = new JButton();
     JButton jButtonAddEntries = new JButton();
+    JMenuBar jMenuBar1 = new JMenuBar();
+    JMenu jMenu1 = new JMenu();
+    JMenu jMenu2 = new JMenu();
+    JMenuItem jMenuExit = new JMenuItem();
+    JMenuItem jMenuInfo = new JMenuItem();
 
     /**
      * Startet den Receiver-Stack und setzt den eigenen Status auf PICKUP
@@ -431,7 +455,7 @@ public class ThinClientGUI extends JFrame{
      * @param e ActionEvent
      */
     public void jButtonStartReceiver_actionPerformed(ActionEvent e) {
-        receiver = new SIPReceiver(this, jTextFieldMyIP.getText());
+        m_ThinClientSIPStack = new SIPStack(this, jTextFieldMyIP.getText());
         setStatusPICKUP();
         jButtonStartReceiver.setEnabled(false);
     }
@@ -443,7 +467,7 @@ public class ThinClientGUI extends JFrame{
      * @param e WindowEvent
      */
     public void this_windowClosing(WindowEvent e) {
-        if(receiver != null) receiver.stopAndRemoveSIPStack();
+        if(m_ThinClientSIPStack != null) m_ThinClientSIPStack.stopAndRemoveSIPStack();
         System.exit(0);
     }
 
@@ -480,7 +504,7 @@ public class ThinClientGUI extends JFrame{
      */
     public void acceptCall() {
         try{
-            methodCaller.callSOAPServer("acceptCall", getOwnIP(), null);
+            m_MethodCaller.callSOAPServer("acceptCall", getOwnIP(), null);
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
@@ -496,7 +520,7 @@ public class ThinClientGUI extends JFrame{
      */
     public void denyCall(){
         try{
-            methodCaller.callSOAPServer("denyCall", getOwnIP(), null);
+            m_MethodCaller.callSOAPServer("denyCall", getOwnIP(), null);
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
@@ -510,7 +534,7 @@ public class ThinClientGUI extends JFrame{
      */
     public void endCall(){
         try {
-            methodCaller.callSOAPServer("endCall", getOwnIP(), null);
+            m_MethodCaller.callSOAPServer("endCall", getOwnIP(), null);
         } catch (Exception ex) {
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
@@ -543,17 +567,17 @@ public class ThinClientGUI extends JFrame{
      * angepasst.
      */
     public void toggleOutputWindow() {
-        if(outputWindow == null){
-            outputWindow = new Output(this);
-            outputWindow.setSize(530, 600);
-            outputWindow.setVisible(true);
-            outputWindow.stdOutput("eingeloggt als '" + loginName + "'");
+        if(m_OutputWindow == null){
+            m_OutputWindow = new Output(this);
+            m_OutputWindow.setSize(530, 600);
+            m_OutputWindow.setVisible(true);
+            m_OutputWindow.stdOutput("eingeloggt als '" + m_sLoginName + "'");
             jButtonToggleOutputWindow.setText("Ausgabefenster schließen");
-        } else if (outputWindow.isVisible() == false) {
-            outputWindow.setVisible(true);
+        } else if (m_OutputWindow.isVisible() == false) {
+            m_OutputWindow.setVisible(true);
             jButtonToggleOutputWindow.setText("Ausgabefenster schließen");
         } else {
-            outputWindow.setVisible(false);
+            m_OutputWindow.setVisible(false);
             jButtonToggleOutputWindow.setText("Ausgabefenster öffnen");
         }
     }
@@ -576,7 +600,7 @@ public class ThinClientGUI extends JFrame{
     public void jButtonInitCall_actionPerformed(ActionEvent e) {
         setStatusMAKECALL();
         try{
-            methodCaller.callSOAPServer("initCall", getOwnIP(), ipToCall);
+            m_MethodCaller.callSOAPServer("initCall", getOwnIP(), m_sIPToCall);
         }catch(Exception ex){
             setStatusPICKUP();
         }
@@ -590,7 +614,7 @@ public class ThinClientGUI extends JFrame{
     public void jButtonMakeCall_actionPerformed(ActionEvent e) {
         setStatusMAKECALL();
         try{
-            methodCaller.callSOAPServer("processCall", getOwnIP(), userTreeGenerator.getIPOfChoosenUser());
+            m_MethodCaller.callSOAPServer("processCall", getOwnIP(), m_UserTreeGenerator.getIPOfChoosenUser());
             setStatusTALKING();
         }catch(Exception ex){
             setStatusPICKUP();
@@ -603,7 +627,7 @@ public class ThinClientGUI extends JFrame{
      * @param e ActionEvent
      */
     public void jButtonDeleteAllEntries_actionPerformed(ActionEvent e) {
-        userTreeGenerator.removeAllEntries();
+        m_UserTreeGenerator.removeAllEntries();
     }
 
     /**
@@ -612,15 +636,15 @@ public class ThinClientGUI extends JFrame{
      * @param e ActionEvent
      */
     public void jButtonAddEntries_actionPerformed(ActionEvent e) {
-//        userTreeGenerator.addUserTreeEntry(null);
-        userTreeGenerator.addUserTreeEntries(null);
+        m_UserTreeGenerator.addUserTreeEntries(m_UserVector);
     }
+
     /**
      * legt für Testzwecke einen Dummy-Vector an
      * und füllt ihn mit einigen User-Objekten
      */
     private void createDummyUsers(){
-        userVector = new Vector();
+        m_UserVector = new Vector();
         for (int i=0; i<=5; ++i) {
             User user = new User();
             user.setIdUser(i);
@@ -630,10 +654,44 @@ public class ThinClientGUI extends JFrame{
             user.setUserFName("FName-" + i);
             user.setUserLName("LName-" + i);
             user.setSipScreenName("SipScreenName-" + i);
-            userVector.addElement(user);
+            m_UserVector.addElement(user);
         }
     }
 
+    public void jMenuInfo_actionPerformed(ActionEvent e) {
+        stdOutput("Info!!!");
+    }
+
+    public void jMenuExit_actionPerformed(ActionEvent e) {
+        if(m_ThinClientSIPStack != null){
+            m_ThinClientSIPStack.stopAndRemoveSIPStack();
+        }
+        System.exit(0);
+    }
+}
+
+
+class ThinClientGUI_jMenuExit_actionAdapter implements ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jMenuExit_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jMenuExit_actionPerformed(e);
+    }
+}
+
+
+class ThinClientGUI_jMenuInfo_actionAdapter implements ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jMenuInfo_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jMenuInfo_actionPerformed(e);
+    }
 }
 
 

@@ -1,20 +1,7 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
-import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
-
-import java.util.*;
-import javax.swing.JScrollPane;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.tree.TreePath;
-import javax.swing.JTree;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.DefaultTreeSelectionModel;
-import java.awt.Dimension;
-import javax.swing.event.TreeSelectionListener;
 
 /**
- * <p>Überschrift: </p>
+ * <p>Überschrift: WHZIntraVoIP</p>
  *
  * <p>Beschreibung: </p>
  *
@@ -25,23 +12,33 @@ import javax.swing.event.TreeSelectionListener;
  * @author Y. Schumann yves.schumann@fh-zwickau.de
  * @version 0.0.1
  */
+
+import java.awt.*;
+import java.util.*;
+
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.tree.*;
+
+import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
+
 public class UserTreeGenerator {
 
-    private Vector userVector = null;
-    private ThinClientGUI userGUI = null;
-    private JTree jTree = null;
-    private DefaultMutableTreeNode root = null;
-    private DefaultMutableTreeNode child = null;
-    private DefaultMutableTreeNode subchild = null;
-    private DefaultTreeModel treeModel = null;
-    private String ipOfChoosenUser = null;
+    private Vector m_UserVector = null;
+    private ThinClientGUI m_UserGUI = null;
+    private JTree m_JTree = null;
+    private DefaultMutableTreeNode m_Root = null;
+    private DefaultMutableTreeNode m_Child = null;
+    private DefaultMutableTreeNode m_Subchild = null;
+    private DefaultTreeModel m_TreeModel = null;
+    private String m_sIPOfChoosenUser = null;
 
     public UserTreeGenerator() {
     }
 
     public UserTreeGenerator(Vector userVector, ThinClientGUI userGUI) {
-        this.userVector = userVector;
-        this.userGUI = userGUI;
+        this.m_UserVector = userVector;
+        this.m_UserGUI = userGUI;
     }
 
     /**
@@ -50,8 +47,8 @@ public class UserTreeGenerator {
      */
     public void initTreeView()
     {
-        root = new DefaultMutableTreeNode("Root");
-        treeModel = new DefaultTreeModel(root);
+        m_Root = new DefaultMutableTreeNode("Root");
+        m_TreeModel = new DefaultTreeModel(m_Root);
         /**
         for(int i=1; i<=5; ++i){
             String name = "Child - " + i;
@@ -63,30 +60,30 @@ public class UserTreeGenerator {
             }
         }
         */
-        addUserTreeEntries(userVector);
+        addUserTreeEntries(m_UserVector);
 
         // Tree erzeugen
-        jTree = new JTree(treeModel);
-        jTree.setRootVisible(true);
+        m_JTree = new JTree(m_TreeModel);
+        m_JTree.setRootVisible(true);
 
         // Selectionmode festlegen
         DefaultTreeSelectionModel defaultTreeSelectionModel = new DefaultTreeSelectionModel();
         defaultTreeSelectionModel.setSelectionMode(DefaultTreeSelectionModel.SINGLE_TREE_SELECTION);
-        jTree.setSelectionModel(defaultTreeSelectionModel);
+        m_JTree.setSelectionModel(defaultTreeSelectionModel);
 
         // Tree einfügen
-        userGUI.getTreeViewScrollPane().getViewport().add(new JScrollPane(jTree));
-        userGUI.getTreeViewScrollPane().setPreferredSize(new Dimension(300, 150));
+        m_UserGUI.getTreeViewScrollPane().getViewport().add(new JScrollPane(m_JTree));
+        m_UserGUI.getTreeViewScrollPane().setPreferredSize(new Dimension(300, 150));
 
         // TreeSelectionListener einfügen
-        jTree.addTreeSelectionListener(
+        m_JTree.addTreeSelectionListener(
                 new TreeSelectionListener() {
             public void valueChanged(TreeSelectionEvent event) {
                 TreePath tp = event.getNewLeadSelectionPath();
                 if (tp != null) {
-                    userGUI.showUserInfo(getUserInfos(tp.toString()));
+                    m_UserGUI.showUserInfo(getUserInfos(tp.toString()));
                 } else {
-                    userGUI.showUserInfo("nix selektiert");
+                    m_UserGUI.showUserInfo("nix selektiert");
                 }
             }
         }
@@ -97,15 +94,15 @@ public class UserTreeGenerator {
      * löscht den momentan selektierten Eintrag aus dem JTree
      */
     public void removeUserTreeEntry(){
-        userGUI.stdOutput("löschen...");
-        TreePath tp = jTree.getLeadSelectionPath();
+        m_UserGUI.stdOutput("löschen...");
+        TreePath tp = m_JTree.getLeadSelectionPath();
         DefaultMutableTreeNode node;
         node = (DefaultMutableTreeNode)tp.getLastPathComponent();
-        if (node != root) {
+        if (node != m_Root) {
             TreeNode parent = node.getParent();
-            TreeNode[] path = treeModel.getPathToRoot(parent);
-            treeModel.removeNodeFromParent(node);
-            jTree.setSelectionPath(new TreePath(path));
+            TreeNode[] path = m_TreeModel.getPathToRoot(parent);
+            m_TreeModel.removeNodeFromParent(node);
+            m_JTree.setSelectionPath(new TreePath(path));
         }
     }
 
@@ -113,24 +110,24 @@ public class UserTreeGenerator {
      * Entfernt alle Einträge aus dem JTree der User
      */
     public void removeAllEntries(){
-        int childCount = root.getChildCount();
+        int childCount = m_Root.getChildCount();
         for (int i=childCount; i > 0; i--) {
-            DefaultMutableTreeNode child = root.getNextNode();
-            treeModel.removeNodeFromParent(child);
+            DefaultMutableTreeNode child = m_Root.getNextNode();
+            m_TreeModel.removeNodeFromParent(child);
         }
     }
 
     /**
      * Fügt die im übergebenen Vector aufgelisteten User dem JTree hinzu
      *
-     * @param uuuuuserVector Vector die Userobjekte, welche momentan online sind
+     * @param userVector Vector die Userobjekte, welche momentan online sind
      */
     public void addUserTreeEntries(Vector userVector){
         for(Enumeration el = userVector.elements(); el.hasMoreElements();){
             User user = (User)el.nextElement();
             String name = user.getUserFName() + " " + user.getUserLName() + " (" + user.getUserInitial() + ")";
-            child = new DefaultMutableTreeNode(name);
-            treeModel.insertNodeInto(child, root, treeModel.getChildCount(root));
+            m_Child = new DefaultMutableTreeNode(name);
+            m_TreeModel.insertNodeInto(m_Child, m_Root, m_TreeModel.getChildCount(m_Root));
         }
     }
 
@@ -147,7 +144,7 @@ public class UserTreeGenerator {
      */
     private String getUserInfos(String fullName){
         User user = null;
-        Enumeration el = userVector.elements();
+        Enumeration el = m_UserVector.elements();
         while(el.hasMoreElements()){
             User dummyUser = (User)el.nextElement();
             StringTokenizer tokenizer = new StringTokenizer(fullName, "()");
@@ -165,19 +162,19 @@ public class UserTreeGenerator {
             }
         }
         if (user != null) {
-            ipOfChoosenUser = "123.123.123.123";
+            m_sIPOfChoosenUser = "123.123.123.123";
             String choosenUser = "Name:\t" + user.getUserFName()
                                  + "\nVorname:\t" + user.getUserLName()
                                  + "\nEmail:\t" + user.getUserMail()
                                  + "\nMatrikel:\t" + user.getUserCompany();
             return choosenUser;
         } else {
-            ipOfChoosenUser = null;
+            m_sIPOfChoosenUser = null;
             return "Kein User gefunden";
         }
     }
 
     public String getIPOfChoosenUser(){
-        return ipOfChoosenUser;
+        return m_sIPOfChoosenUser;
     }
 }

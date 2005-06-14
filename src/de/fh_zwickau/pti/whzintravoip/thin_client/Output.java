@@ -1,16 +1,7 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
 
-import javax.swing.*;
-
-import com.borland.jbcl.layout.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowAdapter;
-
 /**
- * <p>Überschrift: </p>
+ * <p>Überschrift: WHZIntraVoIP</p>
  *
  * <p>Beschreibung: </p>
  *
@@ -21,9 +12,15 @@ import java.awt.event.WindowAdapter;
  * @author Y. Schumann ys@fh-zwickau.de
  * @version 0.0.1
  */
+
+import java.awt.*;
+import java.awt.event.*;
+
+import javax.swing.*;
+
 public class Output extends JFrame{
 
-    ThinClientGUI userGUI = null;
+    private ThinClientGUI m_UserGUI = null;
 
     public Output(ThinClientGUI gui) {
         try {
@@ -31,7 +28,7 @@ public class Output extends JFrame{
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        this.userGUI = gui;
+        this.m_UserGUI = gui;
     }
 
     public static void main(String[] args) {
@@ -80,16 +77,16 @@ public class Output extends JFrame{
 
     public void jButtonCloseWindow_actionPerformed(ActionEvent e) {
 //        setVisible(false);
-        userGUI.toggleOutputWindow();
+        m_UserGUI.toggleOutputWindow();
     }
 
     public void this_windowClosed(WindowEvent e) {
 //        setVisible(false);
-        userGUI.setToggleWindowButtonName("Ausgabefenster öffnen");
+        m_UserGUI.setToggleWindowButtonName("Ausgabefenster öffnen");
     }
 
     public void this_windowClosing(WindowEvent e) {
-        userGUI.setToggleWindowButtonName("Ausgabefenster öffnen");
+        m_UserGUI.setToggleWindowButtonName("Ausgabefenster öffnen");
     }
 }
 

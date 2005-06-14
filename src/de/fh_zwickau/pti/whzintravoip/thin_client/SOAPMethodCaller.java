@@ -1,7 +1,7 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
 
 /**
- * <p>Title: </p>
+ * <p>Title: WHZIntraVoIP</p>
  *
  * <p>Description: </p>
  *
@@ -25,10 +25,10 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 
  public class SOAPMethodCaller {
 
-     private ThinClientGUI userGUI;
-     private String serverURL;
-     private String serverURN;
-     private String classToMap;
+     private ThinClientGUI m_UserGUI;
+     private String m_sServerURL;
+     private String m_sServerURN;
+     private String m_sClassToMap;
 
      /**
       * This is the class which connects to the soap-server
@@ -40,10 +40,10 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
       * @param classToMap String - the class to map on the server
       */
      public SOAPMethodCaller(ThinClientGUI gui, String serverURL, String serverURN, String classToMap){
-         this.userGUI = gui;
-         this.serverURL = serverURL;
-         this.serverURN = serverURN;
-         this.classToMap = classToMap;
+         this.m_UserGUI = gui;
+         this.m_sServerURL = serverURL;
+         this.m_sServerURN = serverURN;
+         this.m_sClassToMap = classToMap;
      }
 
      /**
@@ -56,15 +56,15 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
       * @throws Exception -
       */
      public void registerMyselfAtServer(String methodToCall, User param1, String param2) throws Exception {
-         URL url = new URL(serverURL);
+         URL url = new URL(m_sServerURL);
          Call call = new Call(); // prepare the service invocation
-         call.setTargetObjectURI(serverURN);
+         call.setTargetObjectURI(m_sServerURN);
          call.setMethodName(methodToCall);
          call.setEncodingStyleURI(Constants.NS_URI_SOAP_ENC);
 
          SOAPMappingRegistry soapMappingRegistry = new SOAPMappingRegistry();
          BeanSerializer beanSerializer = new BeanSerializer();
-         QName qName = new QName(serverURN, classToMap);
+         QName qName = new QName(m_sServerURN, m_sClassToMap);
          soapMappingRegistry.mapTypes(Constants.NS_URI_SOAP_ENC,
                                       qName,
                                       User.class,
@@ -81,22 +81,22 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
          }
          call.setParams(params);
          try {
-             userGUI.stdOutput("invoke service\n"
+             m_UserGUI.stdOutput("invoke service\n"
                                + "  URL= "
                                + url
                                + "\n  URN ="
-                               + serverURN);
+                               + m_sServerURN);
              Response response = call.invoke(url, ""); // invoke the service
              if (!response.generatedFault()) {
                  Parameter result = response.getReturnValue(); // response was OK
-                 userGUI.stdOutput("Result= " + result.getValue());
+                 m_UserGUI.stdOutput("Result= " + result.getValue());
              } else {
                  Fault f = response.getFault(); // an error occurred
-                 userGUI.errOutput("Fault= " + f.getFaultCode() + ", " +
+                 m_UserGUI.errOutput("Fault= " + f.getFaultCode() + ", " +
                                     f.getFaultString());
              }
          } catch (SOAPException e) { // call could not be sent properly
-             userGUI.errOutput("SOAPException= " + e.getFaultCode() + ", " +
+             m_UserGUI.errOutput("SOAPException= " + e.getFaultCode() + ", " +
                                 e.getMessage());
          }
      }
@@ -111,9 +111,9 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
       * @throws Exception -
       */
      public void callSOAPServer(String methodToCall, String param1, String param2) throws Exception {
-         URL url = new URL(serverURL);
+         URL url = new URL(m_sServerURL);
          Call call = new Call(); // prepare the service invocation
-         call.setTargetObjectURI(serverURN);
+         call.setTargetObjectURI(m_sServerURN);
          call.setMethodName(methodToCall);
          call.setEncodingStyleURI(Constants.NS_URI_SOAP_ENC);
          Vector params = new Vector();
@@ -125,22 +125,22 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
          }
          call.setParams(params);
          try {
-             userGUI.stdOutput("invoke service\n"
+             m_UserGUI.stdOutput("invoke service\n"
                                + "  URL= "
                                + url
                                + "\n  URN ="
-                               + serverURN);
+                               + m_sServerURN);
              Response response = call.invoke(url, ""); // invoke the service
              if (!response.generatedFault()) {
                  Parameter result = response.getReturnValue(); // response was OK
-                 userGUI.stdOutput("Result= " + result.getValue());
+                 m_UserGUI.stdOutput("Result= " + result.getValue());
              } else {
                  Fault f = response.getFault(); // an error occurred
-                 userGUI.errOutput("Fault= " + f.getFaultCode() + ", " +
+                 m_UserGUI.errOutput("Fault= " + f.getFaultCode() + ", " +
                                     f.getFaultString());
              }
          } catch (SOAPException e) { // call could not be sent properly
-             userGUI.errOutput("SOAPException= " + e.getFaultCode() + ", " +
+             m_UserGUI.errOutput("SOAPException= " + e.getFaultCode() + ", " +
                                 e.getMessage());
          }
      }
