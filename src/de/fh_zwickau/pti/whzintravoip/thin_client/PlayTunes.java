@@ -18,7 +18,7 @@ import java.util.*;
 public class PlayTunes {
 
     private Player m_Player = null;
-    private boolean m_bDebug = true;
+    private boolean m_bDebug = false;
     private ThinClientGUI userGUI = null;
     private HashMap m_PlayerMap = new HashMap();
     private String m_sSoundKey = null;
@@ -90,6 +90,7 @@ public class PlayTunes {
             if (m_Player != null) {
                 // stop if found
                 m_Player.stop();
+                infMsg("Player stopped");
             } else {
                 m_Player = null;
                 errMsg(
@@ -145,6 +146,7 @@ public class PlayTunes {
             m_Player.addControllerListener(new ControllerAdapter() {
                 public void endOfMedia(EndOfMediaEvent e) {
                     Player p = ((Player) e.getSourceController());
+                    p.stop();
                     TuneObject tu;
                     // now iterate the map to get the player's delay the event's for
                     Iterator it = m_PlayerMap.values().iterator();
@@ -159,24 +161,18 @@ public class PlayTunes {
                     // test for repeat or not
                     if (delay != 0) {
                         // on repeat with delay
-                        p.stop();
                         long startTime = System.currentTimeMillis();
                         Time time = new Time(0);
                         p.setMediaTime(time);
 
                         /** @todo optimize the while for lesser resource allocation */
-                        synchronized (this) {
-                            while (true) {
-                                if ((System.currentTimeMillis() - startTime) >
-                                    delay) {
-                                    p.start();
-                                    break;
-                                }
+                        while (true) {
+                            if ((System.currentTimeMillis() - startTime) >
+                                delay) {
+                                p.start();
+                                break;
                             }
                         }
-                    } else {
-                        // theres no delay so we just got to stop playing
-                        p.stop();
                     }
                 }
             });

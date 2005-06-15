@@ -21,8 +21,9 @@ import java.awt.event.ActionListener;
 public class MessageWindow extends JFrame {
     private int m_iSizeX = 330;
     private int m_iSizeY = 170;
+    private ThinClientGUI m_UserGUI;
 
-    public MessageWindow() {
+    public MessageWindow(ThinClientGUI userGUI) {
         try {
             jbInit();
         } catch (Exception ex) {
@@ -33,13 +34,13 @@ public class MessageWindow extends JFrame {
         int screenX = dimension.width;
         int screenY = dimension.height;
         setLocation((screenX - m_iSizeX) / 2, (screenY - m_iSizeY) / 2);
+        this.m_UserGUI = userGUI;
     }
 
     public void setMessageText(String message){
         jText.setText(message);
     }
 
-    private ThinClientGUI m_UserGUI;
     JPanel jPanel1 = new JPanel();
     GridBagLayout gridBagLayout1 = new GridBagLayout();
     JLabel jText = new JLabel();
@@ -47,9 +48,6 @@ public class MessageWindow extends JFrame {
     JButton jButtonLinks = new JButton();
     JButton jButtonRechts = new JButton();
     JPanel jPanel2 = new JPanel();
-    public MessageWindow(ThinClientGUI userGUI) {
-        this.m_UserGUI = userGUI;
-    }
 
     private void jbInit() throws Exception {
         this.getContentPane().setLayout(gridBagLayout1);
@@ -79,10 +77,12 @@ public class MessageWindow extends JFrame {
 
     public void jButtonLinks_actionPerformed(ActionEvent e) {
         setVisible(false);
+//            m_UserGUI.playRingTone();
     }
 
     public void jButtonRechts_actionPerformed(ActionEvent e) {
         setVisible(false);
+//        m_UserGUI.stopRingTone();
     }
 }
 

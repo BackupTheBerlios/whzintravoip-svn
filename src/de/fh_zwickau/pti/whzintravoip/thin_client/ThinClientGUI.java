@@ -90,7 +90,8 @@ public class ThinClientGUI extends JFrame{
         m_UserTreeGenerator.initTreeView();
 
         // Ringtone-Player initialisieren
-//        playTunes = new PlayTunes(this);
+//        m_PlayTunes = new PlayTunes(this);
+//        m_PlayTunes.initTune("file:///D:/Coding/Java/WHZIntraVoIP/s1.wav", "Ring", 0);
     }
 
     /**
@@ -284,7 +285,11 @@ public class ThinClientGUI extends JFrame{
     }
 
     public void playRingTone(){
-        m_PlayTunes.playTune(null);
+        m_PlayTunes.playTune("Ring");
+    }
+
+    public void stopRingTone(){
+        m_PlayTunes.stopTune("Ring");
     }
 
     /**
@@ -421,7 +426,7 @@ public class ThinClientGUI extends JFrame{
 //        userTreeGenerator.removeUserTreeEntry();
 //        playRingTone();
 //        createAndRegisterMe();
-            MessageWindow messageWindow = new MessageWindow();
+            MessageWindow messageWindow = new MessageWindow(this);
             messageWindow.setMessageText("Hurz - es klingelt!");
             messageWindow.setVisible(true);
     }
