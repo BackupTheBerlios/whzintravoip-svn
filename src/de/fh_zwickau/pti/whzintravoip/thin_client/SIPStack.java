@@ -94,10 +94,6 @@ public class SIPStack implements SipListener {
     public SIPStack() {
     }
 
-    public static void main(String[] args) {
-//        SIPPacketReceiver sippacketreceiver = new SIPPacketReceiver();
-    }
-
     /**
      * Initialize the SIP-Stack with the necessary properties
      *
@@ -222,36 +218,35 @@ public class SIPStack implements SipListener {
      *
      * @param requestEvent RequestEvent
      */
-    public void processRequest(RequestEvent requestEvent){
-    this.m_RequestEvent = requestEvent;
+    public void processRequest(RequestEvent requestEvent) {
+        this.m_RequestEvent = requestEvent;
         // Event holen
-//        Request request = requestEvent.getRequest();
         this.m_Request = requestEvent.getRequest();
         // ID feststellen
-//        ServerTransaction serverTransactionId = requestEvent.getServerTransaction();
         this.m_ServerTransaction = requestEvent.getServerTransaction();
+
+        // IP auslesen
+        String callerIP = extractIPFromURI(m_Request.getRequestURI().toString());
 
         // Infos ausgeben
         m_UserGUI.stdOutput("\n\nRequest "
-                          + this.m_Request.getMethod().toString()
-                          + " received at "
-                          + m_SIPStack.getStackName()
-                          + " with server transaction id "
-                          + this.m_ServerTransaction);
+                            + this.m_Request.getMethod().toString()
+                            + " received at "
+                            + m_SIPStack.getStackName()
+                            + " with server transaction id "
+                            + this.m_ServerTransaction
+                            + "\nRequest was from this IP: "
+                            + callerIP);
 
-        if (m_UserGUI.getStatus() == TALKING ) {
+        if (m_UserGUI.getStatus() == TALKING) {
             m_UserGUI.stdOutput("besetzt");
-            m_UserGUI.denyCall();
+            m_UserGUI.denyCall(callerIP);
         } else if (m_UserGUI.getStatus() != PICKUP) {
             m_UserGUI.stdOutput("z. Z. nicht möglich");
-            m_UserGUI.denyCall();
+            m_UserGUI.denyCall(callerIP);
         } else if (this.m_Request.getMethod().equals(Request.INVITE)) {
             m_UserGUI.stdOutput("\nRingedingding!!!!!!!!!!!!!!!!!!!\n");
-            m_UserGUI.setStatusINCOMING();
-            m_UserGUI.setAcceptButtonTrue();
-            m_UserGUI.setDenyButtonTrue();
-            //** @todo wiederholtes Abspielen des Ringtones */
-            m_UserGUI.playRingTone();
+            m_UserGUI.processIncomingCall(callerIP);
         } else if (this.m_Request.getMethod().equals(Request.ACK)) {
             m_UserGUI.stdOutput("\nACK empfangen\n");
             m_UserGUI.callEstablished();
@@ -333,5 +328,20 @@ public class SIPStack implements SipListener {
                 ex.printStackTrace();
                 m_UserGUI.errOutput("Exception bei processOptions...");
         }
+    }
+
+    private String extractIPFromURI(String requestURI) {
+        StringTokenizer tokenizer = new StringTokenizer(requestURI, "@:");
+        String ip = "127.0.0.1";
+        try {
+            // erstes Token ist das SIP-Kürel
+            ip = tokenizer.nextToken();
+            // nächstes Token ist der Name
+            ip = tokenizer.nextToken();
+            // dieses Token ist das Login-Kürzel
+            ip = tokenizer.nextToken();
+        } catch (NoSuchElementException ex) {
+        }
+        return ip;
     }
 }

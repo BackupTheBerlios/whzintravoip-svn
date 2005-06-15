@@ -29,16 +29,52 @@ public class MessageWindow extends JFrame {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        setWindowSize(m_iSizeX, m_iSizeY);
+        this.m_UserGUI = userGUI;
+    }
+
+    /**
+     * Setzt den Text für das Messagefenster
+     *
+     * @param message String - Der auszugebende Text
+     */
+    public void setMessageText(String message){
+        jText.setText(message);
+    }
+
+    /**
+     * Setzt den Text für den linken Button
+     *
+     * @param message String - Der zu setzende Text
+     */
+    public void setLeftButtonText(String message){
+        jButtonRechts.setText(message);
+    }
+
+    /**
+     * Setzt den Text für den rechten Button
+     *
+     * @param message String - Der zu setzende Text
+     */
+    public void setRightButtonText(String message){
+        jButtonRechts.setText(message);
+    }
+
+    /**
+     * Setzt die Größe des Messagefensters und positioniert es so, dass es
+     * zentriert auf dem Screen erscheint.
+     *
+     * @param x int - Die Breite des Fensters
+     * @param y int - Die Höhe des Fensters
+     */
+    public void setWindowSize(int x, int y){
+        m_iSizeX = x;
+        m_iSizeY = y;
         setSize(m_iSizeX, m_iSizeY);
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
         int screenX = dimension.width;
         int screenY = dimension.height;
         setLocation((screenX - m_iSizeX) / 2, (screenY - m_iSizeY) / 2);
-        this.m_UserGUI = userGUI;
-    }
-
-    public void setMessageText(String message){
-        jText.setText(message);
     }
 
     JPanel jPanel1 = new JPanel();
@@ -76,12 +112,12 @@ public class MessageWindow extends JFrame {
     }
 
     public void jButtonLinks_actionPerformed(ActionEvent e) {
-        setVisible(false);
-//            m_UserGUI.playRingTone();
+//        setVisible(false);
+//        m_UserGUI.playRingTone();
     }
 
     public void jButtonRechts_actionPerformed(ActionEvent e) {
-        setVisible(false);
+//        setVisible(false);
 //        m_UserGUI.stopRingTone();
     }
 }

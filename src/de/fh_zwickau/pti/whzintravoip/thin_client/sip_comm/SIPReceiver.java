@@ -241,10 +241,10 @@ public class SIPReceiver implements SipListener {
 
         if (userGUI.getStatus() == TALKING ) {
             userGUI.stdOutput("besetzt");
-            userGUI.denyCall();
+            userGUI.denyCall("");
         } else if (userGUI.getStatus() != PICKUP) {
             userGUI.stdOutput("z. Z. nicht möglich");
-            userGUI.denyCall();
+            userGUI.denyCall("");
         } else if (this.request.getMethod().equals(Request.INVITE)) {
             userGUI.stdOutput("\nRingedingding!!!!!!!!!!!!!!!!!!!\n");
             userGUI.setStatusINCOMING();

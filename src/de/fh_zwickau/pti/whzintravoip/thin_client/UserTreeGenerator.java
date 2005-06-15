@@ -166,11 +166,30 @@ public class UserTreeGenerator {
             String choosenUser = "Name:\t" + user.getUserFName()
                                  + "\nVorname:\t" + user.getUserLName()
                                  + "\nEmail:\t" + user.getUserMail()
-                                 + "\nMatrikel:\t" + user.getUserCompany();
+                                 + "\nMatrikel:\t" + user.getUserCompany()
+                                 + "\naktuelle IP:\t" + user.getUserIP();
             return choosenUser;
         } else {
             m_sIPOfChoosenUser = null;
             return "Kein User gefunden";
+        }
+    }
+
+    public String getUserName(String userIP){
+        User user = null;
+        Enumeration el = m_UserVector.elements();
+        while(el.hasMoreElements()){
+            User dummyUser = (User)el.nextElement();
+            if (userIP.equals(dummyUser.getUserIP())) {
+                user = dummyUser;
+                break;
+            }
+        }
+        if (user != null) {
+            String name = user.getUserFName() + " " + user.getUserLName();
+            return name;
+        } else {
+            return "Unbekannter User";
         }
     }
 
