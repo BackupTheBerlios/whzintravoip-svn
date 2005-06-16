@@ -259,7 +259,12 @@ public class ThinClientGUI extends JFrame{
     }
 
     public void updateUserList(){
+    }
 
+    public void processOptionsRequest(){
+    }
+
+    public void processACKRequest(){
     }
 
     /**

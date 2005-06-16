@@ -1,9 +1,9 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
 
 /**
- * <p>Title: WHZIntraVoIP</p>
+ * <p>Title: WHZIntraVoIP - SIP-Stack</p>
  *
- * <p>Description: </p>
+ * <p>Description: Receiver-SIP-Stack für Thin-Client</p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
@@ -14,6 +14,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
  */
 
 import java.util.*;
+
 import javax.sip.*;
 import javax.sip.address.*;
 import javax.sip.header.*;
@@ -88,9 +89,6 @@ public class SIPStack implements SipListener {
         }catch(Exception ex){
                 m_UserGUI.errOutput("Exception beim Initialisieren");
         }
-    }
-
-    public SIPStack() {
     }
 
     /**
@@ -218,12 +216,9 @@ public class SIPStack implements SipListener {
      */
     public void processRequest(RequestEvent requestEvent) {
         this.m_RequestEvent = requestEvent;
-        // Event holen
         this.m_Request = requestEvent.getRequest();
-        // ID feststellen
         this.m_ServerTransaction = requestEvent.getServerTransaction();
 
-        // IP auslesen
         String callerIP = extractIPFromURI(m_Request.getRequestURI().toString());
 
         // Infos ausgeben
@@ -237,24 +232,26 @@ public class SIPStack implements SipListener {
                             + callerIP);
 
         if (m_UserGUI.getStatus() == TALKING) {
-            m_UserGUI.stdOutput("besetzt");
+            m_UserGUI.stdOutput("Request received but I'm talking at the moment");
             m_UserGUI.denyCall(callerIP);
         } else if (m_UserGUI.getStatus() != PICKUP) {
-            m_UserGUI.stdOutput("z. Z. nicht möglich");
+            m_UserGUI.stdOutput("Request received but I'm busy at the moment");
             m_UserGUI.denyCall(callerIP);
         } else if (this.m_Request.getMethod().equals(Request.INVITE)) {
-            m_UserGUI.stdOutput("\nRingedingding!!!!!!!!!!!!!!!!!!!\n");
+            m_UserGUI.stdOutput("INVITE-Request received");
             m_UserGUI.processIncomingCall(callerIP);
         } else if (this.m_Request.getMethod().equals(Request.ACK)) {
-            m_UserGUI.stdOutput("\nACK empfangen\n");
+            m_UserGUI.stdOutput("ACK-Request received");
+            m_UserGUI.processACKRequest();
         } else if (this.m_Request.getMethod().equals(Request.UPDATE)) {
-            m_UserGUI.stdOutput("\nUPDATE empfangen\n");
+            m_UserGUI.stdOutput("UPDATE-Request received");
             m_UserGUI.updateUserList();
         } else if (this.m_Request.getMethod().equals(Request.BYE)) {
-            m_UserGUI.stdOutput("\nBYE empfangen\n");
+            m_UserGUI.stdOutput("BYE-Request received");
             m_UserGUI.endCall();
         } else if (this.m_Request.getMethod().equals(Request.OPTIONS)) {
-            m_UserGUI.stdOutput("\nOPTIONS empfangen\n");
+            m_UserGUI.stdOutput("OPTIONS-Request received");
+            m_UserGUI.processOptionsRequest();
         }
     }
 
@@ -267,30 +264,7 @@ public class SIPStack implements SipListener {
      * @param responseReceivedEvent ResponseEvent
      */
     public void processResponse(ResponseEvent responseReceivedEvent){
-        m_UserGUI.stdOutput("-----------------------Response erhalten\n");
-        Response response = (Response) responseReceivedEvent.getResponse();
-        Transaction tid = responseReceivedEvent.getClientTransaction();
-
-        m_UserGUI.stdOutput("Response empfangen mit client transaction id "
-                         + tid
-                         + ":\nResponse:\n"
-                         + response
-                         + "\n");
-        try {
-            if (response.getStatusCode() == Response.OK
-                && ((CSeqHeader) response.getHeader(CSeqHeader.NAME))
-                .getMethod().equals(Request.INVITE)) {
-                Dialog dialog = tid.getDialog();
-                Request request = dialog.createRequest(Request.ACK);
-                dialog.sendAck(request);
-                m_UserGUI.stdOutput("-----------------------Ack gesendet\n");
-            }
-            Dialog dialog = tid.getDialog();
-            m_UserGUI.stdOutput("Dialog Status = " + dialog.getState() + "\n");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(0);
-        }
+        m_UserGUI.stdOutput("RESPONSE erhalten --> Darauf erfolgt keine Reaktion...");
     }
 
     /**
@@ -299,37 +273,18 @@ public class SIPStack implements SipListener {
      * @param timeoutEvent TimeoutEvent
      */
     public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
-        Transaction transaction;
-        if (timeoutEvent.isServerTransaction()) {
-            transaction = timeoutEvent.getServerTransaction();
-        } else {
-            transaction = timeoutEvent.getClientTransaction();
-        }
-        m_UserGUI.errOutput("--------------------------------------");
-        m_UserGUI.errOutput("state = " + transaction.getState());
-        m_UserGUI.errOutput("dialog = " + transaction.getDialog());
-        m_UserGUI.errOutput("dialogState = " + transaction.getDialog().getState());
-        m_UserGUI.errOutput("Transaction Time out");
-        m_UserGUI.errOutput("--------------------------------------");
+        m_UserGUI.stdOutput("TIMEOUT erhalten --> Darauf erfolgt keine Reaktion...");
     }
 
-    public void processOptions(RequestEvent requestEvent, ServerTransaction serverTransaction){
-        m_UserGUI.stdOutput(requestEvent.getRequest().toString());
-        try {
-            Response response = m_MessageFactory.createResponse(200, m_Request);
-            AllowHeader allowHeader = m_HeaderFactory.createAllowHeader("INVITE");
-            response.addHeader(allowHeader);
-            allowHeader = m_HeaderFactory.createAllowHeader("BYE");
-            response.addHeader(allowHeader);
-            allowHeader = m_HeaderFactory.createAllowHeader("OPTIONS");
-            response.addHeader(allowHeader);
-            serverTransaction.sendResponse(response);
-        }catch(Exception ex){
-                ex.printStackTrace();
-                m_UserGUI.errOutput("Exception bei processOptions...");
-        }
-    }
-
+    /**
+     * Extrahiert die IP aus dem RequestURI. Eine RequestURI setzt sich wie
+     * folgt zusammen: "sip:Max@123.123.123.123:1234"
+     * Sie wird an ":" und "@" in Tokens zerlegt und das dritte Token (die IP)
+     * wird zurückgegeben
+     *
+     * @param requestURI String - der ReguestURI
+     * @return String - die IP
+     */
     private String extractIPFromURI(String requestURI) {
         StringTokenizer tokenizer = new StringTokenizer(requestURI, "@:");
         String ip = "127.0.0.1";

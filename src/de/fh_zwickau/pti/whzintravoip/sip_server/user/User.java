@@ -45,9 +45,7 @@ public class User {
     private String m_sRole = NONE;
     private String m_sStatus = PICKUP;
 
-    public User()
-    {
-
+    public User(){
     }
 
     public User(String userIP,
@@ -228,6 +226,4 @@ public class User {
     {
         this.m_sStatus = status;
     }
-
-
 }

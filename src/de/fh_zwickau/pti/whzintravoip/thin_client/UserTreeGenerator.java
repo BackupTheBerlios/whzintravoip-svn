@@ -33,9 +33,6 @@ public class UserTreeGenerator {
     private DefaultTreeModel m_TreeModel = null;
     private String m_sIPOfChoosenUser = null;
 
-    public UserTreeGenerator() {
-    }
-
     public UserTreeGenerator(Vector userVector, ThinClientGUI userGUI) {
         this.m_UserVector = userVector;
         this.m_UserGUI = userGUI;
@@ -49,17 +46,7 @@ public class UserTreeGenerator {
     {
         m_Root = new DefaultMutableTreeNode("Root");
         m_TreeModel = new DefaultTreeModel(m_Root);
-        /**
-        for(int i=1; i<=5; ++i){
-            String name = "Child - " + i;
-            child = new DefaultMutableTreeNode(name);
-            root.add(child);
-            for(int j=1; j<=3; ++j){
-                subchild = new DefaultMutableTreeNode(name + " - " + j);
-                child.add(subchild);
-            }
-        }
-        */
+
         addUserTreeEntries(m_UserVector);
 
         // Tree erzeugen
@@ -175,6 +162,12 @@ public class UserTreeGenerator {
         }
     }
 
+    /**
+     * Ermittelt aus dem JTree durch Angabe der IP den zugehörigen Namen
+     *
+     * @param userIP String - Die IP, welche im JTree gesucht werden soll
+     * @return String - Der gefundene Name
+     */
     public String getUserName(String userIP){
         User user = null;
         Enumeration el = m_UserVector.elements();
@@ -193,6 +186,11 @@ public class UserTreeGenerator {
         }
     }
 
+    /**
+     * Liefert die IP des im JTree angeklickten Users
+     *
+     * @return String - IP
+     */
     public String getIPOfChoosenUser(){
         return m_sIPOfChoosenUser;
     }

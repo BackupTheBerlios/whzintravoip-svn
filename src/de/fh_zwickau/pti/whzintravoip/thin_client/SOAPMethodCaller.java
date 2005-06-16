@@ -1,9 +1,9 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
 
 /**
- * <p>Title: WHZIntraVoIP</p>
+ * <p>Title: WHZIntraVoIP - SOAPMethodCaller</p>
  *
- * <p>Description: </p>
+ * <p>Description: The class to connect to the SOAP-Server</p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
