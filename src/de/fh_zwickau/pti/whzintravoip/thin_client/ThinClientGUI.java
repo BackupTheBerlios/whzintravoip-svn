@@ -203,42 +203,36 @@ public class ThinClientGUI extends JFrame{
      * Setzt den entsprechenden Button auf TRUE
      */
     public void setAcceptButtonTrue(){
-        jButtonAccept.setEnabled(true);
     }
 
     /**
      * Setzt den entsprechenden Button auf FALSE
      */
     public void setAcceptButtonFalse(){
-        jButtonAccept.setEnabled(false);
     }
 
     /**
      * Setzt den entsprechenden Button auf TRUE
      */
     public void setDenyButtonTrue(){
-        jButtonDeny.setEnabled(true);
     }
 
     /**
      * Setzt den entsprechenden Button auf FALSE
      */
     public void setDenyButtonFalse(){
-        jButtonDeny.setEnabled(false);
     }
 
     /**
      * Setzt den entsprechenden Button auf TRUE
      */
     public void setEndCallButtonTrue(){
-        jButtonEndCall.setEnabled(true);
     }
 
     /**
      * Setzt den entsprechenden Button auf FALSE
      */
     public void setEndCallButtonFalse(){
-        jButtonEndCall.setEnabled(false);
     }
 
     private void createAndRegisterMe(){
@@ -262,6 +256,10 @@ public class ThinClientGUI extends JFrame{
         myProperties.setProperty("sip_server.user.SCREEN_NAME", m_sMyScreenName);
         m_Myself = new User();
         m_Myself.setThinClientProps(myProperties);
+    }
+
+    public void updateUserList(){
+
     }
 
     /**
@@ -323,7 +321,8 @@ public class ThinClientGUI extends JFrame{
 //        userTreeGenerator.removeUserTreeEntry();
 //        playRingTone();
 //        createAndRegisterMe();
-        createMessage("Hurz - es klingelt!", "OK", "Abbruch");
+//        createMessage("Hurz - es klingelt!", "OK", "Abbruch");
+        JOptionPane.showConfirmDialog(this, "bla", "Es klingelt!", JOptionPane.YES_NO_OPTION);
     }
 
     /**
@@ -348,72 +347,56 @@ public class ThinClientGUI extends JFrame{
         System.exit(0);
     }
 
-    /**
-     * Button AcceptCall wurde gedrückt
-     *
-     * @param e ActionEvent
-     */
-    public void jButtonAccept_actionPerformed(ActionEvent e) {
-        acceptCall(m_sOpponentIP);
-    }
-
-    /**
-     * Button DenyCall wurde gedrückt
-     *
-     * @param e ActionEvent
-     */
-    public void jButtonDeny_actionPerformed(ActionEvent e) {
-        denyCall(m_sOpponentIP);
-    }
-
-    /**
-     * Button EndCall wurde gedrückt
-     *
-     * @param e ActionEvent
-     */
-    public void jButtonEndCall_actionPerformed(ActionEvent e) {
-        endCall();
-    }
-
     public void processIncomingCall(String incomingCallIP){
         this.m_sOpponentIP = incomingCallIP;
-        jButtonAccept.setEnabled(true);
-        jButtonDeny.setEnabled(true);
-        jButtonMakeCall.setEnabled(false);
         String callerName = m_UserTreeGenerator.getUserName(incomingCallIP);
         stdOutput(callerName);
+        String message = callerName + " ruft Sie an!\n Wollen Sie das Gespräch annehmen?";
+        int returnvalue = JOptionPane.showConfirmDialog(this, message, "Es klingelt!", JOptionPane.YES_NO_OPTION);
+        stdOutput(returnvalue + "");
+        switch (returnvalue) {
+        case 0:
+            stdOutput("Gespräch angenommen");
+            acceptCall(m_sOpponentIP);
+            break;
+        case 1:
+            stdOutput("Gespräch abgelehnt");
+            denyCall(m_sOpponentIP);
+            break;
+        }
     }
 
     /**
      * Ruft am SOAP-Server die Methode zum Annehmen eines Anrufs auf und setzt
      * dann die Buttons dementsprechend.
+     *
+     * @param incomingIP String - IP des anrufenden Clienten
      */
     public void acceptCall(String incomingIP) {
         this.m_sOpponentIP = incomingIP;
+        setStatusTALKING();
+        jButtonHandleCall.setText("Gespräch beenden");
         try{
             m_MethodCaller.callSOAPServer("acceptCall", getOwnIP(), m_sOpponentIP);
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
-        setAcceptButtonFalse();
-        setDenyButtonFalse();
-        setEndCallButtonTrue();
-        setStatusTALKING();
     }
 
     /**
      * Ruft am SOAP-Server die Methode zum Ablehnen eines Anrufs auf und setzt
      * dann die Buttons wieder dementsprechend.
+     *
+     * @param incomingIP String - IP des anrufenden Clienten
      */
     public void denyCall(String incomingIP){
         this.m_sOpponentIP = incomingIP;
+        setStatusPICKUP();
         try{
             m_MethodCaller.callSOAPServer("denyCall", getOwnIP(), m_sOpponentIP);
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
-        setAcceptButtonFalse();
-        setDenyButtonFalse();
     }
 
     /**
@@ -426,18 +409,8 @@ public class ThinClientGUI extends JFrame{
         } catch (Exception ex) {
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
-        setEndCallButtonFalse();
+        jButtonHandleCall.setText("Anrufen");
         setStatusPICKUP();
-    }
-    /**
-     * Setzt die entsrechenden Buttons true bzw. false, wenn der Anruf
-     * erfolgreich aufgebaut wurde.
-     */
-    public void callEstablished(){
-        setAcceptButtonFalse();
-        setDenyButtonFalse();
-        setEndCallButtonTrue();
-        setStatusTALKING();
     }
 
     /**
@@ -499,13 +472,19 @@ public class ThinClientGUI extends JFrame{
      *
      * @param e ActionEvent
      */
-    public void jButtonMakeCall_actionPerformed(ActionEvent e) {
-        setStatusMAKECALL();
-        try{
-            m_MethodCaller.callSOAPServer("processCall", getOwnIP(), m_UserTreeGenerator.getIPOfChoosenUser());
-            setStatusTALKING();
-        }catch(Exception ex){
-            setStatusPICKUP();
+    public void jButtonHandleCall_actionPerformed(ActionEvent e) {
+        if(m_bStatus == PICKUP){
+            setStatusMAKECALL();
+            try {
+                m_MethodCaller.callSOAPServer("processCall", getOwnIP(),
+                                              m_UserTreeGenerator.
+                                              getIPOfChoosenUser());
+                setStatusTALKING();
+            } catch (Exception ex) {
+                setStatusPICKUP();
+            }
+        }else if(m_bStatus == TALKING){
+            endCall();
         }
     }
 
@@ -571,25 +550,11 @@ public class ThinClientGUI extends JFrame{
         jTextFieldMyIP.setText("127.0.0.1");
         jLabel1.setText("My IP");
         this.addWindowListener(new ThinClientGUI_this_windowAdapter(this));
-        jButtonAccept.setEnabled(false);
-        jButtonAccept.setText("Annehmen");
-        jButtonAccept.addActionListener(new
-                ThinClientGUI_jButtonAccept_actionAdapter(this));
-        jButtonDeny.setEnabled(false);
-        jButtonDeny.setText("Ablehnen");
-        jButtonDeny.addActionListener(new
-                                      ThinClientGUI_jButtonDeny_actionAdapter(this));
-        jButtonEndCall.setEnabled(false);
-        jButtonEndCall.setText("Beenden");
-        jButtonEndCall.addActionListener(new ThinClientGUI_jButtonBye_actionAdapter(this));
         jButtonToggleOutputWindow.setText("Ausgabefenster öffnen");
         jButtonToggleOutputWindow.addActionListener(new
                 ThinClientGUI_jButtonToggleOutputWindow_actionAdapter(this));
-        jButtonInitCall.setText("Init Call");
-        jButtonInitCall.addActionListener(new
-                ThinClientGUI_jButtonInitCall_actionAdapter(this));
-        jButtonMakeCall.setText("Anrufen");
-        jButtonMakeCall.addActionListener(new
+        jButtonHandleCall.setText("Anrufen");
+        jButtonHandleCall.addActionListener(new
                 ThinClientGUI_jButtonMakeCall_actionAdapter(this));
         jButtonStartReceiver.setText("Start Receiver");
         jButtonStartReceiver.addActionListener(new
@@ -616,75 +581,56 @@ public class ThinClientGUI extends JFrame{
         jSplitPane1.add(jScrollPane1, JSplitPane.RIGHT);
         jScrollPane1.getViewport().add(jUserInfoField);
         jSplitPane1.add(treeViewScrollPane, JSplitPane.LEFT);
-        this.getContentPane().add(jButtonEndCall,
-                                  new GridBagConstraints(2, 3, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonDeny,
-                                  new GridBagConstraints(1, 3, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonAccept,
-                                  new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonMakeCall,
-                                  new GridBagConstraints(3, 3, 2, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonInitCall,
-                                  new GridBagConstraints(3, 2, 2, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jSplitPane1,
-                                  new GridBagConstraints(0, 1, 5, 1, 1.0, 1.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonToggleOutputWindow,
-                                  new GridBagConstraints(1, 0, 2, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonStartReceiver,
-                                  new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jTextFieldMyIP,
-                                  new GridBagConstraints(4, 0, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
-                new Insets(10, 10, 10, 10), 50, 10));
-        this.getContentPane().add(jLabel1,
-                                  new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0
-                , GridBagConstraints.EAST, GridBagConstraints.NONE,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonDeleteTreeEntry,
-                                  new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
-                new Insets(0, 0, 0, 0), 0, 0));
-        this.getContentPane().add(jButtonDeleteAllEntries,
-                                  new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
-                new Insets(0, 0, 0, 0), 0, 0));
-        this.getContentPane().add(jButtonAddEntries,
-                                  new GridBagConstraints(2, 2, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
-                new Insets(0, 0, 0, 0), 0, 0));
         jMenuBar1.add(jMenu1);
         jMenuBar1.add(jMenu2);
         jMenu1.add(jMenuExit);
         jMenu2.add(jMenuInfo);
+        this.getContentPane().add(jButtonHandleCall,
+                                  new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jButtonDeleteAllEntries,
+                                  new GridBagConstraints(2, 2, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
+                new Insets(0, 0, 0, 0), 0, 0));
+        this.getContentPane().add(jButtonDeleteTreeEntry,
+                                  new GridBagConstraints(3, 2, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
+                new Insets(0, 0, 0, 0), 0, 0));
+        this.getContentPane().add(jButtonAddEntries,
+                                  new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
+                new Insets(0, 0, 0, 0), 0, 0));
+        this.getContentPane().add(jLabel1,
+                                  new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.EAST, GridBagConstraints.NONE,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jTextFieldMyIP,
+                                  new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
+                new Insets(10, 10, 10, 10), 50, 10));
+        this.getContentPane().add(jButtonStartReceiver,
+                                  new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jButtonToggleOutputWindow,
+                                  new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jSplitPane1,
+                                  new GridBagConstraints(0, 1, 4, 1, 1.0, 1.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
+
     }
 
     JTextField jTextFieldMyIP = new JTextField();
     JLabel jLabel1 = new JLabel();
     TitledBorder titledBorder1 = new TitledBorder("");
     TitledBorder titledBorder2 = new TitledBorder("");
-    public JButton jButtonAccept = new JButton();
-    public JButton jButtonDeny = new JButton();
-    public JButton jButtonEndCall = new JButton();
     TitledBorder titledBorder3 = new TitledBorder("");
     JButton jButtonToggleOutputWindow = new JButton();
-    JButton jButtonInitCall = new JButton();
-    JButton jButtonMakeCall = new JButton();
+    JButton jButtonHandleCall = new JButton();
     JButton jButtonStartReceiver = new JButton(); //    JTree treeView = new JTree();
     JScrollPane treeViewScrollPane = new JScrollPane(null);
     JSplitPane jSplitPane1 = new JSplitPane();
@@ -785,19 +731,7 @@ class ThinClientGUI_jButtonMakeCall_actionAdapter implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
-        adaptee.jButtonMakeCall_actionPerformed(e);
-    }
-}
-
-
-class ThinClientGUI_jButtonInitCall_actionAdapter implements ActionListener {
-    private ThinClientGUI adaptee;
-    ThinClientGUI_jButtonInitCall_actionAdapter(ThinClientGUI adaptee) {
-        this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        adaptee.jButtonInitCall_actionPerformed(e);
+        adaptee.jButtonHandleCall_actionPerformed(e);
     }
 }
 
@@ -811,42 +745,6 @@ class ThinClientGUI_jButtonToggleOutputWindow_actionAdapter implements
 
     public void actionPerformed(ActionEvent e) {
         adaptee.jButtonToggleOutputWindow_actionPerformed(e);
-    }
-}
-
-
-class ThinClientGUI_jButtonBye_actionAdapter implements ActionListener {
-    private ThinClientGUI adaptee;
-    ThinClientGUI_jButtonBye_actionAdapter(ThinClientGUI adaptee) {
-        this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        adaptee.jButtonEndCall_actionPerformed(e);
-    }
-}
-
-
-class ThinClientGUI_jButtonDeny_actionAdapter implements ActionListener {
-    private ThinClientGUI adaptee;
-    ThinClientGUI_jButtonDeny_actionAdapter(ThinClientGUI adaptee) {
-        this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        adaptee.jButtonDeny_actionPerformed(e);
-    }
-}
-
-
-class ThinClientGUI_jButtonAccept_actionAdapter implements ActionListener {
-    private ThinClientGUI adaptee;
-    ThinClientGUI_jButtonAccept_actionAdapter(ThinClientGUI adaptee) {
-        this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        adaptee.jButtonAccept_actionPerformed(e);
     }
 }
 

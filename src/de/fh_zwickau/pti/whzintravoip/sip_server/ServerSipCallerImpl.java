@@ -9,6 +9,8 @@ import javax.sip.message.*;
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.User;
 
 import org.apache.log4j.*;
+import java.net.UnknownHostException;
+import java.net.InetAddress;
 
 /**
  * <p>Title: sip_server</p>
@@ -37,25 +39,25 @@ public class ServerSipCallerImpl implements SipListener {
 
     ///////////////////////////////////////////////////////////////////////////
     // classes etc.
-    private ServerSipCallerImpl listenerCaller;
+    private ServerSipCallerImpl m_ListenerCaller;
 
     ///////////////////////////////////////////////////////////////////////////
     // Providers
     ///////////////////////////////////////////////////////////////////////////
-    private static SipProvider sipProviderUDPCaller;
-    private static SipProvider sipProviderTCPCaller;
-    private static SipProvider sipProviderToUse;
+    private static SipProvider m_ServerSIPProviderUDP;
+    private static SipProvider m_ServerSIPProviderTCP;
+    private static SipProvider m_SIPProviderToUse;
 
     ///////////////////////////////////////////////////////////////////////////
     // SIP-Stack
     ///////////////////////////////////////////////////////////////////////////
-    private static SipStack sipStackCaller;
+    private static SipStack m_ServerSIPStack;
 
     ///////////////////////////////////////////////////////////////////////////
     // Listeningpoints
     ///////////////////////////////////////////////////////////////////////////
-    private static ListeningPoint udpListeningPointCaller;
-    private static ListeningPoint tcpListeningPointCaller;
+    private static ListeningPoint m_UDPListeningPoint;
+    private static ListeningPoint m_TCPListeningPoint;
 
 
     protected static ClientTransaction clientTid;
@@ -66,7 +68,7 @@ public class ServerSipCallerImpl implements SipListener {
     private static User m_fromUser;
     private static User m_toUser;
 
-    private static ContactHeader contactHeader;
+    private static ContactHeader m_ContactHeader;
     private static String m_sTransport;
     private static String m_sPeerHostPort;
     private static String m_sCallerStackName = "Server_Caller";
@@ -92,8 +94,8 @@ public class ServerSipCallerImpl implements SipListener {
 
     public boolean initServerSipCaller() throws Exception
     {
-        this.initCallerSIPStack();
-        this.initCallerFactories();
+        this.initServerSIPStack();
+        this.initServerFactories();
         return true;
     }
 
@@ -104,9 +106,9 @@ public class ServerSipCallerImpl implements SipListener {
      * @return boolean
      * @throws Exception
      */
-    public boolean initCallerSIPStack() throws Exception {
+    public boolean initServerSIPStack() throws Exception {
         // userdialog.stdOutput("Using Port " + m_iCallerPort);
-        sipStackCaller = null;
+        m_ServerSIPStack = null;
         //sipFactoryCaller = null;
         //sipFactoryCaller = SipFactory.getInstance();
         //sipFactoryCaller.setPathName("gov.nist");
@@ -133,10 +135,10 @@ public class ServerSipCallerImpl implements SipListener {
         m_sPeerHostPort = m_sInitReceiverIP + ":" + m_iReceiverPort;
         //properties.setProperty("javax.sip.OUTBOUND_PROXY", m_sPeerHostPort + "/" + m_sTransport);
         //properties.setProperty("javax.sip.OUTBOUND_PROXY", "141.32.28.226/" + m_sTransport);
-        sipStackCaller = sipFactoryCaller.createSipStack(properties);     // this can throw an exception
+        m_ServerSIPStack = sipFactoryCaller.createSipStack(properties);     // this can throw an exception
         logger.info("Creating Sip Stack fromIP " + m_sServerAddress);
         logger.info("Creating Sip Stack toIP " + m_sInitReceiverIP);
-        logger.info("Sip Stack Impl : " + sipStackCaller.toString());
+        logger.info("Sip Stack Impl : " + m_ServerSIPStack.toString());
         return true;
     }
 
@@ -149,24 +151,24 @@ public class ServerSipCallerImpl implements SipListener {
      * @return boolean
      * @throws Exception
      */
-    public boolean initCallerFactories() throws Exception {
-        logger.info("Sip Stack Impl : " + sipStackCaller.toString());
+    public boolean initServerFactories() throws Exception {
+        logger.info("Sip Stack Impl : " + m_ServerSIPStack.toString());
         headerFactoryCaller = sipFactoryCaller.createHeaderFactory();
         addressFactoryCaller = sipFactoryCaller.createAddressFactory();
         messageFactoryCaller = sipFactoryCaller.createMessageFactory();
 
         logger.info("Header / Adress / Message Factory created!");
-        udpListeningPointCaller = sipStackCaller.createListeningPoint(m_iCallerPort, "udp");
-        tcpListeningPointCaller = sipStackCaller.createListeningPoint(m_iCallerPort, "tcp");
+        m_UDPListeningPoint = m_ServerSIPStack.createListeningPoint(m_iCallerPort, "udp");
+        m_TCPListeningPoint = m_ServerSIPStack.createListeningPoint(m_iCallerPort, "tcp");
         logger.info("UDP and TCP Listening Point created from SIPStack: " +
-                    sipStackCaller.toString());
-        listenerCaller = this;
-        sipProviderUDPCaller = sipStackCaller.createSipProvider(udpListeningPointCaller);
-        logger.info("udp provider (Caller): " + sipProviderUDPCaller);
-        sipProviderUDPCaller.addSipListener(listenerCaller);
-        sipProviderTCPCaller = sipStackCaller.createSipProvider(tcpListeningPointCaller);
-        logger.info("tcp provider (Caller): " + sipProviderTCPCaller);
-        sipProviderTCPCaller.addSipListener(listenerCaller);
+                    m_ServerSIPStack.toString());
+        m_ListenerCaller = this;
+        m_ServerSIPProviderUDP = m_ServerSIPStack.createSipProvider(m_UDPListeningPoint);
+        logger.info("udp provider (Caller): " + m_ServerSIPProviderUDP);
+        m_ServerSIPProviderUDP.addSipListener(m_ListenerCaller);
+        m_ServerSIPProviderTCP = m_ServerSIPStack.createSipProvider(m_TCPListeningPoint);
+        logger.info("tcp provider (Caller): " + m_ServerSIPProviderTCP);
+        m_ServerSIPProviderTCP.addSipListener(m_ListenerCaller);
         logger.info("Factories, Listener und Provider für Caller angelegt");
         return true;
     }
@@ -211,163 +213,174 @@ public class ServerSipCallerImpl implements SipListener {
      * Invite "the other side" to a call
      */
     public void sendRequest(String requestMethod) throws Exception {
-            this.sipProviderToUse = m_sTransport.equalsIgnoreCase("udp") ? sipProviderUDPCaller : sipProviderTCPCaller;
+        this.m_SIPProviderToUse = m_sTransport.equalsIgnoreCase("udp") ?
+                                  m_ServerSIPProviderUDP :
+                                  m_ServerSIPProviderTCP;
 
+        String fromUser = this.m_fromUser.getSipName();
+        String fromSipAddress = this.m_toUser.getSipAddress();
+        String fromDisplayName = this.m_toUser.getSipScreenName();
 
-            String fromUser = this.m_fromUser.getSipName();
-            String fromSipAddress= "www.fh-zwickau.de/~ys";
-            String fromDisplayName = "StarWarsFan";
+        String toUser = this.m_toUser.getSipName();
+        String toSipAddress = this.m_toUser.getSipAddress();
+        String toDisplayName = this.m_toUser.getSipScreenName();
 
-            String toUser = "Holger";
-            String toSipAddress = "www.atknights.dyndns.org";
-            String toDisplayName = "Blue Cable Knight";
+        // create From Header
+        SipURI fromAddress = addressFactoryCaller.createSipURI(fromUser,
+                fromSipAddress);
+        Address fromNameAddress = addressFactoryCaller.createAddress(
+                fromAddress);
+        fromNameAddress.setDisplayName(fromDisplayName);
+        FromHeader fromHeader = headerFactoryCaller.createFromHeader(
+                fromNameAddress, "12345");
 
-            // create From Header
-            SipURI fromAddress = addressFactoryCaller.createSipURI(fromUser, fromSipAddress);
-            Address fromNameAddress = addressFactoryCaller.createAddress(fromAddress);
-            fromNameAddress.setDisplayName(fromDisplayName);
-            FromHeader fromHeader = headerFactoryCaller.createFromHeader(fromNameAddress, "12345");
+        // create To Header
+        SipURI toAddress = addressFactoryCaller.createSipURI(toUser,
+                toSipAddress);
+        Address toNameAddress = addressFactoryCaller.createAddress(toAddress);
+        toNameAddress.setDisplayName(toDisplayName);
+        ToHeader toHeader = headerFactoryCaller.createToHeader(toNameAddress, null);
 
-            // create To Header
-            SipURI toAddress = addressFactoryCaller.createSipURI(toUser, toSipAddress);
-            Address toNameAddress = addressFactoryCaller.createAddress(toAddress);
-            toNameAddress.setDisplayName(toDisplayName);
-            ToHeader toHeader = headerFactoryCaller.createToHeader(toNameAddress, null);
+        // create Request URI
+        SipURI requestURI = addressFactoryCaller.createSipURI(toUser,
+                m_sPeerHostPort);
 
-            // create Request URI
-            SipURI requestURI = addressFactoryCaller.createSipURI(toUser, m_sPeerHostPort);
+        // Create ViaHeaders
+        ArrayList viaHeaders = new ArrayList();
+        int port = m_SIPProviderToUse.getListeningPoint().getPort();
+        ViaHeader viaHeader = headerFactoryCaller.createViaHeader(
+                m_ServerSIPStack.getIPAddress(),
+                m_SIPProviderToUse.getListeningPoint().getPort(),
+                m_sTransport,
+                null);
 
-            // Create ViaHeaders
-            ArrayList viaHeaders = new ArrayList();
-            int port = sipProviderToUse.getListeningPoint().getPort();
-            ViaHeader viaHeader =
-                    headerFactoryCaller.createViaHeader(
-                            sipStackCaller.getIPAddress(),
-                            sipProviderToUse.getListeningPoint().getPort(),
-                            m_sTransport,
-                            null);
+        // add via headers
+        viaHeaders.add(viaHeader);
 
-            // add via headers
-            viaHeaders.add(viaHeader);
+        // Create ContentTypeHeader
+//            ContentTypeHeader contentTypeHeader = headerFactoryCaller.createContentTypeHeader("application", "sdp");
 
-            // Create ContentTypeHeader
-            ContentTypeHeader contentTypeHeader = headerFactoryCaller.createContentTypeHeader("application", "sdp");
+        // Create a new CallId header
+        CallIdHeader callIdHeader = m_SIPProviderToUse.getNewCallId();
 
-            // Create a new CallId header
-            CallIdHeader callIdHeader = sipProviderToUse.getNewCallId();
+        // Create a new Cseq header
+        CSeqHeader cSeqHeader = headerFactoryCaller.createCSeqHeader(1,
+                Request.INVITE);
 
-            // Create a new Cseq header
-            CSeqHeader cSeqHeader = headerFactoryCaller.createCSeqHeader(1, Request.INVITE);
+        // Create a new MaxForwardsHeader
+        MaxForwardsHeader maxForwards = headerFactoryCaller.
+                                        createMaxForwardsHeader(70);
 
-            // Create a new MaxForwardsHeader
-            MaxForwardsHeader maxForwards = headerFactoryCaller.createMaxForwardsHeader(70);
+        // Create the request.
+        Request request;
+        if (requestMethod.equals("INVITE")) {
+            request = messageFactoryCaller.createRequest(
+                    requestURI,
+                    Request.INVITE,
+                    callIdHeader,
+                    cSeqHeader,
+                    fromHeader,
+                    toHeader,
+                    viaHeaders,
+                    maxForwards);
+            logger.info("Sending Invite to: " + m_sPeerHostPort);
+        } else if (requestMethod.equals("ACK")) {
+            request = messageFactoryCaller.createRequest(
+                    requestURI,
+                    Request.ACK,
+                    callIdHeader,
+                    cSeqHeader,
+                    fromHeader,
+                    toHeader,
+                    viaHeaders,
+                    maxForwards);
+            logger.info("Sending ACK to: " + m_sPeerHostPort);
+        } else if (requestMethod.equals("BYE")) {
+            request = messageFactoryCaller.createRequest(
+                    requestURI,
+                    Request.BYE,
+                    callIdHeader,
+                    cSeqHeader,
+                    fromHeader,
+                    toHeader,
+                    viaHeaders,
+                    maxForwards);
+            logger.info("Sending BYE to: " + m_sPeerHostPort);
+        } else if (requestMethod.equals("UPDATE")) {
+            request = messageFactoryCaller.createRequest(
+                    requestURI,
+                    Request.UPDATE,
+                    callIdHeader,
+                    cSeqHeader,
+                    fromHeader,
+                    toHeader,
+                    viaHeaders,
+                    maxForwards);
+            logger.info("Sending UPDATE to: " + m_sPeerHostPort);
+        } else {
+            request = messageFactoryCaller.createRequest(
+                    requestURI,
+                    Request.CANCEL,
+                    callIdHeader,
+                    cSeqHeader,
+                    fromHeader,
+                    toHeader,
+                    viaHeaders,
+                    maxForwards);
+            logger.info("Sending CANCEL to: " + m_sPeerHostPort);
+        }
+        /**
+                    // Create contact headers
+                    String host = m_ServerSIPStack.getIPAddress();
+         SipURI contactUrl = addressFactoryCaller.createSipURI(fromUser, host);
+                    contactUrl.setPort(m_TCPListeningPoint.getPort());
 
-            // Create the request.
-            Request request;
-            if (requestMethod.equals("INVITE")) {
-                request =
-                        messageFactoryCaller.createRequest(
-                                requestURI,
-                                Request.INVITE,
-                                callIdHeader,
-                                cSeqHeader,
-                                fromHeader,
-                                toHeader,
-                                viaHeaders,
-                                maxForwards);
-                logger.info("Sending Invite to: " + m_sPeerHostPort);
-            } else if (requestMethod.equals("ACK")) {
-                request =
-                        messageFactoryCaller.createRequest(
-                                requestURI,
-                                Request.ACK,
-                                callIdHeader,
-                                cSeqHeader,
-                                fromHeader,
-                                toHeader,
-                                viaHeaders,
-                                maxForwards);
-                logger.info("Sending ACK to: " + m_sPeerHostPort);
-            } else if (requestMethod.equals("BYE")){
-                request =
-                        messageFactoryCaller.createRequest(
-                                requestURI,
-                                Request.BYE,
-                                callIdHeader,
-                                cSeqHeader,
-                                fromHeader,
-                                toHeader,
-                                viaHeaders,
-                                maxForwards);
-                logger.info("Sending BYE to: " + m_sPeerHostPort);
-            } else {
-                request =
-                        messageFactoryCaller.createRequest(
-                                requestURI,
-                                Request.CANCEL,
-                                callIdHeader,
-                                cSeqHeader,
-                                fromHeader,
-                                toHeader,
-                                viaHeaders,
-                                maxForwards);
-                logger.info("Sending CANCEL to: " + m_sPeerHostPort);
-            }
+                    // Create the contact name address.
+         SipURI contactURI = addressFactoryCaller.createSipURI(fromUser, host);
+         contactURI.setPort(m_SIPProviderToUse.getListeningPoint().getPort());
+         Address contactAddress = addressFactoryCaller.createAddress(contactURI);
 
-            // Create contact headers
-            String host = sipStackCaller.getIPAddress();
-            SipURI contactUrl = addressFactoryCaller.createSipURI(fromUser, host);
-            contactUrl.setPort(tcpListeningPointCaller.getPort());
+                    // Add the contact address.
+                    contactAddress.setDisplayName(fromUser);
 
-            // Create the contact name address.
-            SipURI contactURI = addressFactoryCaller.createSipURI(fromUser, host);
-            contactURI.setPort(sipProviderToUse.getListeningPoint().getPort());
-            Address contactAddress = addressFactoryCaller.createAddress(contactURI);
+         m_ContactHeader = headerFactoryCaller.createContactHeader(contactAddress);
+                    request.addHeader(m_ContactHeader);
 
-            // Add the contact address.
-            contactAddress.setDisplayName(fromUser);
+                    // Add the extension header.
+                    Header extensionHeader = headerFactoryCaller.createHeader("My-Header", "my header value");
+                    request.addHeader(extensionHeader);
 
-            contactHeader = headerFactoryCaller.createContactHeader(contactAddress);
-            request.addHeader(contactHeader);
+                    String sdpData =
+                              "v=0\r\n"
+         + "o=4855 13760799956958020 13760799956958020 IN IP4  129.6.55.78\r\n"
+                            + "s=mysession session\r\n"
+                            + "p=+46 8 52018010\r\n"
+                            + "c=IN IP4  129.6.55.78\r\n"
+                            + "t=0 0\r\n"
+                            + "m=audio 6022 RTP/AVP 0 4 18\r\n"
+                            + "a=rtpmap:0 PCMU/8000\r\n"
+                            + "a=rtpmap:4 G723/8000\r\n"
+                            + "a=rtpmap:18 G729A/8000\r\n"
+                            + "a=ptime:20\r\n";
 
-            // Add the extension header.
-            Header extensionHeader = headerFactoryCaller.createHeader("My-Header", "my header value");
-            request.addHeader(extensionHeader);
+                    request.setContent(sdpData, contentTypeHeader);
 
-            String sdpData =
-                      "v=0\r\n"
-                    + "o=4855 13760799956958020 13760799956958020 IN IP4  129.6.55.78\r\n"
-                    + "s=mysession session\r\n"
-                    + "p=+46 8 52018010\r\n"
-                    + "c=IN IP4  129.6.55.78\r\n"
-                    + "t=0 0\r\n"
-                    + "m=audio 6022 RTP/AVP 0 4 18\r\n"
-                    + "a=rtpmap:0 PCMU/8000\r\n"
-                    + "a=rtpmap:4 G723/8000\r\n"
-                    + "a=rtpmap:18 G729A/8000\r\n"
-                    + "a=ptime:20\r\n";
+                    extensionHeader = headerFactoryCaller.createHeader(
+                                    "My-Other-Header",
+                                    "my new header value ");
+                    request.addHeader(extensionHeader);
 
-            request.setContent(sdpData, contentTypeHeader);
+                    Header callInfoHeader = headerFactoryCaller.createHeader(
+                                    "Call-Info",
+                                    "<http://www.antd.nist.gov>");
+                    request.addHeader(callInfoHeader);
+         */
+        // Create the client transaction.
+        m_ListenerCaller.clientTid = m_SIPProviderToUse.getNewClientTransaction(
+                request);
 
-            extensionHeader = headerFactoryCaller.createHeader(
-                            "My-Other-Header",
-                            "my new header value ");
-            request.addHeader(extensionHeader);
-
-            Header callInfoHeader = headerFactoryCaller.createHeader(
-                            "Call-Info",
-                            "<http://www.antd.nist.gov>");
-            request.addHeader(callInfoHeader);
-
-            // Create the client transaction.
-//            listener.inviteTid = sipProvider.getNewClientTransaction(request);
-            listenerCaller.clientTid = sipProviderToUse.getNewClientTransaction(request);
-
-            // send the request out.
-//            listener.inviteTid.sendRequest();
-            listenerCaller.clientTid.sendRequest();
-
-
+        // send the request out.
+        m_ListenerCaller.clientTid.sendRequest();
     }
 
     /**
@@ -379,22 +392,22 @@ public class ServerSipCallerImpl implements SipListener {
      * @throws Exception
      */
     public boolean stopAndRemoveSIPStack() {
-        if(sipStackCaller != null){
+        if(m_ServerSIPStack != null){
             try {
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                 }
                 // userdialog.stdOutput("lösche Referenzen für Caller");
-                sipStackCaller.deleteListeningPoint(udpListeningPointCaller);
-                sipStackCaller.deleteListeningPoint(tcpListeningPointCaller);
+                m_ServerSIPStack.deleteListeningPoint(m_UDPListeningPoint);
+                m_ServerSIPStack.deleteListeningPoint(m_TCPListeningPoint);
                 // This will close down the stack and exit all threads
-                sipProviderTCPCaller.removeSipListener(this);
-                sipProviderUDPCaller.removeSipListener(this);
+                m_ServerSIPProviderTCP.removeSipListener(this);
+                m_ServerSIPProviderUDP.removeSipListener(this);
                 while (true) {
                     try {
-                        sipStackCaller.deleteSipProvider(sipProviderTCPCaller);
-                        sipStackCaller.deleteSipProvider(sipProviderUDPCaller);
+                        m_ServerSIPStack.deleteSipProvider(m_ServerSIPProviderTCP);
+                        m_ServerSIPStack.deleteSipProvider(m_ServerSIPProviderUDP);
                         break;
                     } catch (ObjectInUseException ex) {
                         try {
@@ -404,16 +417,16 @@ public class ServerSipCallerImpl implements SipListener {
                         }
                     }
                 }
-                sipStackCaller = null;
-                sipProviderTCPCaller = null;
-                sipProviderUDPCaller = null;
+                m_ServerSIPStack = null;
+                m_ServerSIPProviderTCP = null;
+                m_ServerSIPProviderUDP = null;
                 this.clientTid = null;
-                this.contactHeader = null;
+                this.m_ContactHeader = null;
                 addressFactoryCaller = null;
                 headerFactoryCaller = null;
                 messageFactoryCaller = null;
-                this.udpListeningPointCaller = null;
-                this.tcpListeningPointCaller = null;
+                this.m_UDPListeningPoint = null;
+                this.m_TCPListeningPoint = null;
                 //            this.reInviteCount = 0;
                 System.gc();
             } catch (Exception ex) {
@@ -482,7 +495,7 @@ public class ServerSipCallerImpl implements SipListener {
 
     public String getSipStackAdress()
     {
-        return this.sipStackCaller.toString();
+        return this.m_ServerSIPStack.toString();
     }
 
 }

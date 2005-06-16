@@ -68,9 +68,8 @@ public class SIPStack implements SipListener {
     private ContactHeader m_ContactHeader;
     private String m_sTransport;
     private String m_sPeerHostPort;
-    private String m_sReceiverStackName = "Receiver";
-    private int m_iCallerPort = 5060;
-    private int m_iReceiverPort = 5070;
+    private String m_sClientSIPStackName = "Client_SIP_Stack";
+    private int m_iClientSIPPort = 5070;
 
 //    private static String PEER_ADDRESS = Shootme.myAddress;
     public static String m_sMyAddress = "127.0.0.1";
@@ -101,7 +100,7 @@ public class SIPStack implements SipListener {
      * @throws Exception
      */
     public boolean initReceiverSIPStack() throws Exception {
-        m_UserGUI.stdOutput("Using Port " + m_iReceiverPort);
+        m_UserGUI.stdOutput("Using Port " + m_iClientSIPPort);
         m_SIPStack = null;
         m_SIPFactory = null;
         m_SIPFactory = SipFactory.getInstance();
@@ -109,8 +108,7 @@ public class SIPStack implements SipListener {
         Properties properties = new Properties();
         properties.setProperty("javax.sip.IP_ADDRESS", m_sMyAddress);
         properties.setProperty("javax.sip.RETRANSMISSION_FILTER", "true");
-        properties.setProperty("javax.sip.STACK_NAME", m_sReceiverStackName);
-
+        properties.setProperty("javax.sip.STACK_NAME", m_sClientSIPStackName);
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
                                "sippacketreceiver-debug.txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
@@ -138,16 +136,16 @@ public class SIPStack implements SipListener {
     m_HeaderFactory = m_SIPFactory.createHeaderFactory();
         m_AddressFactory = m_SIPFactory.createAddressFactory();
         m_MessageFactory = m_SIPFactory.createMessageFactory();
-        m_UDPListeningPoint = m_SIPStack.createListeningPoint(m_iReceiverPort, "udp");
-        m_TCPListeningPoint = m_SIPStack.createListeningPoint(m_iReceiverPort, "tcp");
+        m_UDPListeningPoint = m_SIPStack.createListeningPoint(m_iClientSIPPort, "udp");
+        m_TCPListeningPoint = m_SIPStack.createListeningPoint(m_iClientSIPPort, "tcp");
         m_ListenerSIPStack = this;
         m_SIPProviderUDP = m_SIPStack.createSipProvider(m_UDPListeningPoint);
-        m_UserGUI.stdOutput("udp provider (receiver): " + m_SIPProviderUDP);
+        m_UserGUI.stdOutput("udp provider (client): " + m_SIPProviderUDP);
         m_SIPProviderUDP.addSipListener(m_ListenerSIPStack);
         m_SIPProviderTCP = m_SIPStack.createSipProvider(m_TCPListeningPoint);
-        m_UserGUI.stdOutput("tcp provider (receiver): " + m_SIPProviderTCP);
+        m_UserGUI.stdOutput("tcp provider (client): " + m_SIPProviderTCP);
         m_SIPProviderTCP.addSipListener(m_ListenerSIPStack);
-        m_UserGUI.stdOutput("Factories, Listener und Provider für Receiver angelegt");
+        m_UserGUI.stdOutput("Factories, Listener und Provider für Client angelegt");
         return true;
     }
 
@@ -166,7 +164,7 @@ public class SIPStack implements SipListener {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                 }
-                m_UserGUI.stdOutput("lösche Referenzen für Receiver");
+                m_UserGUI.stdOutput("lösche Referenzen für Client");
                 m_SIPStack.deleteListeningPoint(m_UDPListeningPoint);
                 m_SIPStack.deleteListeningPoint(m_TCPListeningPoint);
                 // This will close down the stack and exit all threads
@@ -229,13 +227,13 @@ public class SIPStack implements SipListener {
         String callerIP = extractIPFromURI(m_Request.getRequestURI().toString());
 
         // Infos ausgeben
-        m_UserGUI.stdOutput("\n\nRequest "
+        m_UserGUI.stdOutput("\n\nRequest '"
                             + this.m_Request.getMethod().toString()
-                            + " received at "
+                            + "' received at '"
                             + m_SIPStack.getStackName()
-                            + " with server transaction id "
+                            + "'\nwith server transaction id '"
                             + this.m_ServerTransaction
-                            + "\nRequest was from this IP: "
+                            + "'\nRequest was from this IP: "
                             + callerIP);
 
         if (m_UserGUI.getStatus() == TALKING) {
@@ -249,7 +247,9 @@ public class SIPStack implements SipListener {
             m_UserGUI.processIncomingCall(callerIP);
         } else if (this.m_Request.getMethod().equals(Request.ACK)) {
             m_UserGUI.stdOutput("\nACK empfangen\n");
-            m_UserGUI.callEstablished();
+        } else if (this.m_Request.getMethod().equals(Request.UPDATE)) {
+            m_UserGUI.stdOutput("\nUPDATE empfangen\n");
+            m_UserGUI.updateUserList();
         } else if (this.m_Request.getMethod().equals(Request.BYE)) {
             m_UserGUI.stdOutput("\nBYE empfangen\n");
             m_UserGUI.endCall();

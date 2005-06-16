@@ -254,7 +254,6 @@ public class SIPReceiver implements SipListener {
             userGUI.playRingTone();
         } else if (this.request.getMethod().equals(Request.ACK)) {
             userGUI.stdOutput("\nACK empfangen\n");
-            userGUI.callEstablished();
         } else if (this.request.getMethod().equals(Request.BYE)) {
             userGUI.stdOutput("\nBYE empfangen\n");
             userGUI.endCall();
