@@ -26,8 +26,8 @@ import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 
 public class ThinClientGUI extends JFrame{
 
-    private String m_sSOAPServerIP = "192.168.0.7";
-    private String m_sIPToCall     = "192.168.0.6";
+    private String m_sSOAPServerIP = "141.32.28.183";
+    private String m_sIPToCall     = "141.32.28.227";
     private String m_sMySIPAddress = "My SIP Address";
     private String m_sMySIPName    = "SWF";
     private String m_sMyScreenName = "StarWarsFan";
@@ -69,7 +69,6 @@ public class ThinClientGUI extends JFrame{
         }
         m_sLoginName = System.getProperty("user.name");
         this.setSize(500, 700);
-        this.setMinimumSize(new Dimension(540, 350));
         this.setLocation(764, 2);
         jTextFieldMyIP.setText(getOwnIP());
 
@@ -80,6 +79,7 @@ public class ThinClientGUI extends JFrame{
             "urn:sip_server:soapserver:appscope",
             "de.fh_zwickau.pti.whzintravoip.sip_server.user.User");
         setStatusLogin();
+//        createAndRegisterMe();
 
         // User-Tree bauen
         createDummyUsers();
@@ -318,11 +318,7 @@ public class ThinClientGUI extends JFrame{
      * @param e ActionEvent
      */
     public void jButtonDeleteTreeEntry_actionPerformed(ActionEvent e) {
-//        userTreeGenerator.removeUserTreeEntry();
-//        playRingTone();
-//        createAndRegisterMe();
-//        createMessage("Hurz - es klingelt!", "OK", "Abbruch");
-        JOptionPane.showConfirmDialog(this, "bla", "Es klingelt!", JOptionPane.YES_NO_OPTION);
+        createAndRegisterMe();
     }
 
     /**
@@ -476,9 +472,11 @@ public class ThinClientGUI extends JFrame{
         if(m_bStatus == PICKUP){
             setStatusMAKECALL();
             try {
+//                m_MethodCaller.callSOAPServer("processCall", getOwnIP(),
+//                                              m_UserTreeGenerator.
+//                                              getIPOfChoosenUser());
                 m_MethodCaller.callSOAPServer("processCall", getOwnIP(),
-                                              m_UserTreeGenerator.
-                                              getIPOfChoosenUser());
+                                              m_sIPToCall);
                 setStatusTALKING();
             } catch (Exception ex) {
                 setStatusPICKUP();
@@ -585,40 +583,40 @@ public class ThinClientGUI extends JFrame{
         jMenuBar1.add(jMenu2);
         jMenu1.add(jMenuExit);
         jMenu2.add(jMenuInfo);
+        this.getContentPane().add(jButtonDeleteAllEntries,
+                                  new GridBagConstraints(1, 3, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
         this.getContentPane().add(jButtonHandleCall,
                                   new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonDeleteAllEntries,
-                                  new GridBagConstraints(2, 2, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
-                new Insets(0, 0, 0, 0), 0, 0));
-        this.getContentPane().add(jButtonDeleteTreeEntry,
-                                  new GridBagConstraints(3, 2, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
-                new Insets(0, 0, 0, 0), 0, 0));
-        this.getContentPane().add(jButtonAddEntries,
-                                  new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
-                new Insets(0, 0, 0, 0), 0, 0));
-        this.getContentPane().add(jLabel1,
-                                  new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0
-                , GridBagConstraints.EAST, GridBagConstraints.NONE,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jTextFieldMyIP,
-                                  new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
-                new Insets(10, 10, 10, 10), 50, 10));
-        this.getContentPane().add(jButtonStartReceiver,
-                                  new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0
+        this.getContentPane().add(jSplitPane1,
+                                  new GridBagConstraints(0, 1, 4, 1, 1.0, 1.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(10, 10, 10, 10), 5, 5));
         this.getContentPane().add(jButtonToggleOutputWindow,
                                   new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jSplitPane1,
-                                  new GridBagConstraints(0, 1, 4, 1, 1.0, 1.0
+        this.getContentPane().add(jButtonStartReceiver,
+                                  new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jTextFieldMyIP,
+                                  new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
+                new Insets(10, 10, 10, 10), 50, 10));
+        this.getContentPane().add(jLabel1,
+                                  new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.EAST, GridBagConstraints.NONE,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jButtonDeleteTreeEntry,
+                                  new GridBagConstraints(3, 2, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jButtonAddEntries,
+                                  new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(10, 10, 10, 10), 5, 5));
 
