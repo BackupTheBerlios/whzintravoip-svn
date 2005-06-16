@@ -49,7 +49,7 @@ public class SIPPacketCaller implements SipListener {
     private ListeningPoint udpListeningPointCaller;
     private ListeningPoint tcpListeningPointCaller;
 
-    private Dialog dialog;
+    private Dialog m_Dialog;
 
     class ApplicationData {
         protected int ackCount;
@@ -96,7 +96,7 @@ public class SIPPacketCaller implements SipListener {
         Properties properties = new Properties();
         properties.setProperty("javax.sip.RETRANSMISSION_FILTER", "true");
         properties.setProperty("javax.sip.STACK_NAME", m_sCallerStackName);
-        properties.setProperty("javax.sip.ROUTER_PATH", "de.fh_zwickau.pti.whzintravoip.sip_connection.MyRouter");
+//        properties.setProperty("javax.sip.ROUTER_PATH", "de.fh_zwickau.pti.whzintravoip.sip_connection.MyRouter");
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
                                "sippacketCaller-debug.txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
@@ -110,12 +110,10 @@ public class SIPPacketCaller implements SipListener {
         properties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS", "false");
 
         // If you want to try TCP transport change the following to
-//        m_sTransport = "tcp";
         m_sTransport = "udp";
-//        String peerHostPort = PEER_ADDRESS+":5070";
         m_sPeerHostPort = m_sOtherAddress + ":" + m_iReceiverPort;
         properties.setProperty("javax.sip.IP_ADDRESS", m_sMyAddress);
-        properties.setProperty("javax.sip.OUTBOUND_PROXY", m_sPeerHostPort + "/" + m_sTransport);
+//        properties.setProperty("javax.sip.OUTBOUND_PROXY", m_sPeerHostPort + "/" + m_sTransport);
 
         sipStackCaller = sipFactoryCaller.createSipStack(properties);     // this can throw an exception
 
@@ -277,15 +275,136 @@ public class SIPPacketCaller implements SipListener {
      * @throws Exception
      */
     public void askForOptions() throws Exception {
-        try {
-            userdialog.stdOutput("Asking for Options: " + dialog);
-            Request options = dialog.createRequest(Request.OPTIONS);
-            ClientTransaction ct = sipProviderToUse.getNewClientTransaction(options);
-            dialog.sendRequest(ct);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            userdialog.errOutput("Exception bei Options-Request...");
-            //             System.exit(0);
+        if(m_Dialog != null){
+            try {
+                userdialog.stdOutput("Asking for Options: " + m_Dialog);
+                Request options = m_Dialog.createRequest(Request.OPTIONS);
+                ClientTransaction ct = sipProviderToUse.getNewClientTransaction(
+                        options);
+                m_Dialog.sendRequest(ct);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                userdialog.errOutput("Exception bei Options-Request...");
+                //             System.exit(0);
+            }
+        }else{
+            try {
+                this.sipProviderToUse = m_sTransport.equalsIgnoreCase("udp") ? sipProviderUDPCaller : sipProviderTCPCaller;
+
+                String fromName = "Yves";
+                String fromSipAddress= "www.fh-zwickau.de/~ys";
+                String fromDisplayName = "StarWarsFan";
+
+                String toUser = "Holger";
+                String toSipAddress = "www.atknights.dyndns.org";
+                String toDisplayName = "Blue Cable Knight";
+
+                // create From Header
+                SipURI fromAddress = addressFactoryCaller.createSipURI(fromName, fromSipAddress);
+                Address fromNameAddress = addressFactoryCaller.createAddress(fromAddress);
+                fromNameAddress.setDisplayName(fromDisplayName);
+                FromHeader fromHeader = headerFactoryCaller.createFromHeader(fromNameAddress, "12345");
+
+                // create To Header
+                SipURI toAddress = addressFactoryCaller.createSipURI(toUser, toSipAddress);
+                Address toNameAddress = addressFactoryCaller.createAddress(toAddress);
+                toNameAddress.setDisplayName(toDisplayName);
+                ToHeader toHeader = headerFactoryCaller.createToHeader(toNameAddress, null);
+
+                // create Request URI
+                SipURI requestURI = addressFactoryCaller.createSipURI(toUser, m_sPeerHostPort);
+
+                // Create ViaHeaders
+                ArrayList viaHeaders = new ArrayList();
+                int port = sipProviderToUse.getListeningPoint().getPort();
+                ViaHeader viaHeader =
+                        headerFactoryCaller.createViaHeader(
+                                sipStackCaller.getIPAddress(),
+                                sipProviderToUse.getListeningPoint().getPort(),
+                                m_sTransport,
+                                null);
+
+                // add via headers
+                viaHeaders.add(viaHeader);
+
+                // Create ContentTypeHeader
+//                ContentTypeHeader contentTypeHeader = headerFactoryCaller.createContentTypeHeader("application", "sdp");
+
+                // Create a new CallId header
+                CallIdHeader callIdHeader = sipProviderToUse.getNewCallId();
+
+                // Create a new Cseq header
+                CSeqHeader cSeqHeader = headerFactoryCaller.createCSeqHeader(1, Request.UPDATE);
+
+                // Create a new MaxForwardsHeader
+                MaxForwardsHeader maxForwards = headerFactoryCaller.createMaxForwardsHeader(70);
+
+                // Create the request.
+                Request request =
+                        messageFactoryCaller.createRequest(
+                                requestURI,
+                                Request.UPDATE,
+                                callIdHeader,
+                                cSeqHeader,
+                                fromHeader,
+                                toHeader,
+                                viaHeaders,
+                                maxForwards);
+                // Create contact headers
+/**                String host = sipStackCaller.getIPAddress();
+                SipURI contactUrl = addressFactoryCaller.createSipURI(fromName, host);
+                contactUrl.setPort(tcpListeningPointCaller.getPort());
+
+                // Create the contact name address.
+                SipURI contactURI = addressFactoryCaller.createSipURI(fromName, host);
+                contactURI.setPort(sipProviderToUse.getListeningPoint().getPort());
+                Address contactAddress = addressFactoryCaller.createAddress(contactURI);
+
+                // Add the contact address.
+                contactAddress.setDisplayName(fromName);
+
+                contactHeader = headerFactoryCaller.createContactHeader(contactAddress);
+                request.addHeader(contactHeader);
+
+                // Add the extension header.
+                Header extensionHeader = headerFactoryCaller.createHeader("My-Header", "my header value");
+                request.addHeader(extensionHeader);
+
+                String sdpData =
+                          "v=0\r\n"
+                        + "o=4855 13760799956958020 13760799956958020 IN IP4  129.6.55.78\r\n"
+                        + "s=mysession session\r\n"
+                        + "p=+46 8 52018010\r\n"
+                        + "c=IN IP4  129.6.55.78\r\n"
+                        + "t=0 0\r\n"
+                        + "m=audio 6022 RTP/AVP 0 4 18\r\n"
+                        + "a=rtpmap:0 PCMU/8000\r\n"
+                        + "a=rtpmap:4 G723/8000\r\n"
+                        + "a=rtpmap:18 G729A/8000\r\n"
+                        + "a=ptime:20\r\n";
+
+                request.setContent(sdpData, contentTypeHeader);
+
+                extensionHeader = headerFactoryCaller.createHeader(
+                                "My-Other-Header",
+                                "my new header value ");
+                request.addHeader(extensionHeader);
+
+                Header callInfoHeader = headerFactoryCaller.createHeader(
+                                "Call-Info",
+                                "<http://www.antd.nist.gov>");
+                request.addHeader(callInfoHeader);
+   */
+                // Create the client transaction.
+                listenerCaller.clientTid = sipProviderToUse.getNewClientTransaction(request);
+
+                // send the request out.
+                listenerCaller.clientTid.sendRequest();
+
+            } catch (Exception ex) {
+                System.out.println(ex.getMessage());
+                ex.printStackTrace();
+            }
         }
     }
 
@@ -391,7 +510,7 @@ public class SIPPacketCaller implements SipListener {
      * call the sendBye-method
      */
     public void sendBye(){
-        sendBye(dialog, sipProviderToUse);
+        sendBye(m_Dialog, sipProviderToUse);
     }
 
     /**
@@ -442,7 +561,7 @@ public class SIPPacketCaller implements SipListener {
                 && ((CSeqHeader) response.getHeader(CSeqHeader.NAME))
                 .getMethod().equals(Request.INVITE)) {
                 Dialog dialog = tid.getDialog();
-                this.dialog = dialog;        // wird benötigt für BYE
+                this.m_Dialog = dialog;        // wird benötigt für BYE
                 Request request = dialog.createRequest(Request.ACK);
                 dialog.sendAck(request);
                 userdialog.stdOutput("-----------------------Ack gesendet\n");
@@ -489,9 +608,9 @@ public class SIPPacketCaller implements SipListener {
         SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         try {
             userdialog.stdOutput("\n----------------------- SIPPacketReceiver: got an ACK\n " + requestEvent.getRequest());
-            int ackCount = ((ApplicationData) dialog.getApplicationData()).ackCount;
+            int ackCount = ((ApplicationData) m_Dialog.getApplicationData()).ackCount;
             if (ackCount == 1) {
-                dialog = serverTid.getDialog();
+                m_Dialog = serverTid.getDialog();
 //                this.sendReInvite(sipProvider);
                 /*
                  Request byeRequest = dialog.createRequest(Request.BYE);
@@ -501,7 +620,7 @@ public class SIPPacketCaller implements SipListener {
                  System.out.println("Dialog State = " + dialog.getState());
                  */
             } else {
-                ((ApplicationData) dialog.getApplicationData()).ackCount++;
+                ((ApplicationData) m_Dialog.getApplicationData()).ackCount++;
             }
         } catch (Exception ex) {
             ex.printStackTrace();

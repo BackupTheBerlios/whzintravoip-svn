@@ -260,6 +260,9 @@ public class SIPPacketReceiver implements SipListener {
         } else if (this.request.getMethod().equals(Request.BYE)) {
             userdialog.stdOutput("\nBYE empfangen\n");
             processBye(requestEvent, serverTransaction);
+        } else if (this.request.getMethod().equals(Request.UPDATE)) {
+            userdialog.stdOutput("\nUPDATE empfangen\n");
+            processUpdate(requestEvent);
         } else if (this.request.getMethod().equals(Request.OPTIONS)) {
             userdialog.stdOutput("\nOPTIONS empfangen\n");
             processOptions(requestEvent, serverTransaction);
@@ -411,6 +414,14 @@ public class SIPPacketReceiver implements SipListener {
             userdialog.errOutput("Exception bei processAck...");
             System.exit(0);
         }
+    }
+
+    private void processUpdate(RequestEvent requestEvent){
+        Request request = requestEvent.getRequest();
+        userdialog.stdOutput("Got an INVITE"
+                             + "\n-------------------------- This is the request:\n"
+                             + request
+                             + "\n-------------------------- This was the request\n");
     }
 
     /**
