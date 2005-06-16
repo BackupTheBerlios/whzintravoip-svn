@@ -6,6 +6,7 @@ import javax.sip.*;
 import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
+import de.fh_zwickau.pti.whzintravoip.sip_server.user.User;
 
 import org.apache.log4j.*;
 
@@ -62,6 +63,9 @@ public class ServerSipCallerImpl implements SipListener {
     ///////////////////////////////////////////////////////////////////////////
     // User related Stuff
     ///////////////////////////////////////////////////////////////////////////
+    private static User m_fromUser;
+    private static User m_toUser;
+
     private static ContactHeader contactHeader;
     private static String m_sTransport;
     private static String m_sPeerHostPort;
@@ -172,9 +176,35 @@ public class ServerSipCallerImpl implements SipListener {
      *
      * @param recipientIP String The IP from the Recipient of the Request
      */
+    /**
     public void setRecipientIPforRequest(String recipientIP)
     {
         m_sPeerHostPort = recipientIP + ":" + m_iReceiverPort;
+    }
+    */
+
+    /**
+     * A call to sendRequest send the specific
+     * Request from this User. And set the specific fromUser Sip Header.
+     *
+     * @param recUser User the sending User
+     */
+    public void setFromUser(User fromUser)
+    {
+        this.m_fromUser = fromUser;
+
+    }
+
+    /**
+     * A call to sendRequest send the specific
+     * Request to this User. And set the specific toUser Sip Header.
+     *
+     * @param toUser User the recipient User
+     */
+    public void setToUser(User toUser)
+    {
+        this.m_toUser = toUser;
+        m_sPeerHostPort = this.m_toUser.getUserIP() + ":" + m_iReceiverPort;
     }
 
     /**
@@ -183,7 +213,8 @@ public class ServerSipCallerImpl implements SipListener {
     public void sendRequest(String requestMethod) throws Exception {
             this.sipProviderToUse = m_sTransport.equalsIgnoreCase("udp") ? sipProviderUDPCaller : sipProviderTCPCaller;
 
-            String fromUser = "Yves";
+
+            String fromUser = this.m_fromUser.getSipName();
             String fromSipAddress= "www.fh-zwickau.de/~ys";
             String fromDisplayName = "StarWarsFan";
 

@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -20,7 +21,7 @@ import java.util.Iterator;
  * <p>Organisation: </p>
  *
  * @author Knight / Blurb
- * @version 0.0.1
+ * @version 0.0.2
  */
 
 public class UserMapping {
@@ -162,5 +163,40 @@ public class UserMapping {
         }
         logger.info("Getting User successful!");
         return true;
+    }
+
+    /**
+     * Get all registered Users from Database.
+     *
+     * @return List The List of the registered Users
+     * @throws Exception If Something is going wrong.
+     */
+    public List getAllUsers() throws Exception
+    {
+        Session session = null;
+        Transaction trx = null;
+        logger.info("Get all registered Users!");
+        List userList;
+        try {
+            session = sessionFactory.openSession();
+            trx = session.beginTransaction();
+            userList = session.find("from User");
+            trx.commit();
+        } catch (HibernateException ex) {
+            if (trx != null) {
+                try {
+                    trx.rollback();
+                } catch (HibernateException exRb) {
+                    logger.error("Error during updateUserWithIP: " + exRb.toString());
+                    return null;
+                }
+            }
+            return null;
+        } finally {
+            session.flush();
+            session.close();
+        }
+        logger.info("Getting User successful!");
+        return userList;
     }
 }

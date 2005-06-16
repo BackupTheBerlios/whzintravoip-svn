@@ -1,11 +1,13 @@
 package de.fh_zwickau.pti.whzintravoip.sip_server;
 
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
+import java.util.List;
 
 public interface SOAPServer {
     public String registerUser(User regUser);
-    public String processCall(String inviterIP, String recipientIP);
-    public String acceptCall(String inviterIP, String recipientIP);
+    public String processCall(String fromIP, String toIP);
+    public String acceptCall(String fromIP, String toIP);
     public String denyCall(String fromIP, String toIP);
     public String endCall(String fromIP, String toIP);
+    public List whoIsOn();
 }
