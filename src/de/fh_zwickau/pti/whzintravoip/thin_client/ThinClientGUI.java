@@ -57,17 +57,18 @@ public class ThinClientGUI extends JFrame{
 
 //    private Status status2 = Status.LOGIN;
 
-    private DefaultMutableTreeNode root = null;
-    private DefaultMutableTreeNode child = null;
-    private DefaultMutableTreeNode subchild = null;
-
     public ThinClientGUI() {
         try {
             jbInit();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        setStatusLogin();
+
+        // Login-Namen auslesen
         m_sLoginName = System.getProperty("user.name");
+
+        // einige Settings zum Programmfenster
         this.setSize(500, 700);
         this.setLocation(764, 2);
         jTextFieldMyIP.setText(getOwnIP());
@@ -78,8 +79,10 @@ public class ThinClientGUI extends JFrame{
             "http://" + m_sSOAPServerIP + ":8080/soap/servlet/rpcrouter",
             "urn:sip_server:soapserver:appscope",
             "de.fh_zwickau.pti.whzintravoip.sip_server.user.User");
-        setStatusLogin();
-//        createAndRegisterMe();
+
+        // am Server anmelden
+        createMyIdentity();
+//        registerMe();
 
         // User-Tree bauen
         createDummyUsers();
@@ -103,11 +106,12 @@ public class ThinClientGUI extends JFrame{
     /**
      * Gibt Text als Infomessage im Ausgabefenster aus. Dies geschieht nur,
      * wenn es bereits einmal geöffnet worden ist.
+     * Wenn m_bDebug == true, dann erfolgt die Ausgabe zusätzlich auf die
+     * Standardausgabe.
      *
      * @param msg String - der auszugebende Text als String
      */
     public void stdOutput(String msg) {
-        //        jTextArea.append("Info: " + std + "\n");
         if (m_bDebug == true) {
             System.out.println("Info: " + msg);
         }
@@ -119,11 +123,12 @@ public class ThinClientGUI extends JFrame{
     /**
      * Gibt Text als Fehlermessage im Ausgabefenster aus. Dies geschieht nur,
      * wenn es bereits einmal geöffnet worden ist.
+     * Wenn m_bDebug == true, dann erfolgt die Ausgabe zusätzlich auf die
+     * Standardausgabe.
      *
      * @param err String - der auszugebende Text als String
      */
     public void errOutput(String err) {
-        //        jTextArea.append("Error: " + err + "\n");
         if (m_bDebug == true) {
             System.out.println("Error: " + err);
         }
@@ -192,6 +197,12 @@ public class ThinClientGUI extends JFrame{
 
     /**
      * Liefert den eigenen Status.
+     * 1 = Login,
+     * 2 = Pickup,
+     * 3 = Incoming,
+     * 4 = MakeCall,
+     * 5 = Calling,
+     * 6 = Talking
      *
      * @return byte - Der eigene Status.
      */
@@ -200,43 +211,11 @@ public class ThinClientGUI extends JFrame{
     }
 
     /**
-     * Setzt den entsprechenden Button auf TRUE
+     * Registriert das eigene User-Objekt via SOAP am Server
+     *
      */
-    public void setAcceptButtonTrue(){
-    }
-
-    /**
-     * Setzt den entsprechenden Button auf FALSE
-     */
-    public void setAcceptButtonFalse(){
-    }
-
-    /**
-     * Setzt den entsprechenden Button auf TRUE
-     */
-    public void setDenyButtonTrue(){
-    }
-
-    /**
-     * Setzt den entsprechenden Button auf FALSE
-     */
-    public void setDenyButtonFalse(){
-    }
-
-    /**
-     * Setzt den entsprechenden Button auf TRUE
-     */
-    public void setEndCallButtonTrue(){
-    }
-
-    /**
-     * Setzt den entsprechenden Button auf FALSE
-     */
-    public void setEndCallButtonFalse(){
-    }
-
-    private void createAndRegisterMe(){
-        createMyIdentity();
+    private void registerMe(){
+//        createMyIdentity();
         try{
             m_MethodCaller.registerMyselfAtServer("registerUser", m_Myself, null);
         }catch(Exception ex){
@@ -245,7 +224,7 @@ public class ThinClientGUI extends JFrame{
     }
 
     /**
-     * Legt ein Userobjekt für die eigene Identität an
+     * Legt ein Userobjekt m_Myself für die eigene Identität an
      */
     private void createMyIdentity(){
         Properties myProperties = new Properties();
@@ -292,7 +271,6 @@ public class ThinClientGUI extends JFrame{
         m_PlayTunes.stopTune("Ring");
     }
 
-
     /**
      * Liefert den Scrollpane für den UserTree
      *
@@ -303,27 +281,11 @@ public class ThinClientGUI extends JFrame{
     }
 
     /**
-     * Legt das zu zeigende Messagefenster an. Dieses hat ein Textfeld und
-     * zwei Buttons
-     *
-     * @param msg String - Der Messagetext
-     * @param buttonL String - Beschriftung linker Button
-     * @param buttonR String - Beschriftung rechter Button
-     */
-    private void createMessage(String msg, String buttonL, String buttonR){
-        MessageWindow messageWindow = new MessageWindow(this);
-        messageWindow.setMessageText(msg);
-        messageWindow.setLeftButtonText(buttonL);
-        messageWindow.setRightButtonText(buttonR);
-        messageWindow.setVisible(true);
-    }
-
-    /**
-     * Löscht den momentan aktivierten Eintrag im UserTree
+     * Ein Button für diverse Tests...
      * @param e ActionEvent
      */
-    public void jButtonDeleteTreeEntry_actionPerformed(ActionEvent e) {
-        createAndRegisterMe();
+    public void jButtonForTests_actionPerformed(ActionEvent e) {
+        registerMe();
     }
 
     /**
@@ -565,10 +527,10 @@ public class ThinClientGUI extends JFrame{
         jScrollPane1.setPreferredSize(new Dimension(40, 40));
         jUserInfoField.setEditable(false);
         jUserInfoField.setText("");
-        jButtonDeleteTreeEntry.setToolTipText("");
-        jButtonDeleteTreeEntry.setText("Tests...");
-        jButtonDeleteTreeEntry.addActionListener(new
-                ThinClientGUI_jButtonDeleteTreeEntry_actionAdapter(this));
+        jButtonForTests.setToolTipText("");
+        jButtonForTests.setText("Tests...");
+        jButtonForTests.addActionListener(new
+                ThinClientGUI_jButtonForTests_actionAdapter(this));
         jButtonDeleteAllEntries.setText("alles löschen");
         jButtonDeleteAllEntries.addActionListener(new
                 ThinClientGUI_jButtonDeleteAllEntries_actionAdapter(this));
@@ -616,7 +578,7 @@ public class ThinClientGUI extends JFrame{
                                   new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0
                 , GridBagConstraints.EAST, GridBagConstraints.NONE,
                 new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonDeleteTreeEntry,
+        this.getContentPane().add(jButtonForTests,
                                   new GridBagConstraints(3, 2, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(10, 10, 10, 10), 5, 5));
@@ -640,7 +602,7 @@ public class ThinClientGUI extends JFrame{
     JScrollPane jScrollPane1 = new JScrollPane();
     GridBagLayout gridBagLayout1 = new GridBagLayout();
     JTextArea jUserInfoField = new JTextArea();
-    JButton jButtonDeleteTreeEntry = new JButton();
+    JButton jButtonForTests = new JButton();
     JButton jButtonDeleteAllEntries = new JButton();
     JButton jButtonAddEntries = new JButton();
     JMenuBar jMenuBar1 = new JMenuBar();
@@ -701,15 +663,16 @@ class ThinClientGUI_jButtonDeleteAllEntries_actionAdapter implements
 }
 
 
-class ThinClientGUI_jButtonDeleteTreeEntry_actionAdapter implements
+class ThinClientGUI_jButtonForTests_actionAdapter implements
         ActionListener {
     private ThinClientGUI adaptee;
-    ThinClientGUI_jButtonDeleteTreeEntry_actionAdapter(ThinClientGUI adaptee) {
+    ThinClientGUI_jButtonForTests_actionAdapter(ThinClientGUI adaptee) {
         this.adaptee = adaptee;
     }
 
     public void actionPerformed(ActionEvent e) {
-        adaptee.jButtonDeleteTreeEntry_actionPerformed(e);
+
+        adaptee.jButtonForTests_actionPerformed(e);
     }
 }
 
