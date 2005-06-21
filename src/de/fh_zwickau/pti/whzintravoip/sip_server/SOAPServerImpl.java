@@ -49,6 +49,7 @@ public class SOAPServerImpl implements SOAPServer {
      */
     private static UserMapping m_UserMapping = new UserMapping();
 
+
     /**
      * A List of user ip's, which are on
      */
@@ -403,7 +404,18 @@ public class SOAPServerImpl implements SOAPServer {
        return true;
    }
 
+   static {
+       Properties p = System.getProperties();
+       Set s = p.keySet();
+       for(Iterator i = s.iterator(); i.hasNext(); )
+       {
+           Object key = i.next();
+           logger.info(key.toString() + " : " + p.get(key));
+       }
 
+   }
 
 
 }
+
+

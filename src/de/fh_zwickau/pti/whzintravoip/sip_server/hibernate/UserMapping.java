@@ -9,6 +9,7 @@ import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 import java.util.Iterator;
 import java.util.List;
 
+
 /**
  *
  * <p>Überschrift: User Mapping Class</p>
@@ -23,6 +24,7 @@ import java.util.List;
  * @author Knight / Blurb
  * @version 0.0.2
  */
+import net.sf.hibernate.cache.EhCacheProvider;
 
 public class UserMapping {
 
