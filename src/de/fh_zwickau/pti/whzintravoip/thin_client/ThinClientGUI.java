@@ -67,7 +67,7 @@ public class ThinClientGUI extends JFrame{
 
         // Login-Namen auslesen
         m_sLoginName = System.getProperty("user.name");
-        m_sLoginName = "torssch";
+        m_sLoginName = "ys";
 
         // einige Settings zum Programmfenster
         this.setSize(500, 700);

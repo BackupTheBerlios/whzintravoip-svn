@@ -104,18 +104,24 @@ public class UserMapping {
         logger.info("Getting User from Database with IP: " + userIP);
         try {
             session = sessionFactory.openSession();
+            logger.info("Session Factory opened");
             trx = session.beginTransaction();
+            logger.info("Transaction startet");
             String hql =
                     "select user from de.fh_zwickau.pti.whzintravoip.sip_server.user.User as user where user.userip = '" +
                     userIP + "'";
-            Iterator it = session.iterate(hql);
+            user = (User) session.getNamedQuery(hql);
+/**            Iterator it = session.iterate(hql);
+            logger.info("Iterator created");
             if (it.hasNext()) {
+                logger.info("Iterator has-a-next element");
                 user = (User) it.next();
             }
-            trx.commit();
+*/            trx.commit();
         } catch (HibernateException ex) {
             if (trx != null) {
                 try {
+                    logger.info("Transaction rollback");
                     trx.rollback();
                 } catch (HibernateException exRb) {
                     logger.error("Error during getUserWithIP: " + exRb.toString());
