@@ -7,8 +7,8 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 import java.util.Iterator;
+import java.util.Vector;
 import java.util.List;
-
 
 /**
  *
@@ -43,13 +43,24 @@ public class UserMapping {
      */
     public UserMapping() {
         PropertyConfigurator.configure("/log4j.properties");
-        try {
-            logger.info("Initializing Hibernate!");
-            sessionFactory = new Configuration().configure().
-                             buildSessionFactory();
-            logger.info("Finished Initializing Hibernate!");
-        } catch (HibernateException ex) {
-            logger.error("Error initializing Hibernate: " + ex.toString());
+    }
+
+    public void initHibernate()
+    {
+        if(this.sessionFactory == null)
+        {
+            try {
+                logger.info("Initializing Hibernate!");
+                logger.info("Creating Configuration Object!");
+                Configuration config = new Configuration();
+                logger.info("Configure the config object!");
+                config.configure();
+                logger.info("Build the SessionFactory!");
+                sessionFactory = config.buildSessionFactory();
+                logger.info("Finished Initializing Hibernate!");
+            } catch (HibernateException ex) {
+                logger.error("Error initializing Hibernate: " + ex.toString());
+            }
         }
     }
 
@@ -90,15 +101,14 @@ public class UserMapping {
         Session session = null;
         Transaction trx = null;
         User user = null;
-        logger.info("Gettin User from Database with IP: " + userIP);
+        logger.info("Getting User from Database with IP: " + userIP);
         try {
             session = sessionFactory.openSession();
             trx = session.beginTransaction();
             String hql =
-                    "select user from User as user where user.userip = :userip";
-            Query query = session.createQuery(hql);
-            query.setString("userip", userIP);
-            Iterator it = query.iterate();
+                    "select user from de.fh_zwickau.pti.whzintravoip.sip_server.user.User as user where user.userip = '" +
+                    userIP + "'";
+            Iterator it = session.iterate(hql);
             if (it.hasNext()) {
                 user = (User) it.next();
             }
@@ -117,7 +127,7 @@ public class UserMapping {
             session.flush();
             session.close();
         }
-        logger.info("Getting User successful!");
+        logger.info("Getting User successful! " + user.toString());
         return user;
     }
 
@@ -173,7 +183,7 @@ public class UserMapping {
      * @return List The List of the registered Users
      * @throws Exception If Something is going wrong.
      */
-    public List getAllUsers() throws Exception
+    public Vector getAllUsers() throws Exception
     {
         Session session = null;
         Transaction trx = null;
@@ -199,6 +209,6 @@ public class UserMapping {
             session.close();
         }
         logger.info("Getting User successful!");
-        return userList;
+        return new Vector(userList);
     }
 }

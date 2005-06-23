@@ -74,6 +74,7 @@ public class SOAPServerImpl implements SOAPServer {
         PropertyConfigurator.configure("/log4j.properties");
         this.m_SIPPacketCaller = new ServerSipCallerImpl(this.getOwnIP());
         this.initSipServer();
+        this.m_UserMapping.initHibernate();
     }
 
     /**
@@ -105,8 +106,12 @@ public class SOAPServerImpl implements SOAPServer {
      */
     public String registerUser(User regUser)
     {
+
         logger.info("Register User with IP: " + regUser.getUserIP() + " and Initial " + regUser.getUserInitial());
         // LDAP request with userToken
+        Properties ldapProps = this.m_LDAPRequest.getUserProps(regUser.getUserInitial());
+        regUser.setLDAPProps(ldapProps);
+        // The Complete User
         logger.info("Getting User Properties from LDAP Server!");
         logger.info("Object specified by: ");
         logger.info("UserIP: " + regUser.getUserIP());
@@ -120,10 +125,8 @@ public class SOAPServerImpl implements SOAPServer {
         logger.info("SipScreenName: " + regUser.getSipScreenName());
         logger.info("Role: " + regUser.getRole());
         logger.info("Status: " + regUser.getStatus());
-        //Properties ldapProps = this.m_LDAPRequest.getUserProps(regUser.getUserInitial());
         // Build the User Object with the Probs from the LDAP Request
         logger.info("Build User Object and Map it!");
-        //regUser.setLDAPProps(ldapProps);
         // Map the User Object to Database with Hibernate
         try {
             this.m_UserMapping.mapUserObject(regUser);
@@ -132,7 +135,6 @@ public class SOAPServerImpl implements SOAPServer {
             return new String("ERROR");
         }
         logger.info("User succesful registered!");
-
         return new String("OK");
     }
 
@@ -162,13 +164,16 @@ public class SOAPServerImpl implements SOAPServer {
             return new String("Something is going wrong getting the Recipient Data!");
         }
         logger.info("User Objects succesfully retrieved from Database!");
+        logger.info("Users in UserManager: " + m_UserManager.getUserCount());
         // Test if the Inviter and the Recipient really exists, and test for
         // the right Status of the Recipient
+        /**
         if(m_UserManager.containsUserWithIP(fromIP) &&
                 m_UserManager.containsUserWithIP(toIP))
-        {
+        {*/
+            /**
             if (m_UserManager.getUserStatusFromIP(toIP).equals(User.
-                    PICKUP)) {
+                    PICKUP)) {*/
                 logger.info("Make Call started!");
                 /** @todo Init the Header from the Request */
                 //m_SIPPacketCaller.setRecipientIPforRequest(recipientIP);
@@ -184,12 +189,17 @@ public class SOAPServerImpl implements SOAPServer {
                 } catch (Exception ex) {
                     logger.error("Error during makeCall(): " + ex.toString());
                     return new String("Error during makeCall()!" + ex.toString());
-                }
+                }/**
             } else {
+                logger.info("Recipient is not in PICKUP Mode");
                 return new String("Recipient is not in PICKUP Mode: " +
                                   m_UserManager.getUserStatusFromIP(toIP));
-            }
-        } else return new String("Inviter oder Recipient ist not known!");
+            }*/
+            /**
+        } else {
+            logger.info("Inviter or Recipient is not known!");
+            return new String("Inviter or Recipient is not known!");
+        }*/
         logger.info("Make Call ended!");
 
         // If all is going well we can now refresh the state of the Users
@@ -372,7 +382,7 @@ public class SOAPServerImpl implements SOAPServer {
         return new String("End Call succesful!");
     }
 
-    public List whoIsOn()
+    public Vector whoIsOn()
     {
         try {
             return this.m_UserMapping.getAllUsers();
@@ -404,6 +414,7 @@ public class SOAPServerImpl implements SOAPServer {
        return true;
    }
 
+   /**
    static {
        Properties p = System.getProperties();
        Set s = p.keySet();
@@ -413,7 +424,7 @@ public class SOAPServerImpl implements SOAPServer {
            logger.info(key.toString() + " : " + p.get(key));
        }
 
-   }
+   }*/
 
 
 }

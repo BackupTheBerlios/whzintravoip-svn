@@ -1,7 +1,7 @@
 package de.fh_zwickau.pti.whzintravoip.sip_server;
 
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
-import java.util.List;
+import java.util.Vector;
 
 public interface SOAPServer {
     public String registerUser(User regUser);
@@ -9,5 +9,5 @@ public interface SOAPServer {
     public String acceptCall(String fromIP, String toIP);
     public String denyCall(String fromIP, String toIP);
     public String endCall(String fromIP, String toIP);
-    public List whoIsOn();
+    public Vector whoIsOn();
 }

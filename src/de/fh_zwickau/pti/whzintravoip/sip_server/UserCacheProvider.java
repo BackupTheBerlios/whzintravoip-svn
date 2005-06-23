@@ -7,7 +7,8 @@ import net.sf.hibernate.cache.CacheProvider;
 import net.sf.hibernate.cache.*;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-
+import java.util.Set;
+import java.util.Iterator;
 
 
 
@@ -22,21 +23,28 @@ public class UserCacheProvider implements CacheProvider {
     }
 
     public Cache buildCache(String name, Properties properties) throws CacheException {
-            try {
+
+        try {
+            log.info("Build Cache!");
             net.sf.ehcache.Cache cache = manager.getCache(name);
+            log.info("Cache is: " + cache.toString());
             if (cache == null) {
-                log.info("Build Cache!");
+
                 log.warn("Could not find configuration [" + name + "]; using defaults.");
+                log.info("Add Cache with Name" + name);
                 manager.addCache(name);
                 cache = manager.getCache(name);
+                log.info("Cache ID: " + cache.toString());
                 log.debug("started EHCache region: " + name);
             }
+            log.info("Return the cache object!");
             return new EhCache(cache);
             }
         catch (net.sf.ehcache.CacheException e) {
             log.error("Error during build cache: " + e.toString());
             throw new CacheException(e);
         }
+
     }
 
     /**
@@ -55,7 +63,14 @@ public class UserCacheProvider implements CacheProvider {
     public void start(Properties properties) throws CacheException {
         try {
             log.info("Create Cache Manager!");
+            /**
+            Set s = properties.entrySet();
+            for (Iterator i = s.iterator(); i.hasNext(); ) {
+                Object key = i.next();
+                log.info(key.toString() + " : " + properties.get(key));
+            }*/
             manager = CacheManager.create();
+
         } catch (net.sf.ehcache.CacheException e) {
             log.error("Error during start Cache: " + e.toString());
             throw new CacheException(e);
