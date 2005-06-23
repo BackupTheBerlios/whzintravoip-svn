@@ -118,6 +118,12 @@ public class UserTreeGenerator {
         }
     }
 
+    public void setNewUserList(Vector userVector){
+        removeAllEntries();
+        this.m_UserVector = userVector;
+        addUserTreeEntries(userVector);
+    }
+
     /**
      * Ließt die Userdaten aus dem UserVector für den User aus, welcher im JTree
      * selektiert wurde. Daraus wird das Login-Kürzel extrahiert, dieses im

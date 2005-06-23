@@ -100,6 +100,56 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
                                 e.getMessage());
          }
      }
+     /**
+      * This method calls the specified method on the SOAP-server
+      * with the given arguments
+      *
+      * @param methodToCall String - the name of the method to call
+      * @param param1 User - the user object (can be empty)
+      * @param param2 String - the second parameter (can be empty)
+      * @throws Exception -
+      */
+     public Vector whoIsOnAtServer() throws Exception {
+         m_UserGUI.stdOutput("Who is on at the moment?");
+         URL url = new URL(m_sServerURL);
+         Call call = new Call(); // prepare the service invocation
+         call.setTargetObjectURI(m_sServerURN);
+         call.setMethodName("whoIsOn");
+         call.setEncodingStyleURI(Constants.NS_URI_SOAP_ENC);
+
+         SOAPMappingRegistry soapMappingRegistry = new SOAPMappingRegistry();
+         BeanSerializer beanSerializer = new BeanSerializer();
+         QName qName = new QName(m_sServerURN, m_sClassToMap);
+         soapMappingRegistry.mapTypes(Constants.NS_URI_SOAP_ENC,
+                                      qName,
+                                      User.class,
+                                      beanSerializer,
+                                      beanSerializer);
+         call.setSOAPMappingRegistry(soapMappingRegistry);
+
+         try {
+             m_UserGUI.stdOutput("invoke service\n"
+                               + "  URL= "
+                               + url
+                               + "\n  URN ="
+                               + m_sServerURN);
+             Response response = call.invoke(url, ""); // invoke the service
+             if (!response.generatedFault()) {
+                 Parameter result = response.getReturnValue(); // response was OK
+                 m_UserGUI.stdOutput("Result= " + result.getValue());
+                 m_UserGUI.stdOutput(result.toString());
+                 return (Vector) result.getValue();
+             } else {
+                 Fault f = response.getFault(); // an error occurred
+                 m_UserGUI.errOutput("Fault= " + f.getFaultCode() + ", " +
+                                    f.getFaultString());
+             }
+         } catch (SOAPException e) { // call could not be sent properly
+             m_UserGUI.errOutput("SOAPException= " + e.getFaultCode() + ", " +
+                                e.getMessage());
+         }
+         return null;
+     }
 
      /**
       * This method calls the specified method on the SOAP-server

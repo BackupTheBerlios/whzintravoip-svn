@@ -67,6 +67,7 @@ public class ThinClientGUI extends JFrame{
 
         // Login-Namen auslesen
         m_sLoginName = System.getProperty("user.name");
+//        m_sLoginName = "ys";
 
         // einige Settings zum Programmfenster
         this.setSize(500, 700);
@@ -287,6 +288,22 @@ public class ThinClientGUI extends JFrame{
     public void jButtonForTests_actionPerformed(ActionEvent e) {
         registerMe();
     }
+
+    /**
+     * Ein zweiter Button für diverse Tests...
+     * @param e ActionEvent
+     */
+    public void jButtonForTestsII_actionPerformed(ActionEvent e) {
+        Vector userVector = null;
+        try{
+            userVector = m_MethodCaller.whoIsOnAtServer();
+        }catch(Exception ex){
+            errOutput(ex.toString());
+        }
+        m_UserTreeGenerator.setNewUserList(userVector);
+//        m_UserTreeGenerator.addUserTreeEntries(userVector);
+    }
+
 
     /**
      * Startet den Receiver-Stack und setzt den eigenen Status auf PICKUP
@@ -543,6 +560,9 @@ public class ThinClientGUI extends JFrame{
         jMenuExit.addActionListener(new ThinClientGUI_jMenuExit_actionAdapter(this));
         jMenuInfo.setText("Info");
         jMenuInfo.addActionListener(new ThinClientGUI_jMenuInfo_actionAdapter(this));
+        jButtonForTestsII.setText("Test2 II...");
+        jButtonForTestsII.addActionListener(new
+                ThinClientGUI_jButtonForTestsII_actionAdapter(this));
         jSplitPane1.add(jScrollPane1, JSplitPane.RIGHT);
         jScrollPane1.getViewport().add(jUserInfoField);
         jSplitPane1.add(treeViewScrollPane, JSplitPane.LEFT);
@@ -586,6 +606,10 @@ public class ThinClientGUI extends JFrame{
                                   new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(10, 10, 10, 10), 5, 5));
+        this.getContentPane().add(jButtonForTestsII,
+                                  new GridBagConstraints(3, 3, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
+                new Insets(0, 0, 0, 0), 0, 0));
 
     }
 
@@ -610,7 +634,19 @@ public class ThinClientGUI extends JFrame{
     JMenu jMenu2 = new JMenu();
     JMenuItem jMenuExit = new JMenuItem();
     JMenuItem jMenuInfo = new JMenuItem();
+    JButton jButtonForTestsII = new JButton();
+}
 
+
+class ThinClientGUI_jButtonForTestsII_actionAdapter implements ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jButtonForTestsII_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButtonForTestsII_actionPerformed(e);
+    }
 }
 
 
