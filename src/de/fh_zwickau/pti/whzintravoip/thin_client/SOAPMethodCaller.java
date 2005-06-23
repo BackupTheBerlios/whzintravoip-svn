@@ -168,10 +168,10 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
          call.setEncodingStyleURI(Constants.NS_URI_SOAP_ENC);
          Vector params = new Vector();
          if(param1 != null){
-             params.addElement(new Parameter("inviterIP", String.class, param1, null));
+             params.addElement(new Parameter("fromIP", String.class, param1, null));
          }
          if(param2 != null){
-             params.addElement(new Parameter("recipientIP", String.class, param2, null));
+             params.addElement(new Parameter("toIP", String.class, param2, null));
          }
          call.setParams(params);
          try {

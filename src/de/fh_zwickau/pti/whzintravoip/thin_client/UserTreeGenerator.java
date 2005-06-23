@@ -111,10 +111,14 @@ public class UserTreeGenerator {
      */
     public void addUserTreeEntries(Vector userVector){
         for(Enumeration el = userVector.elements(); el.hasMoreElements();){
-            User user = (User)el.nextElement();
-            String name = user.getUserFName() + " " + user.getUserLName() + " (" + user.getUserInitial() + ")";
-            m_Child = new DefaultMutableTreeNode(name);
-            m_TreeModel.insertNodeInto(m_Child, m_Root, m_TreeModel.getChildCount(m_Root));
+            User user = (User) el.nextElement();
+            if (!user.getUserIP().equals(m_UserGUI.getOwnIP())) {
+                String name = user.getUserFName() + " " + user.getUserLName() +
+                              " (" + user.getUserInitial() + ")";
+                m_Child = new DefaultMutableTreeNode(name);
+                m_TreeModel.insertNodeInto(m_Child, m_Root,
+                                           m_TreeModel.getChildCount(m_Root));
+            }
         }
     }
 
@@ -155,7 +159,7 @@ public class UserTreeGenerator {
             }
         }
         if (user != null) {
-            m_sIPOfChoosenUser = "123.123.123.123";
+            m_sIPOfChoosenUser = user.getUserIP();
             String choosenUser = "Name:\t" + user.getUserFName()
                                  + "\nVorname:\t" + user.getUserLName()
                                  + "\nEmail:\t" + user.getUserMail()
