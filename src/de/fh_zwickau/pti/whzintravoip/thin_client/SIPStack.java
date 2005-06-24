@@ -219,7 +219,8 @@ public class SIPStack implements SipListener {
         this.m_Request = requestEvent.getRequest();
         this.m_ServerTransaction = requestEvent.getServerTransaction();
 
-        String callerIP = extractIPFromURI(m_Request.getRequestURI().toString());
+//        String callerIP = extractIPFromURI(m_Request.getRequestURI().toString());
+        String callerIP = extractIPFromURI(m_Request);
 
         // Infos ausgeben
         m_UserGUI.stdOutput("\n\nRequest '"
@@ -233,10 +234,10 @@ public class SIPStack implements SipListener {
 
         if (m_UserGUI.getStatus() == TALKING) {
             m_UserGUI.stdOutput("Request received but I'm talking at the moment");
-            m_UserGUI.denyCall(callerIP);
+//            m_UserGUI.denyCall(callerIP);
         } else if (m_UserGUI.getStatus() != PICKUP) {
             m_UserGUI.stdOutput("Request received but I'm busy at the moment");
-            m_UserGUI.denyCall(callerIP);
+//            m_UserGUI.denyCall(callerIP);
         } else if (this.m_Request.getMethod().equals(Request.INVITE)) {
             m_UserGUI.stdOutput("INVITE-Request received");
             m_UserGUI.processIncomingCall(callerIP);
@@ -277,26 +278,24 @@ public class SIPStack implements SipListener {
     }
 
     /**
-     * Extrahiert die IP aus dem RequestURI. Eine RequestURI setzt sich wie
-     * folgt zusammen: "sip:Max@123.123.123.123:1234"
-     * Sie wird an ":" und "@" in Tokens zerlegt und das dritte Token (die IP)
-     * wird zurückgegeben
+     * Extrahiert die IP aus dem Request. Es wird nach dem Header "Caller-IP"
+     * gesucht und dann dessen Wert ausgelesen.
      *
-     * @param requestURI String - der ReguestURI
+     * @param request Request - der Reguest
      * @return String - die IP
      */
-    private String extractIPFromURI(String requestURI) {
-        StringTokenizer tokenizer = new StringTokenizer(requestURI, "@:");
-        String ip = "127.0.0.1";
-        try {
-            // erstes Token ist das SIP-Kürel
-            ip = tokenizer.nextToken();
-            // nächstes Token ist der Name
-            ip = tokenizer.nextToken();
-            // dieses Token ist das Login-Kürzel
-            ip = tokenizer.nextToken();
-        } catch (NoSuchElementException ex) {
-        }
+//    private String extractIPFromURI(String callID) {
+    private String extractIPFromURI(Request request) {
+        String textOfRequest = request.toString();
+        Header header = request.getHeader("Caller-IP");
+        m_UserGUI.stdOutput(textOfRequest);
+        String headerField = "127.0.0.1";
+        headerField = header.toString();
+        m_UserGUI.stdOutput("ausgelesener Header: " + headerField);
+        StringTokenizer st = new StringTokenizer(headerField," ");
+        String ip = st.nextToken();
+        ip = st.nextToken();
+        ip = ip.substring(0, (ip.length() - 2));
         return ip;
     }
 }

@@ -329,12 +329,13 @@ public class ThinClientGUI extends JFrame{
 
     public void processIncomingCall(String incomingCallIP){
         setStatusINCOMING();
+        stdOutput("Call from this IP: " + incomingCallIP);
         this.m_sOpponentIP = incomingCallIP;
         String callerName = m_UserTreeGenerator.getUserName(incomingCallIP);
         stdOutput(callerName);
         String message = callerName + " ruft Sie an!\n Wollen Sie das Gespräch annehmen?";
         int returnvalue = JOptionPane.showConfirmDialog(this, message, "Es klingelt!", JOptionPane.YES_NO_OPTION);
-        stdOutput(returnvalue + "");
+        stdOutput("Returnvalue of Request:" + returnvalue);
         switch (returnvalue) {
         case 0:
             stdOutput("Gespräch angenommen");
