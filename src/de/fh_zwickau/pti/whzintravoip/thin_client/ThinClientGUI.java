@@ -252,7 +252,7 @@ public class ThinClientGUI extends JFrame{
      *
      * @return String - Die eigene IP
      */
-    private String getOwnIP(){
+    public String getOwnIP(){
         String ip = null;
         try {
           InetAddress myIP = InetAddress.getLocalHost();

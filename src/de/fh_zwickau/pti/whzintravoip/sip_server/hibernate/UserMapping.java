@@ -108,16 +108,15 @@ public class UserMapping {
             trx = session.beginTransaction();
             logger.info("Transaction startet");
             String hql =
-                    "select user from de.fh_zwickau.pti.whzintravoip.sip_server.user.User as user where user.userip = '" +
+                    "select user from User as user where user.userIP = '" +
                     userIP + "'";
-            user = (User) session.getNamedQuery(hql);
-/**            Iterator it = session.iterate(hql);
+            Iterator it = session.iterate(hql);
             logger.info("Iterator created");
             if (it.hasNext()) {
                 logger.info("Iterator has-a-next element");
                 user = (User) it.next();
             }
-*/            trx.commit();
+            trx.commit();
         } catch (HibernateException ex) {
             if (trx != null) {
                 try {

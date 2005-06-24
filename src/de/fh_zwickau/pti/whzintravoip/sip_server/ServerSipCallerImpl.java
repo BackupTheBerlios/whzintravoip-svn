@@ -32,32 +32,32 @@ public class ServerSipCallerImpl implements SipListener {
     ///////////////////////////////////////////////////////////////////////////
     // Factories
     ///////////////////////////////////////////////////////////////////////////
-    private static AddressFactory addressFactoryCaller;
-    private static MessageFactory messageFactoryCaller;
-    private static HeaderFactory headerFactoryCaller;
+    private static AddressFactory addressFactoryCaller = null;
+    private static MessageFactory messageFactoryCaller = null;
+    private static HeaderFactory headerFactoryCaller = null;
     private static SipFactory sipFactoryCaller = null;
 
     ///////////////////////////////////////////////////////////////////////////
     // classes etc.
-    private ServerSipCallerImpl m_ListenerCaller;
+    private ServerSipCallerImpl m_ListenerCaller = null;
 
     ///////////////////////////////////////////////////////////////////////////
     // Providers
     ///////////////////////////////////////////////////////////////////////////
-    private static SipProvider m_ServerSIPProviderUDP;
-    private static SipProvider m_ServerSIPProviderTCP;
-    private static SipProvider m_SIPProviderToUse;
+    private static SipProvider m_ServerSIPProviderUDP = null;
+    private static SipProvider m_ServerSIPProviderTCP = null;
+    private static SipProvider m_SIPProviderToUse = null;
 
     ///////////////////////////////////////////////////////////////////////////
     // SIP-Stack
     ///////////////////////////////////////////////////////////////////////////
-    private static SipStack m_ServerSIPStack;
+    private static SipStack m_ServerSIPStack = null;
 
     ///////////////////////////////////////////////////////////////////////////
     // Listeningpoints
     ///////////////////////////////////////////////////////////////////////////
-    private static ListeningPoint m_UDPListeningPoint;
-    private static ListeningPoint m_TCPListeningPoint;
+    private static ListeningPoint m_UDPListeningPoint = null;
+    private static ListeningPoint m_TCPListeningPoint = null;
 
 
     protected static ClientTransaction clientTid;
@@ -94,6 +94,7 @@ public class ServerSipCallerImpl implements SipListener {
 
     public boolean initServerSipCaller() throws Exception
     {
+        this.stopAndRemoveSIPStack();
         this.initServerSIPStack();
         this.initServerFactories();
         return true;
@@ -135,7 +136,7 @@ public class ServerSipCallerImpl implements SipListener {
         m_sPeerHostPort = m_sInitReceiverIP + ":" + m_iReceiverPort;
         //properties.setProperty("javax.sip.OUTBOUND_PROXY", m_sPeerHostPort + "/" + m_sTransport);
         //properties.setProperty("javax.sip.OUTBOUND_PROXY", "141.32.28.226/" + m_sTransport);
-        m_ServerSIPStack = sipFactoryCaller.createSipStack(properties);     // this can throw an exception
+        this.m_ServerSIPStack = sipFactoryCaller.createSipStack(properties);     // this can throw an exception
         logger.info("Creating Sip Stack fromIP " + m_sServerAddress);
         logger.info("Creating Sip Stack toIP " + m_sInitReceiverIP);
         logger.info("Sip Stack Impl : " + m_ServerSIPStack.toString());
@@ -158,10 +159,42 @@ public class ServerSipCallerImpl implements SipListener {
         messageFactoryCaller = sipFactoryCaller.createMessageFactory();
 
         logger.info("Header / Adress / Message Factory created!");
-        m_UDPListeningPoint = m_ServerSIPStack.createListeningPoint(m_iCallerPort, "udp");
-        m_TCPListeningPoint = m_ServerSIPStack.createListeningPoint(m_iCallerPort, "tcp");
-        logger.info("UDP and TCP Listening Point created from SIPStack: " +
-                    m_ServerSIPStack.toString());
+        try {
+            m_UDPListeningPoint = this.m_ServerSIPStack.createListeningPoint(
+//                    m_iCallerPort, "udp");
+                    5062, "udp");
+        } catch (TransportNotSupportedException ex) {
+            logger.error("TransportNotSupportedException on creating UDP ListeningPoint: " +
+                         ex.getMessage());
+        } catch (InvalidArgumentException ex) {
+            logger.error("InvalidArgumentException on creating UDP ListeningPoint: " +
+                         ex.getMessage());
+        } catch (Exception ex) {
+            logger.error("Exception on creating UDP ListeningPoint: " +
+                         ex.getMessage());
+        }
+        logger.info("UDP Listening Point created from SIPStack: "
+                    + m_ServerSIPStack.toString()
+                    + "\nUDP Listening Point: "
+                    + m_UDPListeningPoint.toString());
+        try {
+            m_TCPListeningPoint = this.m_ServerSIPStack.createListeningPoint(
+//                    m_iCallerPort, "tcp");
+                    5062, "tcp");
+        } catch (TransportNotSupportedException ex) {
+            logger.error("TransportNotSupportedException on creating TCP ListeningPoint: " +
+                         ex.getMessage());
+        } catch (InvalidArgumentException ex) {
+            logger.error("InvalidArgumentException on creating TCP ListeningPoint: " +
+                         ex.getMessage());
+        } catch (Exception ex) {
+            logger.error("Exception on creating TCP ListeningPoint: " +
+                        ex.getMessage());
+        }
+        logger.info("TCP Listening Point created from SIPStack: "
+                    + m_ServerSIPStack.toString()
+                    + "\nUDP Listening Point: "
+                    + m_TCPListeningPoint.toString());
         m_ListenerCaller = this;
         m_ServerSIPProviderUDP = m_ServerSIPStack.createSipProvider(m_UDPListeningPoint);
         logger.info("udp provider (Caller): " + m_ServerSIPProviderUDP);
@@ -218,41 +251,56 @@ public class ServerSipCallerImpl implements SipListener {
                                   m_ServerSIPProviderTCP;
 
         String fromUser = this.m_fromUser.getSipName();
-        String fromSipAddress = this.m_toUser.getSipAddress();
-        String fromDisplayName = this.m_toUser.getSipScreenName();
+        String fromSipAddress = this.m_fromUser.getSipAddress();
+        String fromDisplayName = this.m_fromUser.getSipScreenName();
 
         String toUser = this.m_toUser.getSipName();
         String toSipAddress = this.m_toUser.getSipAddress();
         String toDisplayName = this.m_toUser.getSipScreenName();
 
         // create From Header
+        logger.info("Creating SipURI 'from'");
         SipURI fromAddress = addressFactoryCaller.createSipURI(fromUser,
                 fromSipAddress);
+
+        logger.info("Creating Address 'from'");
         Address fromNameAddress = addressFactoryCaller.createAddress(
                 fromAddress);
         fromNameAddress.setDisplayName(fromDisplayName);
+
+        logger.info("Creating FromHeader");
         FromHeader fromHeader = headerFactoryCaller.createFromHeader(
                 fromNameAddress, "12345");
 
         // create To Header
+        logger.info("Creating SipURI 'to'");
         SipURI toAddress = addressFactoryCaller.createSipURI(toUser,
                 toSipAddress);
+
+        logger.info("Creating Address 'to'");
         Address toNameAddress = addressFactoryCaller.createAddress(toAddress);
         toNameAddress.setDisplayName(toDisplayName);
+
+        logger.info("Creating ToHeader");
         ToHeader toHeader = headerFactoryCaller.createToHeader(toNameAddress, null);
 
         // create Request URI
+        logger.info("Creating RequestURI");
         SipURI requestURI = addressFactoryCaller.createSipURI(toUser,
                 m_sPeerHostPort);
 
         // Create ViaHeaders
+        logger.info("Creating ViaHeaders");
         ArrayList viaHeaders = new ArrayList();
-        int port = m_SIPProviderToUse.getListeningPoint().getPort();
+        logger.info("Arraylist created");
+        int port = this.m_SIPProviderToUse.getListeningPoint().getPort();
+        logger.info("Port: " + port);
         ViaHeader viaHeader = headerFactoryCaller.createViaHeader(
                 m_ServerSIPStack.getIPAddress(),
-                m_SIPProviderToUse.getListeningPoint().getPort(),
+                this.m_SIPProviderToUse.getListeningPoint().getPort(),
                 m_sTransport,
                 null);
+        logger.info("ViaHeaders filled");
 
         // add via headers
         viaHeaders.add(viaHeader);
@@ -261,18 +309,22 @@ public class ServerSipCallerImpl implements SipListener {
 //            ContentTypeHeader contentTypeHeader = headerFactoryCaller.createContentTypeHeader("application", "sdp");
 
         // Create a new CallId header
+        logger.info("Creating CallIDHeader");
         CallIdHeader callIdHeader = m_SIPProviderToUse.getNewCallId();
 
         // Create a new Cseq header
+        logger.info("Creating CSeqHeader");
         CSeqHeader cSeqHeader = headerFactoryCaller.createCSeqHeader(1,
                 Request.INVITE);
 
         // Create a new MaxForwardsHeader
+        logger.info("Creating MaxForwardsHeader");
         MaxForwardsHeader maxForwards = headerFactoryCaller.
                                         createMaxForwardsHeader(70);
 
         // Create the request.
         Request request;
+        logger.info("Creating Request");
         if (requestMethod.equals("INVITE")) {
             request = messageFactoryCaller.createRequest(
                     requestURI,
@@ -392,22 +444,22 @@ public class ServerSipCallerImpl implements SipListener {
      * @throws Exception
      */
     public boolean stopAndRemoveSIPStack() {
-        if(m_ServerSIPStack != null){
+        if(this.m_ServerSIPStack != null){
             try {
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                 }
-                // userdialog.stdOutput("lösche Referenzen für Caller");
-                m_ServerSIPStack.deleteListeningPoint(m_UDPListeningPoint);
-                m_ServerSIPStack.deleteListeningPoint(m_TCPListeningPoint);
+                this.m_ServerSIPStack.deleteListeningPoint(this.m_UDPListeningPoint);
+                this.m_ServerSIPStack.deleteListeningPoint(this.m_TCPListeningPoint);
                 // This will close down the stack and exit all threads
-                m_ServerSIPProviderTCP.removeSipListener(this);
-                m_ServerSIPProviderUDP.removeSipListener(this);
+                this.m_ServerSIPProviderTCP.removeSipListener(this);
+                this.m_ServerSIPProviderUDP.removeSipListener(this);
                 while (true) {
                     try {
-                        m_ServerSIPStack.deleteSipProvider(m_ServerSIPProviderTCP);
-                        m_ServerSIPStack.deleteSipProvider(m_ServerSIPProviderUDP);
+                        this.m_ServerSIPStack.deleteSipProvider(this.m_ServerSIPProviderTCP);
+                        this.m_ServerSIPStack.deleteSipProvider(this.m_ServerSIPProviderUDP);
+                        this.m_ServerSIPStack.deleteSipProvider(this.m_SIPProviderToUse);
                         break;
                     } catch (ObjectInUseException ex) {
                         try {
@@ -417,27 +469,26 @@ public class ServerSipCallerImpl implements SipListener {
                         }
                     }
                 }
-                m_ServerSIPStack = null;
-                m_ServerSIPProviderTCP = null;
-                m_ServerSIPProviderUDP = null;
+                this.m_ServerSIPStack = null;
+                this.m_ServerSIPProviderTCP = null;
+                this.m_ServerSIPProviderUDP = null;
+                this.m_SIPProviderToUse = null;
                 this.clientTid = null;
                 this.m_ContactHeader = null;
-                addressFactoryCaller = null;
-                headerFactoryCaller = null;
-                messageFactoryCaller = null;
+                this.addressFactoryCaller = null;
+                this.headerFactoryCaller = null;
+                this.messageFactoryCaller = null;
                 this.m_UDPListeningPoint = null;
                 this.m_TCPListeningPoint = null;
-                //            this.reInviteCount = 0;
                 System.gc();
             } catch (Exception ex) {
-                // userdialog.errOutput(
-                //        "Exception beim löschen des SIP-Stack abgefangen");
-                ex.printStackTrace();
+                logger.error("Exception beim löschen des SIP-Stack abgefangen"
+                             + ex.getMessage());
             }
-            // userdialog.stdOutput("Listener, Provider und Factories gelöscht");
-            // userdialog.jButtonStop.setEnabled(false);
+            logger.info("Listener, Provider und Factories gelöscht");
             return true;
         }else{
+            logger.info("unable to remove Listener, Provider and Factories, no SIPStack");
             return false;
         }
     }

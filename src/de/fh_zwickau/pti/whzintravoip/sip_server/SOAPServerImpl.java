@@ -167,13 +167,11 @@ public class SOAPServerImpl implements SOAPServer {
         logger.info("Users in UserManager: " + m_UserManager.getUserCount());
         // Test if the Inviter and the Recipient really exists, and test for
         // the right Status of the Recipient
-        /**
         if(m_UserManager.containsUserWithIP(fromIP) &&
                 m_UserManager.containsUserWithIP(toIP))
-        {*/
-            /**
+        {
             if (m_UserManager.getUserStatusFromIP(toIP).equals(User.
-                    PICKUP)) {*/
+                    PICKUP)) {
                 logger.info("Make Call started!");
                 /** @todo Init the Header from the Request */
                 //m_SIPPacketCaller.setRecipientIPforRequest(recipientIP);
@@ -189,17 +187,16 @@ public class SOAPServerImpl implements SOAPServer {
                 } catch (Exception ex) {
                     logger.error("Error during makeCall(): " + ex.toString());
                     return new String("Error during makeCall()!" + ex.toString());
-                }/**
+                }
             } else {
                 logger.info("Recipient is not in PICKUP Mode");
                 return new String("Recipient is not in PICKUP Mode: " +
                                   m_UserManager.getUserStatusFromIP(toIP));
-            }*/
-            /**
+            }
         } else {
             logger.info("Inviter or Recipient is not known!");
             return new String("Inviter or Recipient is not known!");
-        }*/
+        }
         logger.info("Make Call ended!");
 
         // If all is going well we can now refresh the state of the Users
@@ -288,8 +285,8 @@ public class SOAPServerImpl implements SOAPServer {
         {
 
         }
-        /**
         logger.info("Deny Call started!");
+        /**
         if(isInviter)
         {
             logger.info("Deny Call from Inviter with IP: " + fromIP);
@@ -324,7 +321,6 @@ public class SOAPServerImpl implements SOAPServer {
             }
 
         }
-        */
         logger.info("CANCEL with SIPStack: " +
                     m_SIPPacketCaller.getSipStackAdress());
         try {
@@ -334,7 +330,7 @@ public class SOAPServerImpl implements SOAPServer {
             return new String("Error during denyCall(): " + ex.toString());
         }
         logger.info("Deny Call ended!");
-
+*/
         return new String("deny Call succesful");
     }
 
