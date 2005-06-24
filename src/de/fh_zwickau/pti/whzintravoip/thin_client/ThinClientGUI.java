@@ -457,11 +457,9 @@ public class ThinClientGUI extends JFrame{
         if(m_bStatus == PICKUP){
             setStatusMAKECALL();
             try {
-//                m_MethodCaller.callSOAPServer("processCall", getOwnIP(),
-//                                              m_UserTreeGenerator.
-//                                              getIPOfChoosenUser());
                 m_MethodCaller.callSOAPServer("processCall", getOwnIP(),
-                                              m_sIPToCall);
+                                              m_UserTreeGenerator.
+                                              getIPOfChoosenUser());
                 setStatusTALKING();
             } catch (Exception ex) {
                 setStatusPICKUP();
