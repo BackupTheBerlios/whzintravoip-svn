@@ -143,6 +143,12 @@ public class ServerSipCallerImpl implements SipListener {
         return true;
     }
 
+    /**
+     * This method creates the Listeningpoints. If the choosen Portnumber is
+     * in use, it will return FALSE
+     *
+     * @return boolean
+     */
     private boolean createNewListeningPoints() {
         try {
             m_UDPListeningPoint = this.m_ServerSIPStack.createListeningPoint(
@@ -197,45 +203,11 @@ public class ServerSipCallerImpl implements SipListener {
         messageFactoryCaller = sipFactoryCaller.createMessageFactory();
 
         logger.info("Header / Adress / Message Factory created!");
+        // now create the Listeningpoints
         while(!createNewListeningPoints()){
+            // creation failed, now count the port up!
             m_iCallerPort = m_iCallerPort + 1;
         }
-        /**
-        try {
-            m_UDPListeningPoint = this.m_ServerSIPStack.createListeningPoint(
-                    m_iCallerPort, "udp");
-        } catch (TransportNotSupportedException ex) {
-            logger.error("TransportNotSupportedException on creating UDP ListeningPoint: " +
-                         ex.getMessage());
-        } catch (InvalidArgumentException ex) {
-            logger.error("InvalidArgumentException on creating UDP ListeningPoint: " +
-                         ex.getMessage());
-        } catch (Exception ex) {
-            logger.error("Exception on creating UDP ListeningPoint: " +
-                         ex.getMessage());
-        }
-        logger.info("UDP Listening Point created from SIPStack: "
-                    + m_ServerSIPStack.toString()
-                    + "\nUDP Listening Point: "
-                    + m_UDPListeningPoint.toString());
-        try {
-            m_TCPListeningPoint = this.m_ServerSIPStack.createListeningPoint(
-                    m_iCallerPort, "tcp");
-        } catch (TransportNotSupportedException ex) {
-            logger.error("TransportNotSupportedException on creating TCP ListeningPoint: " +
-                         ex.getMessage());
-        } catch (InvalidArgumentException ex) {
-            logger.error("InvalidArgumentException on creating TCP ListeningPoint: " +
-                         ex.getMessage());
-        } catch (Exception ex) {
-            logger.error("Exception on creating TCP ListeningPoint: " +
-                        ex.getMessage());
-        }
-        logger.info("TCP Listening Point created from SIPStack: "
-                    + m_ServerSIPStack.toString()
-                    + "\nUDP Listening Point: "
-                    + m_TCPListeningPoint.toString());
-         */
         m_ListenerCaller = this;
         m_ServerSIPProviderUDP = m_ServerSIPStack.createSipProvider(m_UDPListeningPoint);
         logger.info("udp provider (Caller): " + m_ServerSIPProviderUDP);
