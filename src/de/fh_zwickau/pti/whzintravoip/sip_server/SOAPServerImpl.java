@@ -170,19 +170,20 @@ public class SOAPServerImpl implements SOAPServer {
         if(m_UserManager.containsUserWithIP(fromIP) &&
                 m_UserManager.containsUserWithIP(toIP))
         {
-            if (m_UserManager.getUserStatusFromIP(toIP).equals(User.
+            if (m_UserManager.getUserStatusViaIP(toIP).equals(User.
                     PICKUP)) {
                 logger.info("Make Call started!");
                 /** @todo Init the Header from the Request */
                 //m_SIPPacketCaller.setRecipientIPforRequest(recipientIP);
-                m_SIPPacketCaller.setFromUser(this.m_UserManager.getUserFromIP(fromIP));
-                m_SIPPacketCaller.setToUser(this.m_UserManager.getUserFromIP(toIP));
+                m_SIPPacketCaller.setFromUser(this.m_UserManager.getUserViaIP(fromIP));
+                logger.info("FromUser (Caller): " + this.m_UserManager.getUserViaIP(fromIP));
+                m_SIPPacketCaller.setToUser(this.m_UserManager.getUserViaIP(toIP));
+                logger.info("ToUser (Recipient): " + this.m_UserManager.getUserViaIP(toIP));
                 logger.info("Send INVITE to IPAdress: " + toIP);
-                logger.info("PacketCaller INVITE TO: " +
-                            m_SIPPacketCaller.getPeerHostPort());
-                logger.info("INVITE with SIPStack: " +
-                            m_SIPPacketCaller.getSipStackAdress());
+                logger.info("PacketCaller INVITE TO: " + m_SIPPacketCaller.getPeerHostPort());
+                logger.info("INVITE with SIPStack: " + m_SIPPacketCaller.getSipStackAdress());
                 try {
+                    logger.info("Trying to send INVITE now");
                     m_SIPPacketCaller.sendRequest("INVITE");
                 } catch (Exception ex) {
                     logger.error("Error during makeCall(): " + ex.toString());
@@ -191,7 +192,7 @@ public class SOAPServerImpl implements SOAPServer {
             } else {
                 logger.info("Recipient is not in PICKUP Mode");
                 return new String("Recipient is not in PICKUP Mode: " +
-                                  m_UserManager.getUserStatusFromIP(toIP));
+                                  m_UserManager.getUserStatusViaIP(toIP));
             }
         } else {
             logger.info("Inviter or Recipient is not known!");
@@ -240,8 +241,8 @@ public class SOAPServerImpl implements SOAPServer {
         {
             logger.info("Accept Call started!");
             //m_SIPPacketCaller.setRecipientIPforRequest(inviterIP);
-            m_SIPPacketCaller.setFromUser(this.m_UserManager.getUserFromIP(fromIP));
-            m_SIPPacketCaller.setToUser(this.m_UserManager.getUserFromIP(toIP));
+            m_SIPPacketCaller.setFromUser(this.m_UserManager.getUserViaIP(fromIP));
+            m_SIPPacketCaller.setToUser(this.m_UserManager.getUserViaIP(toIP));
             logger.info("Accept Call with Recipient: " + toIP);
             logger.info("Accept Call with Inviter:   " + fromIP);
             logger.info("Accept Call with SIPStack: " +
@@ -281,7 +282,7 @@ public class SOAPServerImpl implements SOAPServer {
 
     public String denyCall(String fromIP, String toIP)
     {
-        if(this.m_UserManager.getUserStatusFromIP(toIP).equals(User.CALLING))
+        if(this.m_UserManager.getUserStatusViaIP(toIP).equals(User.CALLING))
         {
 
         }
@@ -340,8 +341,8 @@ public class SOAPServerImpl implements SOAPServer {
             this.m_UserManager.containsUserWithIP(toIP)) {
             logger.info("Send BYE to IPAdress: " + toIP);
             //m_SIPPacketCaller.setRecipientIPforRequest(toIP);
-            m_SIPPacketCaller.setFromUser(this.m_UserManager.getUserFromIP(fromIP));
-            m_SIPPacketCaller.setToUser(this.m_UserManager.getUserFromIP(toIP));
+            m_SIPPacketCaller.setFromUser(this.m_UserManager.getUserViaIP(fromIP));
+            m_SIPPacketCaller.setToUser(this.m_UserManager.getUserViaIP(toIP));
         } else {
             return new String(
                     "The Users for the giben IP's cannot found in the UserManager!");
@@ -357,10 +358,10 @@ public class SOAPServerImpl implements SOAPServer {
         logger.info("End Call ended!");
 
         // If all is going well, we can now delete the Users from UserManager
-        if(this.m_UserManager.removeUser(this.m_UserManager.getUserFromIP(fromIP)))
+        if(this.m_UserManager.removeUser(this.m_UserManager.getUserViaIP(fromIP)))
             logger.info("User with IP " + fromIP + " successfully removed!");
         else logger.error("Error removing User with IP " + fromIP);
-        if(this.m_UserManager.removeUser(this.m_UserManager.getUserFromIP(toIP)))
+        if(this.m_UserManager.removeUser(this.m_UserManager.getUserViaIP(toIP)))
             logger.info("User with IP " + toIP + " succesfully removed!");
         else logger.error("Error removing User with IP " + toIP);
 

@@ -87,7 +87,7 @@ public class UserManager {
     }
 
 
-    public User getUserFromIP(String userIP)
+    public User getUserViaIP(String userIP)
     {
         User dummy;
         for(int i = 0; i < m_vUserList.size(); i++)
@@ -98,7 +98,7 @@ public class UserManager {
         return null;
     }
 
-    public String getUserStatusFromIP(String userIP)
+    public String getUserStatusViaIP(String userIP)
     {
         User dummy = null;
         for(int i = 0; i < m_vUserList.size(); i++)

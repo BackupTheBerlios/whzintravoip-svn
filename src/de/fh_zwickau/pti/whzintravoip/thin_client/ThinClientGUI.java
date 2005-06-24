@@ -328,6 +328,7 @@ public class ThinClientGUI extends JFrame{
     }
 
     public void processIncomingCall(String incomingCallIP){
+        setStatusINCOMING();
         this.m_sOpponentIP = incomingCallIP;
         String callerName = m_UserTreeGenerator.getUserName(incomingCallIP);
         stdOutput(callerName);
