@@ -345,7 +345,7 @@ public class SOAPServerImpl implements SOAPServer {
             m_SIPPacketCaller.setToUser(this.m_UserManager.getUserViaIP(toIP));
         } else {
             return new String(
-                    "The Users for the giben IP's cannot found in the UserManager!");
+                    "The Users for the given IP's cannot be found in the UserManager!");
         }
         logger.info("BYE with SIPStack: " +
                     m_SIPPacketCaller.getSipStackAdress());
