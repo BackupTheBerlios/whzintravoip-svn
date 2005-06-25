@@ -20,9 +20,9 @@ import java.util.*;
 
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.tree.*;
 
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
+import de.fh_zwickau.pti.whzintravoip.thin_client.rtp_comm.*;
 
 public class ThinClientGUI extends JFrame{
 
@@ -33,6 +33,7 @@ public class ThinClientGUI extends JFrame{
     private String m_sMyScreenName = "StarWarsFan";
     private String m_sLoginName    = null;
 
+    private VoIP_RTP_Interface m_InterfaceRTP = new VoIP_RTP_Interface();
     private SIPStack m_ThinClientSIPStack = null;
     private Output m_OutputWindow = null;
     private SOAPMethodCaller m_MethodCaller = null;
@@ -351,6 +352,7 @@ public class ThinClientGUI extends JFrame{
         this.m_sOpponentIP = incomingCallIP;
         String callerName = m_UserTreeGenerator.getUserName(incomingCallIP);
         stdOutput(callerName);
+        m_InterfaceRTP.initRtpSession(m_sOpponentIP, null);
         String message = callerName + " ruft Sie an!\n Wollen Sie das Gespräch annehmen?";
         int returnvalue = JOptionPane.showConfirmDialog(this, message, "Es klingelt!", JOptionPane.YES_NO_OPTION);
         stdOutput("Returnvalue of Request:" + returnvalue);
@@ -381,6 +383,7 @@ public class ThinClientGUI extends JFrame{
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
+        m_InterfaceRTP.startRtpSession();
     }
 
     /**
@@ -404,6 +407,7 @@ public class ThinClientGUI extends JFrame{
      * den eigenen Status wieder auf PICKUP
      */
     public void endCallByMyself(){
+        m_InterfaceRTP.stopRtpSession();
         try {
             m_MethodCaller.callSOAPServer("endCall", m_sMyIP, m_sOpponentIP);
         } catch (Exception ex) {
@@ -411,6 +415,7 @@ public class ThinClientGUI extends JFrame{
         }
         jButtonHandleCall.setText("Anrufen");
         setStatusPICKUP();
+        m_InterfaceRTP.closeRtpSession();
     }
 
     /**
@@ -418,8 +423,10 @@ public class ThinClientGUI extends JFrame{
      * den eigenen Status wieder auf PICKUP
      */
     public void endCallByOtherSide(){
+        m_InterfaceRTP.stopRtpSession();
         jButtonHandleCall.setText("Anrufen");
         setStatusPICKUP();
+        m_InterfaceRTP.closeRtpSession();
     }
 
     /**
