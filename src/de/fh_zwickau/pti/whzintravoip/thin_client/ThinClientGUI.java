@@ -403,12 +403,21 @@ public class ThinClientGUI extends JFrame{
      * Ruft am SOAP-Server die Methode zum Beenden des Anrufs auf und setzt dann
      * den eigenen Status wieder auf PICKUP
      */
-    public void endCall(){
+    public void endCallByMyself(){
         try {
             m_MethodCaller.callSOAPServer("endCall", m_sMyIP, m_sOpponentIP);
         } catch (Exception ex) {
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
+        jButtonHandleCall.setText("Anrufen");
+        setStatusPICKUP();
+    }
+
+    /**
+     * Ruft am SOAP-Server die Methode zum Beenden des Anrufs auf und setzt dann
+     * den eigenen Status wieder auf PICKUP
+     */
+    public void endCallByOtherSide(){
         jButtonHandleCall.setText("Anrufen");
         setStatusPICKUP();
     }
@@ -470,7 +479,7 @@ public class ThinClientGUI extends JFrame{
                 setStatusPICKUP();
             }
         }else if(m_bStatus == TALKING){
-            endCall();
+            endCallByMyself();
         }
     }
 

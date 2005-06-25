@@ -298,10 +298,7 @@ public class SIPStack implements SipListener {
                             + "'\nRequest was from this IP: "
                             + callerIP);
 
-        if (m_UserGUI.getStatus() == TALKING) {
-            m_UserGUI.stdOutput("Request received but I'm talking at the moment");
-//            m_UserGUI.denyCall(callerIP);
-        } else if (this.m_Request.getMethod().equals(Request.INVITE)) {
+        if (this.m_Request.getMethod().equals(Request.INVITE)) {
             m_UserGUI.stdOutput("INVITE-Request received");
             // the server has to stop sending Requests, so let him know
             // that we received the request...
@@ -315,10 +312,13 @@ public class SIPStack implements SipListener {
             m_UserGUI.updateUserList();
         } else if (this.m_Request.getMethod().equals(Request.BYE)) {
             m_UserGUI.stdOutput("BYE-Request received");
-            m_UserGUI.endCall();
+            m_UserGUI.endCallByOtherSide();
         } else if (this.m_Request.getMethod().equals(Request.OPTIONS)) {
             m_UserGUI.stdOutput("OPTIONS-Request received");
             m_UserGUI.processOptionsRequest();
+        } else if (m_UserGUI.getStatus() == TALKING) {
+            m_UserGUI.stdOutput("Request received but I'm talking at the moment");
+//            m_UserGUI.denyCall(callerIP);
         } else if (m_UserGUI.getStatus() != PICKUP) {
             m_UserGUI.stdOutput("Request received but I'm busy at the moment");
 //            m_UserGUI.denyCall(callerIP);

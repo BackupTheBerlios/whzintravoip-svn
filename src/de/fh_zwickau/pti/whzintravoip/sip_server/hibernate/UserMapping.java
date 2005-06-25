@@ -154,7 +154,7 @@ public class UserMapping {
             session = sessionFactory.openSession();
             trx = session.beginTransaction();
             String hql =
-                    "select user from User as user where user.userip = :userip";
+                    "select user from User as user where user.userIP = :userip";
             Query query = session.createQuery(hql);
             query.setString("userip", userIP);
             Iterator it = query.iterate();
