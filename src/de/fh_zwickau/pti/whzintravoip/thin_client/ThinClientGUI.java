@@ -27,7 +27,6 @@ import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 public class ThinClientGUI extends JFrame{
 
     private String m_sSOAPServerIP = "141.32.28.183";
-    private String m_sIPToCall     = "141.32.28.227";
     private String m_sMyIP         = "127.0.0.1";
     private String m_sMySIPAddress = "My SIP Address";
     private String m_sMySIPName    = "SWF";
@@ -255,7 +254,7 @@ public class ThinClientGUI extends JFrame{
 
     public void processACKRequest(){
         setStatusTALKING();
-        jButtonHandleCall.setText("Auflegen");
+        jButtonHandleCall.setText("Gespräch beenden");
     }
 
     public String getOwnIP(){
@@ -452,20 +451,6 @@ public class ThinClientGUI extends JFrame{
      */
     public void setToggleWindowButtonName(String string){
         jButtonToggleOutputWindow.setText(string);
-    }
-
-    /**
-     * Button zum Initialisieren eines Calls wurde gedrückt
-     *
-     * @param e ActionEvent
-     */
-    public void jButtonInitCall_actionPerformed(ActionEvent e) {
-        setStatusMAKECALL();
-        try{
-            m_MethodCaller.callSOAPServer("initCall", m_sMyIP, m_sIPToCall);
-        }catch(Exception ex){
-            setStatusPICKUP();
-        }
     }
 
     /**

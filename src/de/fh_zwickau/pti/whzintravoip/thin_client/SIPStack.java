@@ -73,7 +73,7 @@ public class SIPStack implements SipListener {
     private int m_iClientSIPPort = 5070;
 
 //    private static String PEER_ADDRESS = Shootme.myAddress;
-    public static String m_sMyAddress = "127.0.0.1";
+    public static String m_sMyIP = "127.0.0.1";
 
     /**
      * Constuctor for the receiver.
@@ -81,8 +81,8 @@ public class SIPStack implements SipListener {
      * @param myIP String .. the own IP
      */
     public SIPStack(ThinClientGUI dialog, String myIP) {
-        m_UserGUI = dialog;
-        m_sMyAddress = myIP;
+        this.m_UserGUI = dialog;
+        this.m_sMyIP = myIP;
         try{
             initReceiverSIPStack();
             initReceiverFactories();
@@ -104,7 +104,7 @@ public class SIPStack implements SipListener {
         m_SIPFactory = SipFactory.getInstance();
         m_SIPFactory.setPathName("gov.nist");
         Properties properties = new Properties();
-        properties.setProperty("javax.sip.IP_ADDRESS", m_sMyAddress);
+        properties.setProperty("javax.sip.IP_ADDRESS", m_sMyIP);
         properties.setProperty("javax.sip.RETRANSMISSION_FILTER", "true");
         properties.setProperty("javax.sip.STACK_NAME", m_sClientSIPStackName);
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
@@ -183,24 +183,23 @@ public class SIPStack implements SipListener {
                         }
                     }
                 }
-                m_SIPStack = null;
-                m_SIPProviderTCP = null;
-                m_SIPProviderUDP = null;
-                m_SIPProviderToUse = null;
-                this.m_ServerTid = null;
-                this.m_ContactHeader = null;
-                m_AddressFactory = null;
-                m_HeaderFactory = null;
-                m_MessageFactory = null;
-                this.m_UDPListeningPoint = null;
-                this.m_TCPListeningPoint = null;
-                //            this.reInviteCount = 0;
-                System.gc();
             } catch (Exception ex) {
                 m_UserGUI.errOutput(
                         "Exception beim löschen des SIP-Stack abgefangen");
                 ex.printStackTrace();
             }
+            m_SIPStack = null;
+            m_SIPProviderTCP = null;
+            m_SIPProviderUDP = null;
+            m_SIPProviderToUse = null;
+            this.m_ServerTid = null;
+            this.m_ContactHeader = null;
+            m_AddressFactory = null;
+            m_HeaderFactory = null;
+            m_MessageFactory = null;
+            this.m_UDPListeningPoint = null;
+            this.m_TCPListeningPoint = null;
+            System.gc();
             m_UserGUI.stdOutput("Listener, Provider und Factories gelöscht");
             return true;
         }else{
@@ -216,9 +215,9 @@ public class SIPStack implements SipListener {
      * @param requestEvent RequestEvent
      * @param serverTransaction ServerTransaction
      */
-    public void answerRequest(RequestEvent requestEvent, ServerTransaction serverTransaction) {
-        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
-        Request request = requestEvent.getRequest();
+    public void answerRequest() {
+        SipProvider sipProvider = (SipProvider) m_RequestEvent.getSource();
+        Request request = m_RequestEvent.getRequest();
         m_UserGUI.stdOutput("Got an REQUEST"
                              + "\n-------------------------- This is the request:\n"
                              + request
@@ -229,23 +228,21 @@ public class SIPStack implements SipListener {
             ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
             toHeader.setTag("4321"); // Application is supposed to set.
             Address address = m_AddressFactory.createAddress("VoIP-Client <sip:"
-                    + m_sMyAddress + ":"
-//                    + m_iMyPort + ">");
+                    + m_sMyIP + ":"
                     + m_iClientSIPPort + "> \n");
             ContactHeader contactHeader = m_HeaderFactory.createContactHeader(address);
             response.addHeader(contactHeader);
-            ServerTransaction st = requestEvent.getServerTransaction();
 
-            if (st == null) {
-                st = sipProvider.getNewServerTransaction(request);
-                if (st.getDialog().getApplicationData() == null) {
-                    st.getDialog().setApplicationData(new ApplicationData());
+            if (m_ServerTransaction == null) {
+                m_ServerTransaction = sipProvider.getNewServerTransaction(request);
+                if (m_ServerTransaction.getDialog().getApplicationData() == null) {
+                    m_ServerTransaction.getDialog().setApplicationData(new ApplicationData());
                 }
             } else {
                 // If Server transaction is not null, then
                 // this is a re-invite.
                 m_UserGUI.stdOutput("This is a RE-INVITE ");
-                if (st.getDialog() != dialog) {
+                if (m_ServerTransaction.getDialog() != dialog) {
                     m_UserGUI.errOutput("Whoopsa Daisy Dialog Mismatch");
                     System.exit(0);
                 }
@@ -269,7 +266,7 @@ public class SIPStack implements SipListener {
                 m_UserGUI.stdOutput("Dialog state " + dialog.getState());
             }
              */
-            st.sendResponse(response);
+            m_ServerTransaction.sendResponse(response);
             m_UserGUI.stdOutput("\n--- Response 100 (Trying) gesendet ---\n");
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -277,6 +274,7 @@ public class SIPStack implements SipListener {
             System.exit(0);
         }
     }
+
     /**
      * Process the incoming requests
      * known requests at the moment are INVITE, ACK, BYE
@@ -288,7 +286,6 @@ public class SIPStack implements SipListener {
         this.m_Request = requestEvent.getRequest();
         this.m_ServerTransaction = requestEvent.getServerTransaction();
 
-//        String callerIP = extractIPFromURI(m_Request.getRequestURI().toString());
         String callerIP = extractIPFromURI(m_Request);
 
         // Infos ausgeben
@@ -300,17 +297,15 @@ public class SIPStack implements SipListener {
                             + this.m_ServerTransaction
                             + "'\nRequest was from this IP: "
                             + callerIP);
-        // the server has to stop sending Requests, so let him know that we
-        // receive the request...
-        answerRequest(requestEvent, m_ServerTransaction);
+
         if (m_UserGUI.getStatus() == TALKING) {
             m_UserGUI.stdOutput("Request received but I'm talking at the moment");
 //            m_UserGUI.denyCall(callerIP);
-        } else if (m_UserGUI.getStatus() != PICKUP) {
-            m_UserGUI.stdOutput("Request received but I'm busy at the moment");
-//            m_UserGUI.denyCall(callerIP);
         } else if (this.m_Request.getMethod().equals(Request.INVITE)) {
             m_UserGUI.stdOutput("INVITE-Request received");
+            // the server has to stop sending Requests, so let him know
+            // that we received the request...
+            answerRequest();
             m_UserGUI.processIncomingCall(callerIP);
         } else if (this.m_Request.getMethod().equals(Request.ACK)) {
             m_UserGUI.stdOutput("ACK-Request received");
@@ -324,6 +319,9 @@ public class SIPStack implements SipListener {
         } else if (this.m_Request.getMethod().equals(Request.OPTIONS)) {
             m_UserGUI.stdOutput("OPTIONS-Request received");
             m_UserGUI.processOptionsRequest();
+        } else if (m_UserGUI.getStatus() != PICKUP) {
+            m_UserGUI.stdOutput("Request received but I'm busy at the moment");
+//            m_UserGUI.denyCall(callerIP);
         }
     }
 
