@@ -353,15 +353,15 @@ public class ThinClientGUI extends JFrame{
         this.m_sOpponentIP = incomingCallIP;
         String callerName = m_UserTreeGenerator.getUserName(incomingCallIP);
         stdOutput(callerName);
-        m_InterfaceRTP.enableDebugging();
-        m_InterfaceRTP.DebugErrorMessages(true);
-        m_InterfaceRTP.initRtpSession(m_sOpponentIP, null);
         String message = callerName + " ruft Sie an!\n Wollen Sie das Gespräch annehmen?";
         int returnvalue = JOptionPane.showConfirmDialog(this, message, "Es klingelt!", JOptionPane.YES_NO_OPTION);
         stdOutput("Returnvalue of Request:" + returnvalue);
         switch (returnvalue) {
         case 0:
             stdOutput("Gespräch angenommen");
+            m_InterfaceRTP.enableDebugging();
+            m_InterfaceRTP.DebugErrorMessages(true);
+            m_InterfaceRTP.initRtpSession(m_sOpponentIP, null);
             acceptCall(m_sOpponentIP);
             break;
         case 1:
@@ -479,9 +479,6 @@ public class ThinClientGUI extends JFrame{
      */
     public void jButtonHandleCall_actionPerformed(ActionEvent e) {
         if(m_bStatus == PICKUP){
-            m_InterfaceRTP.enableDebugging();
-            m_InterfaceRTP.DebugErrorMessages(true);
-            m_InterfaceRTP.initRtpSession(m_sOpponentIP, null);
             setStatusMAKECALL();
             try {
                 m_MethodCaller.callSOAPServer("processCall",
@@ -491,6 +488,9 @@ public class ThinClientGUI extends JFrame{
             } catch (Exception ex) {
                 setStatusPICKUP();
             }
+            m_InterfaceRTP.enableDebugging();
+            m_InterfaceRTP.DebugErrorMessages(true);
+            m_InterfaceRTP.initRtpSession(m_UserTreeGenerator.getIPOfChoosenUser(), null);
         }else if(m_bStatus == TALKING){
             endCallByMyself();
         }
