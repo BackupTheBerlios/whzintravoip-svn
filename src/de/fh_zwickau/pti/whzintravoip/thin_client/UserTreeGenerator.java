@@ -122,10 +122,16 @@ public class UserTreeGenerator {
         }
     }
 
+    private void expandJTree(){
+        TreePath tp = m_JTree.getPathForLocation(0,0);
+        m_JTree.expandPath(tp);
+    }
+
     public void setNewUserList(Vector userVector){
         removeAllEntries();
         this.m_UserVector = userVector;
         addUserTreeEntries(userVector);
+        expandJTree();
     }
 
     /**

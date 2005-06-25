@@ -209,6 +209,75 @@ public class SIPStack implements SipListener {
     }
 
     /**
+     * This method will send an 100 (Trying) back to the caller. We need this
+     * to let the server know, that the request has arrived and the server stops
+     * to send new requests.
+     *
+     * @param requestEvent RequestEvent
+     * @param serverTransaction ServerTransaction
+     */
+    public void answerRequest(RequestEvent requestEvent, ServerTransaction serverTransaction) {
+        SipProvider sipProvider = (SipProvider) requestEvent.getSource();
+        Request request = requestEvent.getRequest();
+        m_UserGUI.stdOutput("Got an REQUEST"
+                             + "\n-------------------------- This is the request:\n"
+                             + request
+                             + "\n-------------------------- This was the request\n");
+        try {
+            m_UserGUI.stdOutput("sending 100 (Trying)\n");
+            Response response = m_MessageFactory.createResponse(100, request);
+            ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
+            toHeader.setTag("4321"); // Application is supposed to set.
+            Address address = m_AddressFactory.createAddress("VoIP-Client <sip:"
+                    + m_sMyAddress + ":"
+//                    + m_iMyPort + ">");
+                    + m_iClientSIPPort + "> \n");
+            ContactHeader contactHeader = m_HeaderFactory.createContactHeader(address);
+            response.addHeader(contactHeader);
+            ServerTransaction st = requestEvent.getServerTransaction();
+
+            if (st == null) {
+                st = sipProvider.getNewServerTransaction(request);
+                if (st.getDialog().getApplicationData() == null) {
+                    st.getDialog().setApplicationData(new ApplicationData());
+                }
+            } else {
+                // If Server transaction is not null, then
+                // this is a re-invite.
+                m_UserGUI.stdOutput("This is a RE-INVITE ");
+                if (st.getDialog() != dialog) {
+                    m_UserGUI.errOutput("Whoopsa Daisy Dialog Mismatch");
+                    System.exit(0);
+                }
+            }
+//            serverTransactionFromInvite = st;
+            // Thread.sleep(5000);
+            /**
+            m_UserGUI.stdOutput("got a server transaction: " + st);
+            byte[] content = request.getRawContent();
+            if (content != null) {
+                m_UserGUI.stdOutput(" content = " + new String(content));
+                ContentTypeHeader contentTypeHeader =
+                        m_HeaderFactory.createContentTypeHeader("application",
+                        "sdp");
+                m_UserGUI.stdOutput("response = " + response);
+                response.setContent(content, contentTypeHeader);
+            }
+            dialog = st.getDialog();
+            if (dialog != null) {
+                m_UserGUI.stdOutput("Dialog " + dialog);
+                m_UserGUI.stdOutput("Dialog state " + dialog.getState());
+            }
+             */
+            st.sendResponse(response);
+            m_UserGUI.stdOutput("\n--- Response 100 (Trying) gesendet ---\n");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            m_UserGUI.errOutput("Exception bei answerRequest...");
+            System.exit(0);
+        }
+    }
+    /**
      * Process the incoming requests
      * known requests at the moment are INVITE, ACK, BYE
      *
@@ -231,7 +300,9 @@ public class SIPStack implements SipListener {
                             + this.m_ServerTransaction
                             + "'\nRequest was from this IP: "
                             + callerIP);
-
+        // the server has to stop sending Requests, so let him know that we
+        // receive the request...
+        answerRequest(requestEvent, m_ServerTransaction);
         if (m_UserGUI.getStatus() == TALKING) {
             m_UserGUI.stdOutput("Request received but I'm talking at the moment");
 //            m_UserGUI.denyCall(callerIP);

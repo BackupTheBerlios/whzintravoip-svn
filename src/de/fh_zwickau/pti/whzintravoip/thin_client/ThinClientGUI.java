@@ -28,6 +28,7 @@ public class ThinClientGUI extends JFrame{
 
     private String m_sSOAPServerIP = "141.32.28.183";
     private String m_sIPToCall     = "141.32.28.227";
+    private String m_sMyIP         = "127.0.0.1";
     private String m_sMySIPAddress = "My SIP Address";
     private String m_sMySIPName    = "SWF";
     private String m_sMyScreenName = "StarWarsFan";
@@ -72,7 +73,8 @@ public class ThinClientGUI extends JFrame{
         // einige Settings zum Programmfenster
         this.setSize(500, 700);
         this.setLocation(764, 2);
-        jTextFieldMyIP.setText(getOwnIP());
+        m_sMyIP = extractOwnIP();
+        jTextFieldMyIP.setText(m_sMyIP);
 
         // SOAP-Caller initialisieren
         m_MethodCaller = new SOAPMethodCaller(
@@ -216,7 +218,6 @@ public class ThinClientGUI extends JFrame{
      *
      */
     private void registerMe(){
-//        createMyIdentity();
         try{
             m_MethodCaller.registerMyselfAtServer("registerUser", m_Myself, null);
         }catch(Exception ex){
@@ -229,7 +230,7 @@ public class ThinClientGUI extends JFrame{
      */
     private void createMyIdentity(){
         Properties myProperties = new Properties();
-        myProperties.setProperty("sip_server.user.USER_IP", getOwnIP());
+        myProperties.setProperty("sip_server.user.USER_IP", m_sMyIP);
         myProperties.setProperty("sip_server.user.USER_INITIAL", m_sLoginName);
         myProperties.setProperty("sip_server.user.SIP_ADDRESS", m_sMySIPAddress);
         myProperties.setProperty("sip_server.user.SIP_NAME", m_sMySIPName);
@@ -239,12 +240,26 @@ public class ThinClientGUI extends JFrame{
     }
 
     public void updateUserList(){
+        Vector userVector = null;
+        try{
+            userVector = m_MethodCaller.whoIsOnAtServer();
+        }catch(Exception ex){
+            errOutput(ex.toString());
+        }
+        m_UserTreeGenerator.setNewUserList(userVector);
+
     }
 
     public void processOptionsRequest(){
     }
 
     public void processACKRequest(){
+        setStatusTALKING();
+        jButtonHandleCall.setText("Auflegen");
+    }
+
+    public String getOwnIP(){
+        return m_sMyIP;
     }
 
     /**
@@ -252,7 +267,7 @@ public class ThinClientGUI extends JFrame{
      *
      * @return String - Die eigene IP
      */
-    public String getOwnIP(){
+    public String extractOwnIP(){
         String ip = null;
         try {
           InetAddress myIP = InetAddress.getLocalHost();
@@ -295,13 +310,12 @@ public class ThinClientGUI extends JFrame{
      */
     public void jButtonForTestsII_actionPerformed(ActionEvent e) {
         Vector userVector = null;
-        try{
+        try {
             userVector = m_MethodCaller.whoIsOnAtServer();
-        }catch(Exception ex){
+        } catch (Exception ex) {
             errOutput(ex.toString());
         }
         m_UserTreeGenerator.setNewUserList(userVector);
-//        m_UserTreeGenerator.addUserTreeEntries(userVector);
     }
 
 
@@ -311,7 +325,8 @@ public class ThinClientGUI extends JFrame{
      * @param e ActionEvent
      */
     public void jButtonStartReceiver_actionPerformed(ActionEvent e) {
-        m_ThinClientSIPStack = new SIPStack(this, jTextFieldMyIP.getText());
+        m_sMyIP = jTextFieldMyIP.getText();
+        m_ThinClientSIPStack = new SIPStack(this, m_sMyIP);
         setStatusPICKUP();
         jButtonStartReceiver.setEnabled(false);
     }
@@ -359,7 +374,7 @@ public class ThinClientGUI extends JFrame{
         setStatusTALKING();
         jButtonHandleCall.setText("Gespräch beenden");
         try{
-            m_MethodCaller.callSOAPServer("acceptCall", getOwnIP(), m_sOpponentIP);
+            m_MethodCaller.callSOAPServer("acceptCall", m_sMyIP, m_sOpponentIP);
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
@@ -375,7 +390,7 @@ public class ThinClientGUI extends JFrame{
         this.m_sOpponentIP = incomingIP;
         setStatusPICKUP();
         try{
-            m_MethodCaller.callSOAPServer("denyCall", getOwnIP(), m_sOpponentIP);
+            m_MethodCaller.callSOAPServer("denyCall", m_sMyIP, m_sOpponentIP);
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
@@ -387,7 +402,7 @@ public class ThinClientGUI extends JFrame{
      */
     public void endCall(){
         try {
-            m_MethodCaller.callSOAPServer("endCall", getOwnIP(), m_sOpponentIP);
+            m_MethodCaller.callSOAPServer("endCall", m_sMyIP, m_sOpponentIP);
         } catch (Exception ex) {
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
@@ -443,7 +458,7 @@ public class ThinClientGUI extends JFrame{
     public void jButtonInitCall_actionPerformed(ActionEvent e) {
         setStatusMAKECALL();
         try{
-            m_MethodCaller.callSOAPServer("initCall", getOwnIP(), m_sIPToCall);
+            m_MethodCaller.callSOAPServer("initCall", m_sMyIP, m_sIPToCall);
         }catch(Exception ex){
             setStatusPICKUP();
         }
@@ -458,10 +473,10 @@ public class ThinClientGUI extends JFrame{
         if(m_bStatus == PICKUP){
             setStatusMAKECALL();
             try {
-                m_MethodCaller.callSOAPServer("processCall", getOwnIP(),
+                m_MethodCaller.callSOAPServer("processCall",
+                                              m_sMyIP,
                                               m_UserTreeGenerator.
                                               getIPOfChoosenUser());
-                setStatusTALKING();
             } catch (Exception ex) {
                 setStatusPICKUP();
             }
