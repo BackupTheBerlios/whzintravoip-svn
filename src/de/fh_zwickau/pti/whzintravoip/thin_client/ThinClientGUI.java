@@ -84,7 +84,7 @@ public class ThinClientGUI extends JFrame{
             "de.fh_zwickau.pti.whzintravoip.sip_server.user.User");
 
         // am Server anmelden
-        createMyIdentity();
+//        createMyIdentity();
 //        registerMe();
 
         // User-Tree bauen
@@ -326,9 +326,13 @@ public class ThinClientGUI extends JFrame{
      */
     public void jButtonStartReceiver_actionPerformed(ActionEvent e) {
         m_sMyIP = jTextFieldMyIP.getText();
+        createMyIdentity();
         m_ThinClientSIPStack = new SIPStack(this, m_sMyIP);
         setStatusPICKUP();
         jButtonStartReceiver.setEnabled(false);
+        jButtonHandleCall.setEnabled(true);
+        jButtonForTests.setEnabled(true);
+        jButtonForTestsII.setEnabled(true);
     }
 
     /**
@@ -550,6 +554,7 @@ public class ThinClientGUI extends JFrame{
         jButtonToggleOutputWindow.setText("Ausgabefenster öffnen");
         jButtonToggleOutputWindow.addActionListener(new
                 ThinClientGUI_jButtonToggleOutputWindow_actionAdapter(this));
+        jButtonHandleCall.setEnabled(false);
         jButtonHandleCall.setText("Anrufen");
         jButtonHandleCall.addActionListener(new
                 ThinClientGUI_jButtonMakeCall_actionAdapter(this));
@@ -559,6 +564,7 @@ public class ThinClientGUI extends JFrame{
         jScrollPane1.setPreferredSize(new Dimension(40, 40));
         jUserInfoField.setEditable(false);
         jUserInfoField.setText("");
+        jButtonForTests.setEnabled(false);
         jButtonForTests.setToolTipText("");
         jButtonForTests.setText("Tests...");
         jButtonForTests.addActionListener(new
@@ -575,6 +581,7 @@ public class ThinClientGUI extends JFrame{
         jMenuExit.addActionListener(new ThinClientGUI_jMenuExit_actionAdapter(this));
         jMenuInfo.setText("Info");
         jMenuInfo.addActionListener(new ThinClientGUI_jMenuInfo_actionAdapter(this));
+        jButtonForTestsII.setEnabled(false);
         jButtonForTestsII.setText("Test2 II...");
         jButtonForTestsII.addActionListener(new
                 ThinClientGUI_jButtonForTestsII_actionAdapter(this));
