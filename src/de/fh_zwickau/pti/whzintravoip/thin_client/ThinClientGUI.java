@@ -234,6 +234,17 @@ public class ThinClientGUI extends JFrame{
         }
     }
 
+    public void whoIsOnAtServer() {
+        Vector userVector = null;
+        try {
+            userVector = m_MethodCaller.whoIsOnAtServer();
+        } catch (Exception ex) {
+            errOutput(ex.toString());
+        }
+        m_UserTreeGenerator.setNewUserList(userVector);
+    }
+
+
     /**
      * Legt ein Userobjekt m_Myself für die eigene Identität an
      */
@@ -319,13 +330,7 @@ public class ThinClientGUI extends JFrame{
      * @param e ActionEvent
      */
     public void jButtonForTestsII_actionPerformed(ActionEvent e) {
-        Vector userVector = null;
-        try {
-            userVector = m_MethodCaller.whoIsOnAtServer();
-        } catch (Exception ex) {
-            errOutput(ex.toString());
-        }
-        m_UserTreeGenerator.setNewUserList(userVector);
+        whoIsOnAtServer();
     }
 
 
@@ -343,6 +348,8 @@ public class ThinClientGUI extends JFrame{
         jButtonHandleCall.setEnabled(true);
         jButtonForTests.setEnabled(true);
         jButtonForTestsII.setEnabled(true);
+        jMenuRegisterAtServer.setEnabled(true);
+        jMenuWhoIsOn.setEnabled(true);
     }
 
     /**
@@ -545,6 +552,24 @@ public class ThinClientGUI extends JFrame{
 
     public void jMenuInfo_actionPerformed(ActionEvent e) {
         stdOutput("Info!!!");
+        String message = "WHZIntraVoIP\n"
+                         + "\n"
+                         + "Softwareprojekt der FH Zwickau\n"
+                         + "Sommersemester 2005\n"
+                         + "\n"
+                         + "Torsten Schmidt <torssch@fh-zwickau.de> - Serveranbindung\n"
+                         + "Holger Seidel <hs@fh-zwickau.de> - Audiostreaming\n"
+                         + "Yves Schumann <ys@fh-zwickau.de> - Sessionauf- und -abbau, GUI";
+        JOptionPane.showConfirmDialog(this, message, "", JOptionPane.CLOSED_OPTION, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+
+    public void jMenuRegisterAtServer_actionPerformed(ActionEvent e) {
+        registerMe();
+    }
+
+    public void jMenuWhoIsOn_actionPerformed(ActionEvent e) {
+        whoIsOnAtServer();
     }
 
     public void jMenuExit_actionPerformed(ActionEvent e) {
@@ -565,6 +590,7 @@ public class ThinClientGUI extends JFrame{
         this.setJMenuBar(jMenuBar1);
         jTextFieldMyIP.setMinimumSize(new Dimension(50, 21));
         jTextFieldMyIP.setText("127.0.0.1");
+        jLabel1.setHorizontalAlignment(SwingConstants.RIGHT);
         jLabel1.setText("My IP");
         this.addWindowListener(new ThinClientGUI_this_windowAdapter(this));
         jButtonToggleOutputWindow.setText("Ausgabefenster öffnen");
@@ -590,7 +616,7 @@ public class ThinClientGUI extends JFrame{
         jButtonAddEntries.setText("Add Entries");
         jButtonAddEntries.addActionListener(new
                 ThinClientGUI_jButtonAddEntries_actionAdapter(this));
-        jMenu1.setText("Datei");
+        jMenu1.setText("Programm");
         jMenu2.setText("?");
         jMenuExit.setText("Ende");
         jMenuExit.addActionListener(new ThinClientGUI_jMenuExit_actionAdapter(this));
@@ -600,8 +626,16 @@ public class ThinClientGUI extends JFrame{
         jButtonForTestsII.setText("Update");
         jButtonForTestsII.addActionListener(new
                 ThinClientGUI_jButtonForTestsII_actionAdapter(this));
-        jPanel1.setLayout(xYLayout1);
         jTreeViewPanel.setLayout(xYLayout1);
+        jPanel1.setLayout(xYLayout2);
+        jMenuRegisterAtServer.setText("Am Server anmelden");
+        jMenuRegisterAtServer.setEnabled(false);
+        jMenuRegisterAtServer.addActionListener(new
+                ThinClientGUI_jMenuRegisterAtServer_actionAdapter(this));
+        jMenuWhoIsOn.setText("Wer ist online?");
+        jMenuWhoIsOn.setEnabled(false);
+        jMenuWhoIsOn.addActionListener(new
+                                       ThinClientGUI_jMenuWhoIsOn_actionAdapter(this));
         /**
         treeViewScrollPane.setMinimumSize(new Dimension(1, 1));
         treeViewScrollPane.setPreferredSize(new Dimension(1, 1));
@@ -611,9 +645,10 @@ public class ThinClientGUI extends JFrame{
          */
         jMenuBar1.add(jMenu1);
         jMenuBar1.add(jMenu2);
+        jMenu1.add(jMenuRegisterAtServer);
+        jMenu1.add(jMenuWhoIsOn);
         jMenu1.add(jMenuExit);
         jMenu2.add(jMenuInfo);
-        jPanel1.add(jUserInfoField, new XYConstraints(2, 2, 150, 150));
         this.getContentPane().add(jPanel1,
                                   new GridBagConstraints(2, 1, 3, 1, 1.0, 1.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
@@ -628,10 +663,6 @@ public class ThinClientGUI extends JFrame{
                 new Insets(5, 5, 5, 5), 2, 2));
         this.getContentPane().add(jButtonHandleCall,
                                   new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(5, 5, 5, 5), 2, 2));
-        this.getContentPane().add(jButtonToggleOutputWindow,
-                                  new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
         this.getContentPane().add(jLabel1,
@@ -658,6 +689,11 @@ public class ThinClientGUI extends JFrame{
                                   new GridBagConstraints(0, 1, 2, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
+        jPanel1.add(jUserInfoField, new XYConstraints(2, 2, 200, 150));
+        this.getContentPane().add(jButtonToggleOutputWindow,
+                                  new GridBagConstraints(1, 0, 2, 1, 0.0, 0.0
+                , GridBagConstraints.WEST, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 50), 2, 2));
     }
 
     JTextField jTextFieldMyIP = new JTextField();
@@ -679,10 +715,26 @@ public class ThinClientGUI extends JFrame{
     JMenuItem jMenuInfo = new JMenuItem();
     JButton jButtonForTestsII = new JButton();
     JPanel jPanel1 = new JPanel();
-    XYLayout xYLayout1 = new XYLayout();
     GridBagLayout gridBagLayout1 = new GridBagLayout();
     JPanel jTreeViewPanel = new JPanel();
     FlowLayout flowLayout1 = new FlowLayout();
+    XYLayout xYLayout1 = new XYLayout();
+    XYLayout xYLayout2 = new XYLayout();
+    JMenuItem jMenuRegisterAtServer = new JMenuItem();
+    JMenuItem jMenuWhoIsOn = new JMenuItem();
+}
+
+
+class ThinClientGUI_jMenuRegisterAtServer_actionAdapter implements
+        ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jMenuRegisterAtServer_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jMenuRegisterAtServer_actionPerformed(e);
+    }
 }
 
 
@@ -810,3 +862,14 @@ class ThinClientGUI_this_windowAdapter extends WindowAdapter {
     }
 }
 
+
+class ThinClientGUI_jMenuWhoIsOn_actionAdapter implements ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jMenuWhoIsOn_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jMenuWhoIsOn_actionPerformed(e);
+    }
+}
