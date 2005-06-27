@@ -23,6 +23,8 @@ import javax.swing.border.*;
 
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 import de.fh_zwickau.pti.whzintravoip.thin_client.rtp_comm.*;
+import com.borland.jbcl.layout.XYLayout;
+import com.borland.jbcl.layout.*;
 
 public class ThinClientGUI extends JFrame{
 
@@ -32,6 +34,8 @@ public class ThinClientGUI extends JFrame{
     private String m_sMySIPName    = "SWF";
     private String m_sMyScreenName = "StarWarsFan";
     private String m_sLoginName    = null;
+    private int m_iWindowSizeX     = 500;
+    private int m_iWindowSizeY     = 500;
 
     private VoIP_RTP_Interface m_InterfaceRTP = new VoIP_RTP_Interface();
     private SIPStack m_ThinClientSIPStack = null;
@@ -71,8 +75,13 @@ public class ThinClientGUI extends JFrame{
         m_sLoginName = "ys";
 
         // einige Settings zum Programmfenster
-        this.setSize(500, 700);
-        this.setLocation(764, 2);
+        this.setSize(m_iWindowSizeX, m_iWindowSizeY);
+        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+        int screenX = dimension.width;
+        int screenY = dimension.height;
+        this.setLocation((screenX - m_iWindowSizeX), 0);
+
+        // eigene IP ermitteln
         m_sMyIP = extractOwnIP();
         jTextFieldMyIP.setText(m_sMyIP);
 
@@ -289,12 +298,12 @@ public class ThinClientGUI extends JFrame{
     }
 
     /**
-     * Liefert den Scrollpane für den UserTree
+     * Liefert das Panel für den UserTree
      *
-     * @return JScrollPane - darin wird der UserTree dargestellt
+     * @return JPanel - darin wird der UserTree dargestellt
      */
-    public JScrollPane getTreeViewScrollPane(){
-        return treeViewScrollPane;
+    public JPanel getTreeViewPanel(){
+        return jTreeViewPanel;
     }
 
     /**
@@ -568,12 +577,11 @@ public class ThinClientGUI extends JFrame{
         jButtonStartReceiver.setText("Start Receiver");
         jButtonStartReceiver.addActionListener(new
                 ThinClientGUI_jButtonStartReceiver_actionAdapter(this));
-        jScrollPane1.setPreferredSize(new Dimension(40, 40));
         jUserInfoField.setEditable(false);
         jUserInfoField.setText("");
         jButtonForTests.setEnabled(false);
         jButtonForTests.setToolTipText("");
-        jButtonForTests.setText("Tests...");
+        jButtonForTests.setText("Register");
         jButtonForTests.addActionListener(new
                 ThinClientGUI_jButtonForTests_actionAdapter(this));
         jButtonDeleteAllEntries.setText("alles löschen");
@@ -589,57 +597,67 @@ public class ThinClientGUI extends JFrame{
         jMenuInfo.setText("Info");
         jMenuInfo.addActionListener(new ThinClientGUI_jMenuInfo_actionAdapter(this));
         jButtonForTestsII.setEnabled(false);
-        jButtonForTestsII.setText("Test2 II...");
+        jButtonForTestsII.setText("Update");
         jButtonForTestsII.addActionListener(new
                 ThinClientGUI_jButtonForTestsII_actionAdapter(this));
-        jSplitPane1.add(jScrollPane1, JSplitPane.RIGHT);
-        jScrollPane1.getViewport().add(jUserInfoField);
-        jSplitPane1.add(treeViewScrollPane, JSplitPane.LEFT);
+        jPanel1.setLayout(xYLayout1);
+        jTreeViewPanel.setLayout(xYLayout1);
+        /**
+        treeViewScrollPane.setMinimumSize(new Dimension(1, 1));
+        treeViewScrollPane.setPreferredSize(new Dimension(1, 1));
+        treeViewScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        treeViewScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        treeViewScrollPane.setAutoscrolls(false);
+         */
         jMenuBar1.add(jMenu1);
         jMenuBar1.add(jMenu2);
         jMenu1.add(jMenuExit);
         jMenu2.add(jMenuInfo);
-        this.getContentPane().add(jButtonDeleteAllEntries,
-                                  new GridBagConstraints(1, 3, 1, 1, 0.0, 0.0
+        jPanel1.add(jUserInfoField, new XYConstraints(2, 2, 150, 150));
+        this.getContentPane().add(jPanel1,
+                                  new GridBagConstraints(2, 1, 3, 1, 1.0, 1.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonHandleCall,
-                                  new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jSplitPane1,
-                                  new GridBagConstraints(0, 1, 4, 1, 1.0, 1.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonToggleOutputWindow,
-                                  new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonStartReceiver,
-                                  new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jTextFieldMyIP,
-                                  new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
-                new Insets(10, 10, 10, 10), 50, 10));
-        this.getContentPane().add(jLabel1,
-                                  new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0
-                , GridBagConstraints.EAST, GridBagConstraints.NONE,
-                new Insets(10, 10, 10, 10), 5, 5));
-        this.getContentPane().add(jButtonForTests,
-                                  new GridBagConstraints(3, 2, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
+                new Insets(5, 5, 5, 5), 2, 2));
         this.getContentPane().add(jButtonAddEntries,
                                   new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(10, 10, 10, 10), 5, 5));
+                new Insets(5, 5, 5, 5), 2, 2));
+        this.getContentPane().add(jButtonStartReceiver,
+                                  new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 5), 2, 2));
+        this.getContentPane().add(jButtonHandleCall,
+                                  new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 5), 2, 2));
+        this.getContentPane().add(jButtonToggleOutputWindow,
+                                  new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 5), 2, 2));
+        this.getContentPane().add(jLabel1,
+                                  new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 5), 2, 2));
+        this.getContentPane().add(jTextFieldMyIP,
+                                  new GridBagConstraints(3, 0, 1, 1, 1.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 5), 2, 2));
+        this.getContentPane().add(jButtonDeleteAllEntries,
+                                  new GridBagConstraints(2, 2, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 5), 2, 2));
+        this.getContentPane().add(jButtonForTests,
+                                  new GridBagConstraints(3, 2, 1, 2, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 5), 2, 2));
         this.getContentPane().add(jButtonForTestsII,
-                                  new GridBagConstraints(3, 3, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
-                new Insets(0, 0, 0, 0), 0, 0));
-
+                                  new GridBagConstraints(3, 4, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 5), 2, 2));
+        this.getContentPane().add(jTreeViewPanel,
+                                  new GridBagConstraints(0, 1, 2, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 5), 2, 2));
     }
 
     JTextField jTextFieldMyIP = new JTextField();
@@ -650,10 +668,6 @@ public class ThinClientGUI extends JFrame{
     JButton jButtonToggleOutputWindow = new JButton();
     JButton jButtonHandleCall = new JButton();
     JButton jButtonStartReceiver = new JButton(); //    JTree treeView = new JTree();
-    JScrollPane treeViewScrollPane = new JScrollPane(null);
-    JSplitPane jSplitPane1 = new JSplitPane();
-    JScrollPane jScrollPane1 = new JScrollPane();
-    GridBagLayout gridBagLayout1 = new GridBagLayout();
     JTextArea jUserInfoField = new JTextArea();
     JButton jButtonForTests = new JButton();
     JButton jButtonDeleteAllEntries = new JButton();
@@ -664,6 +678,11 @@ public class ThinClientGUI extends JFrame{
     JMenuItem jMenuExit = new JMenuItem();
     JMenuItem jMenuInfo = new JMenuItem();
     JButton jButtonForTestsII = new JButton();
+    JPanel jPanel1 = new JPanel();
+    XYLayout xYLayout1 = new XYLayout();
+    GridBagLayout gridBagLayout1 = new GridBagLayout();
+    JPanel jTreeViewPanel = new JPanel();
+    FlowLayout flowLayout1 = new FlowLayout();
 }
 
 

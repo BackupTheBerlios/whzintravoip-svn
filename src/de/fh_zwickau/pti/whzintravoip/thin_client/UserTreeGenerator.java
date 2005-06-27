@@ -21,6 +21,7 @@ import javax.swing.event.*;
 import javax.swing.tree.*;
 
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
+import com.borland.jbcl.layout.XYConstraints;
 
 public class UserTreeGenerator {
 
@@ -59,8 +60,16 @@ public class UserTreeGenerator {
         m_JTree.setSelectionModel(defaultTreeSelectionModel);
 
         // Tree einfügen
-        m_UserGUI.getTreeViewScrollPane().getViewport().add(new JScrollPane(m_JTree));
-        m_UserGUI.getTreeViewScrollPane().setPreferredSize(new Dimension(300, 150));
+        JScrollPane jScrollPane = new JScrollPane(m_JTree);
+        jScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        jScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        jScrollPane.setWheelScrollingEnabled(true);
+        /**
+        m_UserGUI.getTreeViewScrollPane().getViewport().add(jScrollPane);
+        m_UserGUI.getTreeViewScrollPane().setPreferredSize(new Dimension(1, 1));
+         */
+        m_UserGUI.getTreeViewPanel().add(jScrollPane, new XYConstraints(2,2,200,300));
+        m_UserGUI.getTreeViewPanel().setPreferredSize(new Dimension(1, 1));
 
         // TreeSelectionListener einfügen
         m_JTree.addTreeSelectionListener(
