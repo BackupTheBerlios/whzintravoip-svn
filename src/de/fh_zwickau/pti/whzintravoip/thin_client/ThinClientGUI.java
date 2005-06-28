@@ -277,6 +277,9 @@ public class ThinClientGUI extends JFrame{
     public void processACKRequest(){
         setStatusTALKING();
         jButtonHandleCall.setText("Gespräch beenden");
+        stdOutput("Init RTP Session");
+        m_InterfaceRTP.initRtpSession(m_UserTreeGenerator.getIPOfChoosenUser(), null);
+        stdOutput("RTP Init finished");
         stdOutput("Starting RTP session");
         m_InterfaceRTP.startRtpSession();
         stdOutput("RTP session startet");
@@ -377,11 +380,6 @@ public class ThinClientGUI extends JFrame{
         String callerName = m_UserTreeGenerator.getUserName(incomingCallIP);
         stdOutput(callerName);
         String message = callerName + " ruft Sie an!\n Wollen Sie das Gespräch annehmen?";
-        stdOutput("Init RTP Session");
-        m_InterfaceRTP.enableDebugging();
-        m_InterfaceRTP.DebugErrorMessages(true);
-        m_InterfaceRTP.initRtpSession(m_sOpponentIP, null);
-        stdOutput("RTP Init finished");
 //        playRingTone("Ring");
         int returnvalue = JOptionPane.showConfirmDialog(this, message, "Es klingelt!", JOptionPane.YES_NO_OPTION);
 //        stopRingTone("Ring");
@@ -413,6 +411,11 @@ public class ThinClientGUI extends JFrame{
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
+        stdOutput("Init RTP Session");
+        m_InterfaceRTP.enableDebugging();
+        m_InterfaceRTP.DebugErrorMessages(true);
+        m_InterfaceRTP.initRtpSession(m_UserTreeGenerator.getIPOfChoosenUser(), null);
+        stdOutput("RTP Init finished");
         stdOutput("Starting RTP Session");
         m_InterfaceRTP.startRtpSession();
         stdOutput("RTP Session started");
@@ -432,9 +435,6 @@ public class ThinClientGUI extends JFrame{
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
-        stdOutput("Closing RTP Session");
-        m_InterfaceRTP.closeRtpSession();
-        stdOutput("RTP Session closed");
     }
 
     /**
@@ -542,9 +542,9 @@ public class ThinClientGUI extends JFrame{
             }
             m_InterfaceRTP.enableDebugging();
             m_InterfaceRTP.DebugErrorMessages(true);
-            stdOutput("Init RTP Session");
-            m_InterfaceRTP.initRtpSession(m_UserTreeGenerator.getIPOfChoosenUser(), null);
-            stdOutput("RTP Init finished");
+//            stdOutput("Init RTP Session");
+//            m_InterfaceRTP.initRtpSession(m_UserTreeGenerator.getIPOfChoosenUser(), null);
+//            stdOutput("RTP Init finished");
         }else if(m_bStatus == TALKING){
             endCallByMyself();
         }
