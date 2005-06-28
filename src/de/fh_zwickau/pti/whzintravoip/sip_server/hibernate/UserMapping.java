@@ -197,10 +197,16 @@ public class UserMapping {
             session = sessionFactory.openSession();
             trx = session.beginTransaction();
             String hql =
-                    "delete user from User as user where user.userIP = :userip";
+                    "select user from User as user where user.userIP = :userip";
             Query query = session.createQuery(hql);
             query.setString("userip", userIP);
+            Iterator it = query.iterate();
+            if (it.hasNext()) {
+                User user = (User) it.next();
+                session.delete(user);
+            }
             trx.commit();
+
         } catch (HibernateException ex) {
             if (trx != null) {
                 try {
