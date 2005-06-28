@@ -19,7 +19,7 @@ public class PlayTunes {
 
     private Player m_Player = null;
     private boolean m_bDebug = false;
-    private ThinClientGUI userGUI = null;
+    private ThinClient m_ThinClient = null;
     private HashMap m_PlayerMap = new HashMap();
     private String m_sSoundKey = null;
     private int m_iDelay = 0;
@@ -42,8 +42,8 @@ public class PlayTunes {
      * Instantiate a new PlayTunes within a Message instance.
      * @param userGUI ThinClientGUI the instance
      */
-    public PlayTunes(ThinClientGUI userGUI) {
-        this.userGUI = userGUI;
+    public PlayTunes(ThinClient client) {
+        this.m_ThinClient = client;
     }
 
     // just for test, may be deleted if no longer need
@@ -112,7 +112,7 @@ public class PlayTunes {
         if (m_bDebug) {
             System.out.println(msg);
         } else {
-            userGUI.errOutput(msg);
+            m_ThinClient.errOutput(msg);
         }
     }
 
@@ -124,7 +124,7 @@ public class PlayTunes {
         if (m_bDebug) {
             System.out.println(msg);
         } else {
-            userGUI.stdOutput(msg);
+            m_ThinClient.stdOutput(msg);
         }
     }
 

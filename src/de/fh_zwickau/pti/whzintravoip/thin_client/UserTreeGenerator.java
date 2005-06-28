@@ -26,6 +26,7 @@ import com.borland.jbcl.layout.XYConstraints;
 public class UserTreeGenerator {
 
     private Vector m_UserVector = null;
+    private ThinClient m_ThinClient = null;
     private ThinClientGUI m_UserGUI = null;
     private JTree m_JTree = null;
     private DefaultMutableTreeNode m_Root = null;
@@ -34,8 +35,9 @@ public class UserTreeGenerator {
     private DefaultTreeModel m_TreeModel = null;
     private String m_sIPOfChoosenUser = null;
 
-    public UserTreeGenerator(Vector userVector, ThinClientGUI userGUI) {
+    public UserTreeGenerator(Vector userVector, ThinClient client, ThinClientGUI userGUI) {
         this.m_UserVector = userVector;
+        this.m_ThinClient = client;
         this.m_UserGUI = userGUI;
     }
 
@@ -76,9 +78,9 @@ public class UserTreeGenerator {
             public void valueChanged(TreeSelectionEvent event) {
                 TreePath tp = event.getNewLeadSelectionPath();
                 if (tp != null) {
-                    m_UserGUI.showUserInfo(getUserInfos(tp.toString()));
+                    m_ThinClient.showUserInfo(getUserInfos(tp.toString()));
                 } else {
-                    m_UserGUI.showUserInfo("nix selektiert");
+                    m_ThinClient.showUserInfo("nix selektiert");
                 }
             }
         }
@@ -89,7 +91,7 @@ public class UserTreeGenerator {
      * löscht den momentan selektierten Eintrag aus dem JTree
      */
     public void removeUserTreeEntry(){
-        m_UserGUI.stdOutput("löschen...");
+        m_ThinClient.stdOutput("löschen...");
         TreePath tp = m_JTree.getLeadSelectionPath();
         DefaultMutableTreeNode node;
         node = (DefaultMutableTreeNode)tp.getLastPathComponent();
@@ -120,7 +122,8 @@ public class UserTreeGenerator {
     public void addUserTreeEntries(Vector userVector){
         for(Enumeration el = userVector.elements(); el.hasMoreElements();){
             User user = (User) el.nextElement();
-            if (!user.getUserIP().equals(m_UserGUI.getOwnIP())) {
+//            if (!user.getUserIP().equals(m_UserGUI.getOwnIPFromTextField())) {
+            if (!user.getUserIP().equals(m_ThinClient.getOwnIP())) {
                 String name = user.getUserFName() + " " + user.getUserLName() +
                               " (" + user.getUserInitial() + ")";
                 m_Child = new DefaultMutableTreeNode(name);

@@ -25,7 +25,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 
  public class SOAPMethodCaller {
 
-     private ThinClientGUI m_UserGUI;
+     private ThinClient m_ThinClient;
      private String m_sServerURL;
      private String m_sServerURN;
      private String m_sClassToMap;
@@ -39,8 +39,8 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
       * @param serverURN String - the URN-String to the SOAP server
       * @param classToMap String - the class to map on the server
       */
-     public SOAPMethodCaller(ThinClientGUI gui, String serverURL, String serverURN, String classToMap){
-         this.m_UserGUI = gui;
+     public SOAPMethodCaller(ThinClient gui, String serverURL, String serverURN, String classToMap){
+         this.m_ThinClient = gui;
          this.m_sServerURL = serverURL;
          this.m_sServerURN = serverURN;
          this.m_sClassToMap = classToMap;
@@ -81,7 +81,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
          }
          call.setParams(params);
          try {
-             m_UserGUI.stdOutput("invoke service\n"
+             m_ThinClient.stdOutput("invoke service\n"
                                + "  URL= "
                                + url
                                + "\n  URN ="
@@ -89,14 +89,14 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
              Response response = call.invoke(url, ""); // invoke the service
              if (!response.generatedFault()) {
                  Parameter result = response.getReturnValue(); // response was OK
-                 m_UserGUI.stdOutput("Result= " + result.getValue());
+                 m_ThinClient.stdOutput("Result= " + result.getValue());
              } else {
                  Fault f = response.getFault(); // an error occurred
-                 m_UserGUI.errOutput("Fault= " + f.getFaultCode() + ", " +
+                 m_ThinClient.errOutput("Fault= " + f.getFaultCode() + ", " +
                                     f.getFaultString());
              }
          } catch (SOAPException e) { // call could not be sent properly
-             m_UserGUI.errOutput("SOAPException= " + e.getFaultCode() + ", " +
+             m_ThinClient.errOutput("SOAPException= " + e.getFaultCode() + ", " +
                                 e.getMessage());
          }
      }
@@ -110,7 +110,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
       * @throws Exception -
       */
      public Vector whoIsOnAtServer() throws Exception {
-         m_UserGUI.stdOutput("Who is on at the moment?");
+         m_ThinClient.stdOutput("Who is on at the moment?");
          URL url = new URL(m_sServerURL);
          Call call = new Call(); // prepare the service invocation
          call.setTargetObjectURI(m_sServerURN);
@@ -128,7 +128,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
          call.setSOAPMappingRegistry(soapMappingRegistry);
 
          try {
-             m_UserGUI.stdOutput("invoke service\n"
+             m_ThinClient.stdOutput("invoke service\n"
                                + "  URL= "
                                + url
                                + "\n  URN ="
@@ -136,16 +136,16 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
              Response response = call.invoke(url, ""); // invoke the service
              if (!response.generatedFault()) {
                  Parameter result = response.getReturnValue(); // response was OK
-                 m_UserGUI.stdOutput("Result= " + result.getValue());
-                 m_UserGUI.stdOutput(result.toString());
+                 m_ThinClient.stdOutput("Result= " + result.getValue());
+                 m_ThinClient.stdOutput(result.toString());
                  return (Vector) result.getValue();
              } else {
                  Fault f = response.getFault(); // an error occurred
-                 m_UserGUI.errOutput("Fault= " + f.getFaultCode() + ", " +
+                 m_ThinClient.errOutput("Fault= " + f.getFaultCode() + ", " +
                                     f.getFaultString());
              }
          } catch (SOAPException e) { // call could not be sent properly
-             m_UserGUI.errOutput("SOAPException= " + e.getFaultCode() + ", " +
+             m_ThinClient.errOutput("SOAPException= " + e.getFaultCode() + ", " +
                                 e.getMessage());
          }
          return null;
@@ -175,7 +175,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
          }
          call.setParams(params);
          try {
-             m_UserGUI.stdOutput("invoke service\n"
+             m_ThinClient.stdOutput("invoke service\n"
                                + "  URL= "
                                + url
                                + "\n  URN ="
@@ -183,14 +183,14 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
              Response response = call.invoke(url, ""); // invoke the service
              if (!response.generatedFault()) {
                  Parameter result = response.getReturnValue(); // response was OK
-                 m_UserGUI.stdOutput("Result= " + result.getValue());
+                 m_ThinClient.stdOutput("Result= " + result.getValue());
              } else {
                  Fault f = response.getFault(); // an error occurred
-                 m_UserGUI.errOutput("Fault= " + f.getFaultCode() + ", " +
+                 m_ThinClient.errOutput("Fault= " + f.getFaultCode() + ", " +
                                     f.getFaultString());
              }
          } catch (SOAPException e) { // call could not be sent properly
-             m_UserGUI.errOutput("SOAPException= " + e.getFaultCode() + ", " +
+             m_ThinClient.errOutput("SOAPException= " + e.getFaultCode() + ", " +
                                 e.getMessage());
          }
      }

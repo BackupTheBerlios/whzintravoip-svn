@@ -86,8 +86,8 @@ public class IntraVoIP_main  extends JFrame{
     }
 
     public void jButtonReceiver_actionPerformed(ActionEvent e) {
-        ThinClientGUI thinClientGUI = new ThinClientGUI();
-        thinClientGUI.main(null);
+        ThinClient thinClient = new ThinClient();
+        thinClient.main(null);
     }
 
     public void this_windowClosing(WindowEvent e) {

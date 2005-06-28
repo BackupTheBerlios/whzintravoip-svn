@@ -20,15 +20,15 @@ import javax.swing.*;
 
 public class Output extends JFrame{
 
-    private ThinClientGUI m_UserGUI = null;
+    private ThinClient m_ThinClient = null;
 
-    public Output(ThinClientGUI gui) {
+    public Output(ThinClient client) {
         try {
             jbInit();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        this.m_UserGUI = gui;
+        this.m_ThinClient = client;
     }
 
     public static void main(String[] args) {
@@ -77,16 +77,16 @@ public class Output extends JFrame{
 
     public void jButtonCloseWindow_actionPerformed(ActionEvent e) {
 //        setVisible(false);
-        m_UserGUI.toggleOutputWindow();
+        m_ThinClient.toggleOutputWindow();
     }
 
     public void this_windowClosed(WindowEvent e) {
 //        setVisible(false);
-        m_UserGUI.setToggleWindowButtonName("Ausgabefenster öffnen");
+        m_ThinClient.setToggleWindowButtonName("Ausgabefenster öffnen");
     }
 
     public void this_windowClosing(WindowEvent e) {
-        m_UserGUI.setToggleWindowButtonName("Ausgabefenster öffnen");
+        m_ThinClient.setToggleWindowButtonName("Ausgabefenster öffnen");
     }
 }
 
