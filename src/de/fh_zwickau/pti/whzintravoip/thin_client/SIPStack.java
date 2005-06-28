@@ -21,7 +21,7 @@ import javax.sip.header.*;
 import javax.sip.message.*;
 
 public class SIPStack implements SipListener {
-    public  static SipStack m_SIPStack;
+    public static SipStack m_SIPStack;
     private static SipFactory m_SIPFactory;
     private static AddressFactory m_AddressFactory;
     private static MessageFactory m_MessageFactory;
@@ -47,12 +47,12 @@ public class SIPStack implements SipListener {
 
     private Dialog dialog;
 
-    private static final byte LOGIN    = 1;
-    private static final byte PICKUP   = 2;
+    private static final byte LOGIN = 1;
+    private static final byte PICKUP = 2;
     private static final byte INCOMING = 3;
     private static final byte MAKECALL = 4;
-    private static final byte CALLING  = 5;
-    private static final byte TALKING  = 6;
+    private static final byte CALLING = 5;
+    private static final byte TALKING = 6;
 
     private Request m_Request;
     private RequestEvent m_RequestEvent;
@@ -65,6 +65,7 @@ public class SIPStack implements SipListener {
     class ApplicationData {
         protected int ackCount;
     }
+
 
     private ContactHeader m_ContactHeader;
     private String m_sTransport;
@@ -83,11 +84,11 @@ public class SIPStack implements SipListener {
     public SIPStack(ThinClientGUI dialog, String myIP) {
         this.m_UserGUI = dialog;
         this.m_sMyIP = myIP;
-        try{
+        try {
             initReceiverSIPStack();
             initReceiverFactories();
-        }catch(Exception ex){
-                m_UserGUI.errOutput("Exception beim Initialisieren");
+        } catch (Exception ex) {
+            m_UserGUI.errOutput("Exception beim Initialisieren");
         }
     }
 
@@ -117,9 +118,10 @@ public class SIPStack implements SipListener {
         // Guard against starvation.
         properties.setProperty("gov.nist.javax.sip.READ_TIMEOUT", "1000");
         // properties.setProperty("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "4096");
-        properties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS", "false");
+        properties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS",
+                               "false");
 
-        m_SIPStack = m_SIPFactory.createSipStack(properties);     // this can throw an exception
+        m_SIPStack = m_SIPFactory.createSipStack(properties); // this can throw an exception
         return true;
     }
 
@@ -131,11 +133,13 @@ public class SIPStack implements SipListener {
      * @throws Exception
      */
     public boolean initReceiverFactories() throws Exception {
-    m_HeaderFactory = m_SIPFactory.createHeaderFactory();
+        m_HeaderFactory = m_SIPFactory.createHeaderFactory();
         m_AddressFactory = m_SIPFactory.createAddressFactory();
         m_MessageFactory = m_SIPFactory.createMessageFactory();
-        m_UDPListeningPoint = m_SIPStack.createListeningPoint(m_iClientSIPPort, "udp");
-        m_TCPListeningPoint = m_SIPStack.createListeningPoint(m_iClientSIPPort, "tcp");
+        m_UDPListeningPoint = m_SIPStack.createListeningPoint(m_iClientSIPPort,
+                "udp");
+        m_TCPListeningPoint = m_SIPStack.createListeningPoint(m_iClientSIPPort,
+                "tcp");
         m_ListenerSIPStack = this;
         m_SIPProviderUDP = m_SIPStack.createSipProvider(m_UDPListeningPoint);
         m_UserGUI.stdOutput("udp provider (client): " + m_SIPProviderUDP);
@@ -143,7 +147,8 @@ public class SIPStack implements SipListener {
         m_SIPProviderTCP = m_SIPStack.createSipProvider(m_TCPListeningPoint);
         m_UserGUI.stdOutput("tcp provider (client): " + m_SIPProviderTCP);
         m_SIPProviderTCP.addSipListener(m_ListenerSIPStack);
-        m_UserGUI.stdOutput("Factories, Listener und Provider für Client angelegt");
+        m_UserGUI.stdOutput(
+                "Factories, Listener und Provider für Client angelegt");
         return true;
     }
 
@@ -156,7 +161,7 @@ public class SIPStack implements SipListener {
      * @throws Exception
      */
     public boolean stopAndRemoveSIPStack() {
-        if(m_SIPStack != null){
+        if (m_SIPStack != null) {
             try {
                 try {
                     Thread.sleep(2000);
@@ -202,7 +207,7 @@ public class SIPStack implements SipListener {
             System.gc();
             m_UserGUI.stdOutput("Listener, Provider und Factories gelöscht");
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -219,24 +224,30 @@ public class SIPStack implements SipListener {
         SipProvider sipProvider = (SipProvider) m_RequestEvent.getSource();
         Request request = m_RequestEvent.getRequest();
         m_UserGUI.stdOutput("Got an REQUEST"
-                             + "\n-------------------------- This is the request:\n"
-                             + request
-                             + "\n-------------------------- This was the request\n");
+                            +
+                "\n-------------------------- This is the request:\n"
+                            + request
+                            +
+                "\n-------------------------- This was the request\n");
         try {
             m_UserGUI.stdOutput("sending 100 (Trying)\n");
             Response response = m_MessageFactory.createResponse(100, request);
             ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
             toHeader.setTag("4321"); // Application is supposed to set.
-            Address address = m_AddressFactory.createAddress("VoIP-Client <sip:"
+            Address address = m_AddressFactory.createAddress(
+                    "VoIP-Client <sip:"
                     + m_sMyIP + ":"
                     + m_iClientSIPPort + "> \n");
-            ContactHeader contactHeader = m_HeaderFactory.createContactHeader(address);
+            ContactHeader contactHeader = m_HeaderFactory.createContactHeader(
+                    address);
             response.addHeader(contactHeader);
 
             if (m_ServerTransaction == null) {
-                m_ServerTransaction = sipProvider.getNewServerTransaction(request);
+                m_ServerTransaction = sipProvider.getNewServerTransaction(
+                        request);
                 if (m_ServerTransaction.getDialog().getApplicationData() == null) {
-                    m_ServerTransaction.getDialog().setApplicationData(new ApplicationData());
+                    m_ServerTransaction.getDialog().setApplicationData(new
+                            ApplicationData());
                 }
             } else {
                 // If Server transaction is not null, then
@@ -250,21 +261,21 @@ public class SIPStack implements SipListener {
 //            serverTransactionFromInvite = st;
             // Thread.sleep(5000);
             /**
-            m_UserGUI.stdOutput("got a server transaction: " + st);
-            byte[] content = request.getRawContent();
-            if (content != null) {
+             m_UserGUI.stdOutput("got a server transaction: " + st);
+                         byte[] content = request.getRawContent();
+                         if (content != null) {
                 m_UserGUI.stdOutput(" content = " + new String(content));
                 ContentTypeHeader contentTypeHeader =
                         m_HeaderFactory.createContentTypeHeader("application",
                         "sdp");
                 m_UserGUI.stdOutput("response = " + response);
                 response.setContent(content, contentTypeHeader);
-            }
-            dialog = st.getDialog();
-            if (dialog != null) {
+                         }
+                         dialog = st.getDialog();
+                         if (dialog != null) {
                 m_UserGUI.stdOutput("Dialog " + dialog);
                 m_UserGUI.stdOutput("Dialog state " + dialog.getState());
-            }
+                         }
              */
             m_ServerTransaction.sendResponse(response);
             m_UserGUI.stdOutput("\n--- Response 100 (Trying) gesendet ---\n");
@@ -317,7 +328,8 @@ public class SIPStack implements SipListener {
             m_UserGUI.stdOutput("OPTIONS-Request received");
             m_UserGUI.processOptionsRequest();
         } else if (m_UserGUI.getStatus() == TALKING) {
-            m_UserGUI.stdOutput("Request received but I'm talking at the moment");
+            m_UserGUI.stdOutput(
+                    "Request received but I'm talking at the moment");
 //            m_UserGUI.denyCall(callerIP);
         } else if (m_UserGUI.getStatus() != PICKUP) {
             m_UserGUI.stdOutput("Request received but I'm busy at the moment");
@@ -333,8 +345,9 @@ public class SIPStack implements SipListener {
      *
      * @param responseReceivedEvent ResponseEvent
      */
-    public void processResponse(ResponseEvent responseReceivedEvent){
-        m_UserGUI.stdOutput("RESPONSE erhalten --> Darauf erfolgt keine Reaktion...");
+    public void processResponse(ResponseEvent responseReceivedEvent) {
+        m_UserGUI.stdOutput(
+                "RESPONSE erhalten --> Darauf erfolgt keine Reaktion...");
     }
 
     /**
@@ -343,7 +356,8 @@ public class SIPStack implements SipListener {
      * @param timeoutEvent TimeoutEvent
      */
     public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
-        m_UserGUI.stdOutput("TIMEOUT erhalten --> Darauf erfolgt keine Reaktion...");
+        m_UserGUI.stdOutput(
+                "TIMEOUT erhalten --> Darauf erfolgt keine Reaktion...");
     }
 
     /**
@@ -361,7 +375,7 @@ public class SIPStack implements SipListener {
         String headerField = "127.0.0.1";
         headerField = header.toString();
         m_UserGUI.stdOutput("ausgelesener Header: " + headerField);
-        StringTokenizer st = new StringTokenizer(headerField," ");
+        StringTokenizer st = new StringTokenizer(headerField, " ");
         String ip = st.nextToken();
         ip = st.nextToken();
         ip = ip.substring(0, (ip.length() - 2));
