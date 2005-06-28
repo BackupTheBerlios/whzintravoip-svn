@@ -158,18 +158,21 @@ public class VoIP_Process implements ControllerListener {
         switch (what) {
         case 0:
             if (m_ProcCap != null) {
-                long time = System.currentTimeMillis();
-                try {
-                    m_ProcCap.deallocate();
-                    m_ProcCap.close();
-                    while (!m_bClosed && !m_bFailed) {
-                        Thread.sleep(10);
-                        if ((System.currentTimeMillis() - time) > m_iTimeout) {
-                            break;
+                synchronized(this){
+                    long time = System.currentTimeMillis();
+                    try {
+                        m_ProcCap.deallocate();
+                        m_ProcCap.close();
+                        while (!m_bClosed && !m_bFailed) {
+                            Thread.sleep(10);
+                            if ((System.currentTimeMillis() - time) >
+                                m_iTimeout) {
+                                break;
+                            }
                         }
+                    } catch (Exception ex) {
+                        m_Status.errMessage("Close Processor: " + ex.toString());
                     }
-                } catch (Exception ex) {
-                    m_Status.errMessage("Close Processor: " + ex.toString());
                 }
                 m_ProcCap.removeControllerListener(this);
                 m_Status.infoMessage("Capture processor closed!");
@@ -180,18 +183,21 @@ public class VoIP_Process implements ControllerListener {
             }
         case 1:
             if (m_ProcRec != null) {
-                try {
+                synchronized(this){
                     long time = System.currentTimeMillis();
-                    m_ProcRec.deallocate();
-                    m_ProcRec.close();
-                    while (!m_bClosed && !m_bFailed) {
-                        Thread.sleep(10);
-                        if ((System.currentTimeMillis() - time) > m_iTimeout) {
-                            break;
+                    try {
+                        m_ProcRec.deallocate();
+                        m_ProcRec.close();
+                        while (!m_bClosed && !m_bFailed) {
+                            Thread.sleep(10);
+                            if ((System.currentTimeMillis() - time) >
+                                m_iTimeout) {
+                                break;
+                            }
                         }
+                    } catch (Exception ex) {
+                        m_Status.errMessage("Close Processor: " + ex.toString());
                     }
-                } catch (Exception ex) {
-                    m_Status.errMessage("Close Processor: " + ex.toString());
                 }
                 m_ProcRec.removeControllerListener(this);
                 m_Status.infoMessage("Receive processor closed!");
@@ -270,17 +276,19 @@ public class VoIP_Process implements ControllerListener {
      */
     private void configureProcessor(Processor proc) {
         proc.addControllerListener(this);
-        try {
-            long time = System.currentTimeMillis();
-            proc.configure();
-            while (!m_bConfigured && !m_bFailed) {
-                Thread.sleep(10);
-                if ((System.currentTimeMillis() - time) > m_iTimeout) {
-                    break;
+        synchronized(this){
+            try {
+                long time = System.currentTimeMillis();
+                proc.configure();
+                while (!m_bConfigured && !m_bFailed) {
+                    Thread.sleep(10);
+                    if ((System.currentTimeMillis() - time) > m_iTimeout) {
+                        break;
+                    }
                 }
+            } catch (Exception ex) {
+                m_Status.errMessage("Configure Processor: " + ex.toString());
             }
-        } catch (Exception ex) {
-            m_Status.errMessage("Configure Processor: " + ex.toString());
         }
     }
 
@@ -291,17 +299,19 @@ public class VoIP_Process implements ControllerListener {
      * @throws Exception any to parent
      */
     private void realizeProcessor(Processor proc) {
-        try {
-            long time = System.currentTimeMillis();
-            proc.realize();
-            while (!m_bRealized && !m_bFailed) {
-                Thread.sleep(10);
-                if ((System.currentTimeMillis() - time) > m_iTimeout) {
-                    break;
+        synchronized(this){
+            try {
+                long time = System.currentTimeMillis();
+                proc.realize();
+                while (!m_bRealized && !m_bFailed) {
+                    Thread.sleep(10);
+                    if ((System.currentTimeMillis() - time) > m_iTimeout) {
+                        break;
+                    }
                 }
+            } catch (Exception ex) {
+                m_Status.errMessage("Realize Processor: " + ex.toString());
             }
-        } catch (Exception ex) {
-            m_Status.errMessage("Realize Processor: " + ex.toString());
         }
     }
 
@@ -312,18 +322,20 @@ public class VoIP_Process implements ControllerListener {
      * @throws Exception any to parent
      */
     private void prefetchProcessor(Processor proc) {
-        try {
-            long time = System.currentTimeMillis();
-            proc.prefetch();
-            while (!m_bPrefetched && !m_bFailed) {
-                Thread.sleep(10);
-                if ((System.currentTimeMillis() - time) > m_iTimeout) {
-                    break;
+        synchronized(this){
+            try {
+                long time = System.currentTimeMillis();
+                proc.prefetch();
+                while (!m_bPrefetched && !m_bFailed) {
+                    Thread.sleep(10);
+                    if ((System.currentTimeMillis() - time) > m_iTimeout) {
+                        break;
+                    }
                 }
-            }
 
-        } catch (Exception ex) {
-            m_Status.errMessage("Prefetch Processor: " + ex.toString());
+            } catch (Exception ex) {
+                m_Status.errMessage("Prefetch Processor: " + ex.toString());
+            }
         }
     }
 

@@ -88,14 +88,16 @@ public class VoIP_Connection implements SessionListener,
             m_Status.infoMessage("Session start!");
             m_bReceiveEvent = false;
         } else {
-            while (!m_bReceiveEvent) {
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException ie) {}
-                if (System.currentTimeMillis() - startTime > m_iTimeout) {
-                    m_Status.errMessage("Timout of " + m_iTimeout +
-                                        " milliseconds for receiving reached! Going to interrupt!");
-                    break;
+            synchronized(this){
+                while (!m_bReceiveEvent) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException ie) {}
+                    if (System.currentTimeMillis() - startTime > m_iTimeout) {
+                        m_Status.errMessage("Timout of " + m_iTimeout +
+                                            " milliseconds for receiving reached! Going to interrupt!");
+                        break;
+                    }
                 }
             }
             if (m_bReceiveEvent) {
