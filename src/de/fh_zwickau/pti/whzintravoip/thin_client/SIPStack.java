@@ -309,19 +309,19 @@ public class SIPStack implements SipListener {
                             + "'\nRequest was from this IP: "
                             + callerIP);
 
-        if (this.m_Request.getMethod().equals(Request.INVITE)) {
+        if ((m_UserGUI.getStatus() == PICKUP) && (this.m_Request.getMethod().equals(Request.INVITE))) {
             m_UserGUI.stdOutput("INVITE-Request received");
             // the server has to stop sending Requests, so let him know
             // that we received the request...
             answerRequest();
             m_UserGUI.processIncomingCall(callerIP);
-        } else if (this.m_Request.getMethod().equals(Request.ACK)) {
+        } else if ((m_UserGUI.getStatus() == MAKECALL) && (this.m_Request.getMethod().equals(Request.ACK))) {
             m_UserGUI.stdOutput("ACK-Request received");
             m_UserGUI.processACKRequest();
         } else if (this.m_Request.getMethod().equals(Request.UPDATE)) {
             m_UserGUI.stdOutput("UPDATE-Request received");
             m_UserGUI.updateUserList();
-        } else if (this.m_Request.getMethod().equals(Request.BYE)) {
+        } else if ((m_UserGUI.getStatus() == TALKING) && (this.m_Request.getMethod().equals(Request.BYE))) {
             m_UserGUI.stdOutput("BYE-Request received");
             m_UserGUI.endCallByOtherSide();
         } else if (this.m_Request.getMethod().equals(Request.OPTIONS)) {

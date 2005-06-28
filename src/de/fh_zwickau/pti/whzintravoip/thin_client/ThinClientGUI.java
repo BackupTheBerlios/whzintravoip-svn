@@ -278,6 +278,8 @@ public class ThinClientGUI extends JFrame{
         setStatusTALKING();
         jButtonHandleCall.setText("Gespräch beenden");
         stdOutput("Init RTP Session");
+        m_InterfaceRTP.enableDebugging();
+        m_InterfaceRTP.DebugErrorMessages(true);
         m_InterfaceRTP.initRtpSession(m_UserTreeGenerator.getIPOfChoosenUser(), null);
         stdOutput("RTP Init finished");
         stdOutput("Starting RTP session");
@@ -450,8 +452,10 @@ public class ThinClientGUI extends JFrame{
         } catch (Exception ex) {
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
+
         jButtonHandleCall.setText("Anrufen");
         setStatusPICKUP();
+
         stdOutput("Closing RTP Session");
         m_InterfaceRTP.closeRtpSession();
         stdOutput("RTP Session closed");
@@ -540,11 +544,6 @@ public class ThinClientGUI extends JFrame{
             } catch (Exception ex) {
                 setStatusPICKUP();
             }
-            m_InterfaceRTP.enableDebugging();
-            m_InterfaceRTP.DebugErrorMessages(true);
-//            stdOutput("Init RTP Session");
-//            m_InterfaceRTP.initRtpSession(m_UserTreeGenerator.getIPOfChoosenUser(), null);
-//            stdOutput("RTP Init finished");
         }else if(m_bStatus == TALKING){
             endCallByMyself();
         }
