@@ -76,11 +76,6 @@ public class SIPStack implements SipListener {
 //    private static String PEER_ADDRESS = Shootme.myAddress;
     public static String m_sMyIP = "127.0.0.1";
 
-    /**
-     * Constuctor for the receiver.
-     * @param dialog SIPConnector ..
-     * @param myIP String .. the own IP
-     */
     public SIPStack(ThinClient client, String myIP) {
         this.m_ThinClient = client;
         this.m_sMyIP = myIP;
@@ -216,9 +211,6 @@ public class SIPStack implements SipListener {
      * This method will send an 100 (Trying) back to the caller. We need this
      * to let the server know, that the request has arrived and the server stops
      * to send new requests.
-     *
-     * @param requestEvent RequestEvent
-     * @param serverTransaction ServerTransaction
      */
     public void answerRequest() {
         SipProvider sipProvider = (SipProvider) m_RequestEvent.getSource();
@@ -313,6 +305,9 @@ public class SIPStack implements SipListener {
         } else if ((m_ThinClient.getStatus() == MAKECALL) && (this.m_Request.getMethod().equals(Request.ACK))) {
             m_ThinClient.stdOutput("ACK-Request received");
             m_ThinClient.processACKRequest();
+        } else if ((m_ThinClient.getStatus() == MAKECALL) && (this.m_Request.getMethod().equals(Request.CANCEL))) {
+            m_ThinClient.stdOutput("CANCEL-Request received");
+            m_ThinClient.processCANCELRequest();
         } else if (this.m_Request.getMethod().equals(Request.UPDATE)) {
             m_ThinClient.stdOutput("UPDATE-Request received");
             m_ThinClient.updateUserList();

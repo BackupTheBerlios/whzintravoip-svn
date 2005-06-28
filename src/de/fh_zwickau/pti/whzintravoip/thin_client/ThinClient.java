@@ -13,29 +13,23 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
  * @version 0.0.1
  */
 
-import java.awt.*;
-import java.awt.event.*;
 import java.net.*;
 import java.util.*;
 
 import javax.swing.*;
-import javax.swing.border.*;
 
-import com.borland.jbcl.layout.*;
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 import de.fh_zwickau.pti.whzintravoip.thin_client.rtp_comm.*;
 
-public class ThinClient{
+public class ThinClient extends JFrame{
 
-    private String m_sSOAPServerIP = "141.32.28.183";
+//    private String m_sSOAPServerIP = "141.32.28.183";
+    private String m_sSOAPServerIP = "voipserver.informatik.fh-zwickau.de";
     private String m_sMyIP         = "127.0.0.1";
     private String m_sMySIPAddress = "My SIP Address";
     private String m_sMySIPName    = "SWF";
     private String m_sMyScreenName = "StarWarsFan";
     private String m_sLoginName    = null;
-    private int m_iWindowSizeX     = 524;
-    private int m_iWindowSizeY     = 327;
-    private String m_sVersion      = "V0.5";
 
     private ThinClientGUI m_ThinClientGUI = null;
     private VoIP_RTP_Interface m_InterfaceRTP = new VoIP_RTP_Interface();
@@ -224,9 +218,17 @@ public class ThinClient{
      * Registriert das eigene User-Objekt via SOAP am Server
      *
      */
-    public void registerMe(){
+    public void signOn(){
         try{
-            m_MethodCaller.registerMyselfAtServer("registerUser", m_Myself, null);
+            m_MethodCaller.registerMyselfAtServer("signOn", m_Myself, null);
+        }catch(Exception ex){
+            errOutput(ex.toString());
+        }
+    }
+
+    public void signOff(){
+        try{
+            m_MethodCaller.callSOAPServer("signOff", m_sMyIP, null);
         }catch(Exception ex){
             errOutput(ex.toString());
         }
@@ -284,6 +286,17 @@ public class ThinClient{
         stdOutput("RTP session startet");
     }
 
+    public void processCANCELRequest(){
+        String message = "Das Gespräch wurde nicht angenommen";
+        String title = "Abgelehnt";
+        JOptionPane.showConfirmDialog(this,
+                                      message,
+                                      title,
+                                      JOptionPane.CLOSED_OPTION,
+                                      JOptionPane.INFORMATION_MESSAGE);
+        setStatusPICKUP();
+    }
+
     public String getOwnIP(){
         return m_sMyIP;
     }
@@ -328,8 +341,6 @@ public class ThinClient{
 
     /**
      * Startet den Receiver-Stack und setzt den eigenen Status auf PICKUP
-     *
-     * @param e ActionEvent
      */
     public void startReceiver() {
         m_sMyIP = m_ThinClientGUI.getTextFieldMyIP().getText();
@@ -401,12 +412,12 @@ public class ThinClient{
      */
     public void denyCall(String incomingIP){
         this.m_sOpponentIP = incomingIP;
-        setStatusPICKUP();
         try{
             m_MethodCaller.callSOAPServer("denyCall", m_sMyIP, m_sOpponentIP);
         }catch(Exception ex){
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
+        setStatusPICKUP();
     }
 
     /**
@@ -481,8 +492,6 @@ public class ThinClient{
 
     /**
      * Button zum Anrufen wurde gedrückt
-     *
-     * @param e ActionEvent
      */
     public void handleCall() {
         if(m_bStatus == PICKUP){
@@ -521,8 +530,6 @@ public class ThinClient{
 
     /**
      * The pulldown menu "Exit" was choosen...
-     *
-     * @param e ActionEvent
      */
     public void exitClient() {
         if(m_ThinClientSIPStack != null){

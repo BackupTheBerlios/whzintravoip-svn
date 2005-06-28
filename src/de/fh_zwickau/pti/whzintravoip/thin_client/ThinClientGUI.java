@@ -68,7 +68,7 @@ public class ThinClientGUI extends JFrame{
      * @param e ActionEvent
      */
     public void jButtonRegister_actionPerformed(ActionEvent e) {
-        m_ThinClient.registerMe();
+        m_ThinClient.signOn();
     }
 
     /**
@@ -141,11 +141,12 @@ public class ThinClientGUI extends JFrame{
                          + "Torsten Schmidt <torssch@fh-zwickau.de> - Serveranbindung\n"
                          + "Holger Seidel <hs@fh-zwickau.de> - Audiostreaming\n"
                          + "Yves Schumann <ys@fh-zwickau.de> - Sessionauf- und -abbau, GUI";
-        JOptionPane.showConfirmDialog(this, message, "", JOptionPane.CLOSED_OPTION, JOptionPane.INFORMATION_MESSAGE);
+        String title = "Über WHZIntraVoIP";
+        JOptionPane.showConfirmDialog(this, message, title, JOptionPane.CLOSED_OPTION, JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void jMenuRegisterAtServer_actionPerformed(ActionEvent e) {
-        m_ThinClient.registerMe();
+        m_ThinClient.signOn();
     }
     public void jMenuWhoIsOn_actionPerformed(ActionEvent e) {
         m_ThinClient.whoIsOnAtServer();
