@@ -1,4 +1,4 @@
-package de.fh_zwickau.pti.whzintravoip.rtp_comm;
+package de.fh_zwickau.pti.whzintravoip.thin_client.rtp_comm;
 
 import java.util.*;
 import javax.media.*;
