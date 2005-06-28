@@ -1,4 +1,4 @@
-package de.fh_zwickau.pti.whzintravoip.thin_client.rtp_comm;
+package de.fh_zwickau.pti.whzintravoip.rtp_comm;
 
 import java.util.*;
 import javax.media.*;
@@ -92,7 +92,7 @@ public class VoIP_Process implements ControllerListener {
      * @param what int The typ of Processor
      * @throws Exception any to parent
      */
-    public void startProcessing(int what) throws Exception {
+    public void startProcessing(int what) {
         switch (what) {
         case 0:
             if (m_ProcCap != null) {
@@ -100,7 +100,8 @@ public class VoIP_Process implements ControllerListener {
                 m_Status.infoMessage("Processor started for capture!");
                 break;
             } else {
-                throw new Exception("Capture processor not initialized yet!");
+                m_Status.errMessage("Capture processor not initialized yet!");
+                break;
             }
         case 1:
             if (m_ProcRec != null) {
@@ -108,7 +109,8 @@ public class VoIP_Process implements ControllerListener {
                 m_Status.infoMessage("Processor started for receive stream!");
                 break;
             } else {
-                throw new Exception("Receive processor not initialized yet!");
+                m_Status.errMessage("Receive processor not initialized yet!");
+                break;
             }
         default:
             m_Status.errMessage("Wrong integer set !!! no action here ...");
@@ -121,7 +123,7 @@ public class VoIP_Process implements ControllerListener {
      * @param what int Typ of Processor
      * @throws Exception any to parent
      */
-    public void stopProcessing(int what) throws Exception {
+    public void stopProcessing(int what) {
         switch (what) {
         case 0:
             if (m_ProcCap != null) {
@@ -129,7 +131,8 @@ public class VoIP_Process implements ControllerListener {
                 m_Status.infoMessage("Processor stopt for capture!");
                 break;
             } else {
-                throw new Exception("Capture processor not initialized yet!");
+                m_Status.errMessage("Capture processor not initialized yet!");
+                break;
             }
         case 1:
             if (m_ProcRec != null) {
@@ -137,7 +140,8 @@ public class VoIP_Process implements ControllerListener {
                 m_Status.infoMessage("Processor stopt for receive stream!");
                 break;
             } else {
-                throw new Exception("Receive processor not initialized yet!");
+                m_Status.errMessage("Receive processor not initialized yet!");
+                break;
             }
         default:
             m_Status.errMessage("Wrong integer set !!! no action here ...");
@@ -150,53 +154,51 @@ public class VoIP_Process implements ControllerListener {
      * @param what int Typ of Processor
      * @throws Exception any to parent
      */
-    public void closeProcessor(int what) throws Exception {
+    public void closeProcessor(int what) {
         switch (what) {
         case 0:
             if (m_ProcCap != null) {
-                long startTime = System.currentTimeMillis();
-                synchronized (this) {
+                long time = System.currentTimeMillis();
+                try {
                     m_ProcCap.deallocate();
                     m_ProcCap.close();
                     while (!m_bClosed && !m_bFailed) {
-                        try {
-                            wait(m_iTimeout);
-                        } catch (InterruptedException ie) {}
-                        if (System.currentTimeMillis() - startTime > m_iTimeout) {
-                            m_Status.errMessage("Timout of " + m_iTimeout +
-                                                " milliseconds for closeProcessor reached! Going to interrupt!");
+                        Thread.sleep(10);
+                        if ((System.currentTimeMillis() - time) > m_iTimeout) {
                             break;
                         }
                     }
+                } catch (Exception ex) {
+                    m_Status.errMessage("Close Processor: " + ex.toString());
                 }
                 m_ProcCap.removeControllerListener(this);
                 m_Status.infoMessage("Capture processor closed!");
                 break;
             } else {
-                throw new Exception("Capture processor not initialized yet!");
+                m_Status.errMessage("Capture processor not initialized yet!");
+                break;
             }
         case 1:
             if (m_ProcRec != null) {
-                long startTime = System.currentTimeMillis();
-                synchronized (this) {
+                try {
+                    long time = System.currentTimeMillis();
                     m_ProcRec.deallocate();
                     m_ProcRec.close();
                     while (!m_bClosed && !m_bFailed) {
-                        try {
-                            wait(m_iTimeout);
-                        } catch (InterruptedException ie) {}
-                        if (System.currentTimeMillis() - startTime > m_iTimeout) {
-                            m_Status.errMessage("Timout of " + m_iTimeout +
-                                                " milliseconds for closeProcessor reached! Going to interrupt!");
+                        Thread.sleep(10);
+                        if ((System.currentTimeMillis() - time) > m_iTimeout) {
                             break;
                         }
                     }
+                } catch (Exception ex) {
+                    m_Status.errMessage("Close Processor: " + ex.toString());
                 }
                 m_ProcRec.removeControllerListener(this);
                 m_Status.infoMessage("Receive processor closed!");
                 break;
             } else {
-                throw new Exception("Receive processor not initialized yet!");
+                m_Status.errMessage("Receive processor not initialized yet!");
+                break;
             }
         default:
             m_Status.errMessage("Wrong integer set !!! no action here ...");
@@ -266,21 +268,19 @@ public class VoIP_Process implements ControllerListener {
      * @param proc Processor the Processor
      * @throws Exception any to parent
      */
-    private void configureProcessor(Processor proc) throws Exception {
-        long startTime = System.currentTimeMillis();
+    private void configureProcessor(Processor proc) {
         proc.addControllerListener(this);
-        synchronized (this) {
+        try {
+            long time = System.currentTimeMillis();
             proc.configure();
             while (!m_bConfigured && !m_bFailed) {
-                try {
-                    wait(m_iTimeout);
-                } catch (InterruptedException ie) {}
-                if (System.currentTimeMillis() - startTime > m_iTimeout) {
-                    m_Status.errMessage("Timout of " + m_iTimeout +
-                                        " milliseconds for configureProcessor reached! Going to interrupt!");
+                Thread.sleep(10);
+                if ((System.currentTimeMillis() - time) > m_iTimeout) {
                     break;
                 }
             }
+        } catch (Exception ex) {
+            m_Status.errMessage("Configure Processor: " + ex.toString());
         }
     }
 
@@ -290,20 +290,18 @@ public class VoIP_Process implements ControllerListener {
      * @param proc Processor the Processor
      * @throws Exception any to parent
      */
-    private void realizeProcessor(Processor proc) throws Exception {
-        long startTime = System.currentTimeMillis();
-        synchronized (this) {
+    private void realizeProcessor(Processor proc) {
+        try {
+            long time = System.currentTimeMillis();
             proc.realize();
             while (!m_bRealized && !m_bFailed) {
-                try {
-                    wait(m_iTimeout);
-                } catch (InterruptedException ie) {}
-                if (System.currentTimeMillis() - startTime > m_iTimeout) {
-                    m_Status.errMessage("Timout of " + m_iTimeout +
-                                        " milliseconds for realizeProcessor reached! Going to interrupt!");
+                Thread.sleep(10);
+                if ((System.currentTimeMillis() - time) > m_iTimeout) {
                     break;
                 }
             }
+        } catch (Exception ex) {
+            m_Status.errMessage("Realize Processor: " + ex.toString());
         }
     }
 
@@ -313,20 +311,19 @@ public class VoIP_Process implements ControllerListener {
      * @param proc Processor the Processor
      * @throws Exception any to parent
      */
-    private void prefetchProcessor(Processor proc) throws Exception {
-        long startTime = System.currentTimeMillis();
-        synchronized (this) {
+    private void prefetchProcessor(Processor proc) {
+        try {
+            long time = System.currentTimeMillis();
             proc.prefetch();
             while (!m_bPrefetched && !m_bFailed) {
-                try {
-                    wait(m_iTimeout);
-                } catch (InterruptedException ie) {}
-                if (System.currentTimeMillis() - startTime > m_iTimeout) {
-                    m_Status.errMessage("Timout of " + m_iTimeout +
-                                        " milliseconds for prefetchProcessor reached! Going to interrupt!");
+                Thread.sleep(10);
+                if ((System.currentTimeMillis() - time) > m_iTimeout) {
                     break;
                 }
             }
+
+        } catch (Exception ex) {
+            m_Status.errMessage("Prefetch Processor: " + ex.toString());
         }
     }
 

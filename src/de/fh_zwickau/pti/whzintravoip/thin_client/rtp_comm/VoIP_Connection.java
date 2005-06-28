@@ -1,4 +1,4 @@
-package de.fh_zwickau.pti.whzintravoip.thin_client.rtp_comm;
+package de.fh_zwickau.pti.whzintravoip.rtp_comm;
 
 import java.net.*;
 import java.util.*;
@@ -20,7 +20,7 @@ import javax.media.rtp.rtcp.*;
  * @version 1.0
  */
 public class VoIP_Connection implements SessionListener,
-        SendStreamListener, RemoteListener, ReceiveStreamListener {
+        SendStreamListener, ReceiveStreamListener {
 
     private VoIP_Status m_Status = new VoIP_Status();
     private VoIP_Output m_Output = new VoIP_Output();
@@ -90,7 +90,7 @@ public class VoIP_Connection implements SessionListener,
         } else {
             while (!m_bReceiveEvent) {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(10);
                 } catch (InterruptedException ie) {}
                 if (System.currentTimeMillis() - startTime > m_iTimeout) {
                     m_Status.errMessage("Timout of " + m_iTimeout +
@@ -135,7 +135,6 @@ public class VoIP_Connection implements SessionListener,
         // add needed listeners
         m_RtpManager.addSessionListener(this);
         m_RtpManager.addSendStreamListener(this);
-        m_RtpManager.addRemoteListener(this);
         m_RtpManager.addReceiveStreamListener(this);
         // create Sender Information (only computer name here)
         SourceDescription[] sdes = {new SourceDescription(SourceDescription.
@@ -176,6 +175,7 @@ public class VoIP_Connection implements SessionListener,
      */
     public void closeConnection() throws Exception {
         // stop the send stream
+        m_Status.infoMessage("Closing Connection");
         m_SendStream.stop();
         // close the connection
         m_RtpManager.removeTarget(remoteAddress, "client disconnected");
@@ -203,22 +203,6 @@ public class VoIP_Connection implements SessionListener,
             m_Status.infoMessage("Ein neuer RTP Datenstrom wurde erzeugt!");
         } else if (sse instanceof StreamClosedEvent) {
             m_Status.infoMessage("RTP Datenstrom wurde geschlossen!");
-        }
-    }
-
-    public void update(RemoteEvent re) {
-        if (re instanceof ReceiverReportEvent) {
-            ReceiverReport rr = ((ReceiverReportEvent) re).getReport();
-            String reportSender = rr.getParticipant().getCNAME();
-            Vector infos = rr.getFeedbackReports();
-            m_Status.infoMessage("Feedback von Teilnehmer " + reportSender +
-                                 ":");
-            Feedback fb = null;
-            for (int i = 0; i < infos.size(); i++) {
-                fb = (Feedback) infos.elementAt(i);
-                m_Status.infoMessage("Verlorene Pakete: " + fb.getNumLost() +
-                                     " Jitter: " + fb.getJitter());
-            }
         }
     }
 
