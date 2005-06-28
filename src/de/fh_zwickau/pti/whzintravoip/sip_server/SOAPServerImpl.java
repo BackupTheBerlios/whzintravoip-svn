@@ -24,7 +24,7 @@ import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
  * <p>Organisation: </p>
  *
  * @author Blurb
- * @version 0.0.1
+ * @version 0.0.3
  */
 
 public class SOAPServerImpl implements SOAPServer {
@@ -102,9 +102,9 @@ public class SOAPServerImpl implements SOAPServer {
      *
      * @param userIP String The IP from the thinclient user
      * @param userToken String The users token.
-     * @return String Just a Comment
+     * @return String OK if all is going fine, ERROR if not
      */
-    public String registerUser(User regUser)
+    public String signOn(User regUser)
     {
 
         logger.info("Register User with IP: " + regUser.getUserIP() + " and Initial " + regUser.getUserInitial());
@@ -135,6 +135,27 @@ public class SOAPServerImpl implements SOAPServer {
             return new String("ERROR");
         }
         logger.info("User succesful registered!");
+        return new String("OK");
+    }
+
+    /**
+     * The ThinClient will use the Method to de-register himself oder better his
+     * user.
+     *
+     * @param userIP String The IP from the thinclient user
+     * @param userToken String The users token.
+     * @return String OK if all is going fine, ERROR if not
+     */
+
+    public String signOff(String fromIP)
+    {
+        logger.info("Deleting User with IP: " + fromIP + " from Database!");
+        try {
+            this.m_UserMapping.deleteUserWithIP(fromIP);
+        } catch (Exception ex) {
+            logger.error("Error deleting User from Database: " + ex.toString());
+            return new String("ERROR");
+        }
         return new String("OK");
     }
 
@@ -237,7 +258,8 @@ public class SOAPServerImpl implements SOAPServer {
 
     public String acceptCall(String fromIP, String toIP)
     {
-        if(this.m_UserManager.containsUserWithIP(fromIP))
+        if(m_UserManager.containsUserWithIP(fromIP) &&
+                m_UserManager.containsUserWithIP(toIP))
         {
             logger.info("Accept Call started!");
             //m_SIPPacketCaller.setRecipientIPforRequest(inviterIP);
@@ -280,61 +302,66 @@ public class SOAPServerImpl implements SOAPServer {
         return new String("Accept Call succesful");
     }
 
+    /**
+     * Send a CANCEL Request fromIP --> toIP.
+     *
+     * @param fromIP String
+     * @param toIP String
+     * @return String
+     */
+
     public String denyCall(String fromIP, String toIP)
     {
-        if(this.m_UserManager.getUserStatusViaIP(toIP).equals(User.CALLING))
+        if(m_UserManager.containsUserWithIP(fromIP) &&
+                m_UserManager.containsUserWithIP(toIP))
         {
-
-        }
-        logger.info("Deny Call started!");
-        /**
-        if(isInviter)
-        {
-            logger.info("Deny Call from Inviter with IP: " + fromIP);
-            if(m_mUserIPMap.containsKey(fromIP))
-            {
-                logger.info("Inviter verified!");
-                m_SIPPacketCaller = (ServerSipCallerImpl) m_mUserCallerMap.
-                                    get(fromIP);
-                m_SIPPacketCaller.setRecipientIPforRequest((String) m_mUserIPMap.get(fromIP));
-                logger.info("Send CANCEL to IPAdress: " + (String) m_mUserIPMap.get(fromIP));
-            } else {
-                return new String("Your InviterIP is not registered! " + fromIP);
-            }
+            logger.info("Deny Call started!");
+            //m_SIPPacketCaller.setRecipientIPforRequest(inviterIP);
+            m_SIPPacketCaller.setFromUser(this.m_UserManager.getUserViaIP(fromIP));
+            m_SIPPacketCaller.setToUser(this.m_UserManager.getUserViaIP(toIP));
+            logger.info("Deny Call with Recipient: " + toIP);
+            logger.info("Deny Call with Inviter:   " + fromIP);
+            logger.info("Deny Call with SIPStack: " +
+                        m_SIPPacketCaller.getSipStackAdress());
         } else {
-            logger.info("Deny Call from Recipient with IP: " + fromIP);
-            if(m_mUserIPMap.containsValue(fromIP))
-            {
-                logger.info("Recipient verified!");
-                Set entries = m_mUserIPMap.entrySet();
-                Iterator it = entries.iterator();
-                while (it.hasNext()) {
-                    Map.Entry entry = (Map.Entry) it.next();
-                    if (entry.getValue().equals(fromIP)) {
-                        m_SIPPacketCaller = (ServerSipCallerImpl)
-                                            m_mUserCallerMap.get(entry.getKey());
-                        m_SIPPacketCaller.setRecipientIPforRequest((String) entry.getKey());
-                        logger.info("Send CANCEL to IPAdress: " + entry.getKey());
-                    }
-                }
-            } else {
-                return new String("Your RecipientIP ist not registered! " + fromIP);
-            }
-
+            logger.info("Inviter or Recipient is not known! (DenyCall)");
+            return new String("Inviter or Recipient is not known! (DenyCall)");
         }
-        logger.info("CANCEL with SIPStack: " +
-                    m_SIPPacketCaller.getSipStackAdress());
         try {
             m_SIPPacketCaller.sendRequest("CANCEL");
         } catch (Exception ex) {
             logger.error("Error during denyCall(): " + ex.toString());
             return new String("Error during denyCall(): " + ex.toString());
         }
-        logger.info("Deny Call ended!");
-*/
-        return new String("deny Call succesful");
+        // If all is going well, we can now delete the Users from UserManager
+        if(this.m_UserManager.removeUser(this.m_UserManager.getUserViaIP(fromIP)))
+            logger.info("User with IP " + fromIP + " successfully removed!");
+        else logger.error("Error removing User with IP " + fromIP);
+        if(this.m_UserManager.removeUser(this.m_UserManager.getUserViaIP(toIP)))
+            logger.info("User with IP " + toIP + " succesfully removed!");
+        else logger.error("Error removing User with IP " + toIP);
+
+        // Update the states for the user in the database
+        try {
+            if (this.m_UserMapping.updateUserWithIP(fromIP, User.PICKUP))
+                logger.info("Updated FromIP successfully to PICKUP (Database)");
+            else logger.info("Update FromIP to PICKUP failed");
+            if (this.m_UserMapping.updateUserWithIP(toIP, User.PICKUP))
+                logger.info("Updated ToIP successfully to PICKUP (Database)");
+            else logger.info("Update ToIP to PICKUP failed");
+        } catch (Exception ex) {
+            logger.error("Error close Session during Update: " + ex.toString());
+        }
+        return new String("Deny Call succesful");
     }
 
+    /**
+     * Send a BYE Request fromIP --> toIP.
+     *
+     * @param fromIP String
+     * @param toIP String
+     * @return String
+     */
     public String endCall(String fromIP, String toIP) {
         logger.info("End Call started!");
         if (this.m_UserManager.containsUserWithIP(fromIP) &&
@@ -379,6 +406,12 @@ public class SOAPServerImpl implements SOAPServer {
         return new String("End Call succesful!");
     }
 
+    /**
+     * Returns all online Users. Or better all Users in the Database.
+     *
+     * @return Vector all the Users which are on (in Database)
+     */
+
     public Vector whoIsOn()
     {
         try {
@@ -388,6 +421,12 @@ public class SOAPServerImpl implements SOAPServer {
             return null;
         }
     }
+
+    /**
+     * Return the IP of the Server.
+     *
+     * @return String the current Server IP
+     */
 
     private String getOwnIP(){
        String ip = null;
@@ -401,27 +440,28 @@ public class SOAPServerImpl implements SOAPServer {
        return ip;
    }
 
-   public boolean removeInviterSIPPacketCaller(String InviterIP) {
-       //m_vUserIPList.remove(InviterIP);
-       m_mUserIPMap.remove(InviterIP);
-       m_mUserCallerMap.remove(InviterIP);
-       m_SIPPacketCaller.stopAndRemoveSIPStack();
-       m_SIPPacketCaller = null;
-       logger.info("Number ob Items in Inviter Map: " + m_mUserCallerMap.size());
+   /**
+    * Send an UPDATE Request to all registered Users.
+    *
+    * @return boolean is everything all right?
+    */
+   private boolean processUpdate()
+   {
+       try {
+           Vector userVec = this.m_UserMapping.getAllUsers();
+           for(Iterator i = userVec.iterator(); i.hasNext(); )
+           {
+               User dummy = (User) i.next();
+               this.m_SIPPacketCaller.setToUser(dummy);
+               this.m_SIPPacketCaller.setFromUser(dummy);
+               this.m_SIPPacketCaller.sendRequest("UPDATE");
+           }
+       } catch (Exception ex) {
+           logger.error("Error getting all Users (processUpdate): " + ex.toString());
+           return false;
+       }
        return true;
    }
-
-   /**
-   static {
-       Properties p = System.getProperties();
-       Set s = p.keySet();
-       for(Iterator i = s.iterator(); i.hasNext(); )
-       {
-           Object key = i.next();
-           logger.info(key.toString() + " : " + p.get(key));
-       }
-
-   }*/
 
 
 }

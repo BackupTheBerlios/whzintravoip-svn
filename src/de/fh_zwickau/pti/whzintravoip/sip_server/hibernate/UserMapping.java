@@ -1,14 +1,12 @@
 package de.fh_zwickau.pti.whzintravoip.sip_server.hibernate;
 
-import net.sf.hibernate.Session;
-import net.sf.hibernate.*;
-import net.sf.hibernate.cfg.Configuration;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+
+import java.util.*;
+
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
-import java.util.Iterator;
-import java.util.Vector;
-import java.util.List;
+import net.sf.hibernate.*;
+import net.sf.hibernate.cfg.*;
+import org.apache.log4j.*;
 
 /**
  *
@@ -22,9 +20,8 @@ import java.util.List;
  * <p>Organisation: </p>
  *
  * @author Knight / Blurb
- * @version 0.0.2
+ * @version 0.0.3
  */
-import net.sf.hibernate.cache.EhCacheProvider;
 
 public class UserMapping {
 
@@ -181,6 +178,48 @@ public class UserMapping {
         logger.info("Getting User successful!");
         return true;
     }
+
+
+    /**
+     * Delete a UserObject in the Database.
+     *
+     * @param userIP String The userIP of the UserObject you want to delete.
+     * @return boolean Is everything going right?
+     * @throws Exception
+     */
+    public boolean deleteUserWithIP(String userIP)
+            throws Exception
+    {
+        Session session = null;
+        Transaction trx = null;
+        logger.info("Delete User from Database with IP: " + userIP);
+        try {
+            session = sessionFactory.openSession();
+            trx = session.beginTransaction();
+            String hql =
+                    "delete user from User as user where user.userIP = :userip";
+            Query query = session.createQuery(hql);
+            query.setString("userip", userIP);
+            trx.commit();
+        } catch (HibernateException ex) {
+            if (trx != null) {
+                try {
+                    trx.rollback();
+                } catch (HibernateException exRb) {
+                    logger.error("Error during deleteUserWithIP: " + exRb.toString());
+                    return false;
+                }
+            }
+            return false;
+        } finally {
+            session.flush();
+            session.close();
+        }
+        logger.info("Deleting User successful!");
+        return true;
+    }
+
+
 
     /**
      * Get all registered Users from Database.

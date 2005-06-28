@@ -274,7 +274,7 @@ public class ServerSipCallerImpl implements SipListener {
             logger.info("Reqest-Type is UPDATE (" + requestType + ")");
         } else {
             requestType = Request.CANCEL;
-            logger.info("Reqest-Type is UPDATE (" + requestType + ")");
+            logger.info("Reqest-Type is CANCEL (" + requestType + ")");
         }
         this.m_SIPProviderToUse = m_sTransport.equalsIgnoreCase("udp") ?
                                   m_ServerSIPProviderUDP :
