@@ -21,7 +21,7 @@ public class PlayTunes implements ControllerListener {
     private boolean m_bDebug = true;
     private Player m_Player = null;
     private TuneObject m_TuneObj = null;
-    private ThinClientGUI userGUI = null;
+    private ThinClient client = null;
     private HashMap m_PlayerMap = new HashMap();
     private boolean m_bKind = false;
     private boolean m_bBreaked = false;
@@ -32,10 +32,10 @@ public class PlayTunes implements ControllerListener {
 
     /**
      * Instantiate a new PlayTunes within a Message instance.
-     * @param userGUI ThinClientGUI the instance
+     * @param client ThinClient the instance
      */
-    public PlayTunes(ThinClientGUI userGUI) {
-        this.userGUI = userGUI;
+    public PlayTunes(ThinClient client) {
+        this.client = client;
     }
 
     /**
@@ -138,7 +138,7 @@ public class PlayTunes implements ControllerListener {
         if (m_bDebug) {
             System.out.println("ERROR: " + msg);
         } else {
-            userGUI.errOutput(msg);
+            client.errOutput(msg);
         }
     }
 
@@ -150,7 +150,7 @@ public class PlayTunes implements ControllerListener {
         if (m_bDebug) {
             System.out.println("INFO :" + msg);
         } else {
-            userGUI.stdOutput(msg);
+            client.stdOutput(msg);
         }
     }
 

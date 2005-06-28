@@ -93,8 +93,8 @@ public class ThinClient extends JFrame{
             "de.fh_zwickau.pti.whzintravoip.sip_server.user.User");
 
         // Ringtone-Player initialisieren
-//        m_PlayTunes = new PlayTunes(this);
-//        m_PlayTunes.initTune("file:///D:/Coding/Java/WHZIntraVoIP/s1.wav", "Ring", 0);
+        m_PlayTunes = new PlayTunes(this);
+        m_PlayTunes.initTune("file:///D:/Coding/Java/WHZIntraVoIP/s1.wav", "Ring", 2000);
         m_ThinClientGUI.setVisible(true);
     }
 
@@ -227,6 +227,7 @@ public class ThinClient extends JFrame{
     }
 
     public void signOff(){
+        setStatusLogin();
         try{
             m_MethodCaller.callSOAPServer("signOff", m_sMyIP, null);
         }catch(Exception ex){
@@ -363,9 +364,9 @@ public class ThinClient extends JFrame{
         String callerName = m_UserTreeGenerator.getUserName(incomingCallIP);
         stdOutput(callerName);
         String message = callerName + " ruft Sie an!\n Wollen Sie das Gespräch annehmen?";
-//        playRingTone("Ring");
+        playRingTone("Ring");
         int returnvalue = JOptionPane.showConfirmDialog(m_ThinClientGUI, message, "Es klingelt!", JOptionPane.YES_NO_OPTION);
-//        stopRingTone("Ring");
+        stopRingTone("Ring");
         stdOutput("Returnvalue of Request:" + returnvalue);
         switch (returnvalue) {
         case 0:
@@ -532,7 +533,19 @@ public class ThinClient extends JFrame{
      * The pulldown menu "Exit" was choosen...
      */
     public void exitClient() {
+        stdOutput("Exiting client now");
+        if(getStatus() == TALKING){
+            stdOutput("I'm talking, so terminate the call now...");
+            endCallByMyself();
+        }
+        if(getStatus() == PICKUP){
+            stdOutput("I'm in PICKUP mode, so set me to LOGIN and sign me of now...");
+            signOff();
+        }
+        stdOutput("Closing player...");
+        m_PlayTunes.close_Player("Ring");
         if(m_ThinClientSIPStack != null){
+            stdOutput("Closing SIP stack...");
             m_ThinClientSIPStack.stopAndRemoveSIPStack();
         }
         System.exit(0);
@@ -540,6 +553,7 @@ public class ThinClient extends JFrame{
 
     public void testButton(String ip) {
         if (m_bStartRTP == true) {
+            /**
             stdOutput("Init RTP Session");
             m_InterfaceRTP.enableDebugging();
             m_InterfaceRTP.DebugErrorMessages(true);
@@ -548,15 +562,19 @@ public class ThinClient extends JFrame{
             stdOutput("Starting RTP Session");
             m_InterfaceRTP.startRtpSession();
             stdOutput("RTP Session started");
+             */
+            m_PlayTunes.playTune("Ring");
             m_bStartRTP = false;
         } else {
+            /**
             stdOutput("Stopping RTP Session");
             m_InterfaceRTP.stopRtpSession();
             stdOutput("RTP Session stopped");
-
             stdOutput("Closing RTP Session");
             m_InterfaceRTP.closeRtpSession();
             stdOutput("RTP Session closed");
+             */
+            m_PlayTunes.stopTune("Ring");
             m_bStartRTP = true;
         }
     }
