@@ -6,11 +6,9 @@ import javax.sip.*;
 import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
-import de.fh_zwickau.pti.whzintravoip.sip_server.user.User;
 
+import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 import org.apache.log4j.*;
-import java.net.UnknownHostException;
-import java.net.InetAddress;
 
 /**
  * <p>Title: sip_server</p>
@@ -207,7 +205,9 @@ public class ServerSipCallerImpl implements SipListener {
         while(!createNewListeningPoints()){
             // creation failed, now count the port up!
             m_iCallerPort = m_iCallerPort + 1;
+            logger.info("benutzter Port: " + m_iCallerPort);
         }
+
         m_ListenerCaller = this;
         m_ServerSIPProviderUDP = m_ServerSIPStack.createSipProvider(m_UDPListeningPoint);
         logger.info("udp provider (Caller): " + m_ServerSIPProviderUDP);

@@ -48,6 +48,11 @@ public class ThinClientGUI extends JFrame{
     private String m_sOpponentIP = null;
     private boolean m_bDebug = true;
 
+    /////////////////
+    // this is only for RTP-Testing
+    private boolean m_bStartRTP = true;
+    /////////////////
+
     private static final byte LOGIN    = 1;
     private static final byte PICKUP   = 2;
     private static final byte INCOMING = 3;
@@ -626,6 +631,27 @@ public class ThinClientGUI extends JFrame{
         System.exit(0);
     }
 
+    public void jTestButton_actionPerformed(ActionEvent e) {
+        if (m_bStartRTP == true) {
+            stdOutput("Init RTP Session");
+            m_InterfaceRTP.enableDebugging();
+            m_InterfaceRTP.DebugErrorMessages(true);
+            m_InterfaceRTP.initRtpSession(jTextFieldMyIP.getText(), null);
+            stdOutput("RTP Init finished");
+            stdOutput("Starting RTP Session");
+            m_InterfaceRTP.startRtpSession();
+            stdOutput("RTP Session started");
+        } else {
+            stdOutput("Stopping RTP Session");
+            m_InterfaceRTP.stopRtpSession();
+            stdOutput("RTP Session stopped");
+
+            stdOutput("Closing RTP Session");
+            m_InterfaceRTP.closeRtpSession();
+            stdOutput("RTP Session closed");
+        }
+    }
+
     /**
      * Init-Methode um das Hauptfenster zu etablieren
      *
@@ -685,6 +711,9 @@ public class ThinClientGUI extends JFrame{
                                        ThinClientGUI_jMenuWhoIsOn_actionAdapter(this));
         jLabelForVersion.setHorizontalAlignment(SwingConstants.RIGHT);
         jLabelForVersion.setText("");
+        jTestButton.setText("Test");
+        jTestButton.addActionListener(new
+                                      ThinClientGUI_jTestButton_actionAdapter(this));
         jMenuBar1.add(jMenu1);
         jMenuBar1.add(jMenu2);
         jMenu1.add(jMenuRegisterAtServer);
@@ -728,6 +757,10 @@ public class ThinClientGUI extends JFrame{
                                   new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0
                 , GridBagConstraints.WEST, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
+        this.getContentPane().add(jTestButton,
+                                  new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
+                new Insets(0, 0, 0, 0), 0, 0));
     }
 
     JTextField jTextFieldMyIP = new JTextField();
@@ -755,6 +788,19 @@ public class ThinClientGUI extends JFrame{
     JMenuItem jMenuRegisterAtServer = new JMenuItem();
     JMenuItem jMenuWhoIsOn = new JMenuItem();
     JLabel jLabelForVersion = new JLabel();
+    JButton jTestButton = new JButton();
+}
+
+
+class ThinClientGUI_jTestButton_actionAdapter implements ActionListener {
+    private ThinClientGUI adaptee;
+    ThinClientGUI_jTestButton_actionAdapter(ThinClientGUI adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jTestButton_actionPerformed(e);
+    }
 }
 
 

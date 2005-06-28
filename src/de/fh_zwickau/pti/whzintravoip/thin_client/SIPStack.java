@@ -223,12 +223,7 @@ public class SIPStack implements SipListener {
     public void answerRequest() {
         SipProvider sipProvider = (SipProvider) m_RequestEvent.getSource();
         Request request = m_RequestEvent.getRequest();
-        m_UserGUI.stdOutput("Got an REQUEST"
-                            +
-                "\n-------------------------- This is the request:\n"
-                            + request
-                            +
-                "\n-------------------------- This was the request\n");
+        m_UserGUI.stdOutput("Got an REQUEST");
         try {
             m_UserGUI.stdOutput("sending 100 (Trying)\n");
             Response response = m_MessageFactory.createResponse(100, request);
