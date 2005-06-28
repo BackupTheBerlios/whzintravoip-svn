@@ -323,6 +323,8 @@ public class SIPStack implements SipListener {
             m_UserGUI.updateUserList();
         } else if ((m_UserGUI.getStatus() == TALKING) && (this.m_Request.getMethod().equals(Request.BYE))) {
             m_UserGUI.stdOutput("BYE-Request received");
+            // the server has to stop sending Requests, so let him know
+            // that we received the request...
             m_UserGUI.endCallByOtherSide();
         } else if (this.m_Request.getMethod().equals(Request.OPTIONS)) {
             m_UserGUI.stdOutput("OPTIONS-Request received");
