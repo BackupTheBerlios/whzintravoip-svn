@@ -63,7 +63,7 @@ public class ThinClient extends JFrame{
 //    private Status status2 = Status.LOGIN;
 
     public ThinClient() {
-        setStatusLogin();
+        setStatusLOGIN();
 
         // Login-Namen auslesen
         m_sLoginName = System.getProperty("user.name");
@@ -154,7 +154,7 @@ public class ThinClient extends JFrame{
     /**
      * Setzt den eigenen Status
      */
-    public void setStatusLogin(){
+    public void setStatusLOGIN(){
         m_bStatus = LOGIN;
         stdOutput("Status ist jetzt LOGIN (" + m_bStatus + ")\n");
     }
@@ -219,19 +219,29 @@ public class ThinClient extends JFrame{
      *
      */
     public void signOn(){
+        String success = null;
         try{
-            m_MethodCaller.registerMyselfAtServer("signOn", m_Myself, null);
+            success = m_MethodCaller.registerMyselfAtServer("signOn", m_Myself, null);
         }catch(Exception ex){
             errOutput(ex.toString());
+        }
+        stdOutput("SignOn: '" + success + "'");
+        if(success.equals("OK")){
+            setStatusPICKUP();
         }
     }
 
     public void signOff(){
-        setStatusLogin();
+        setStatusLOGIN();
+        String success = null;
         try{
-            m_MethodCaller.callSOAPServer("signOff", m_sMyIP, null);
+            success = m_MethodCaller.callSOAPServer("signOff", m_sMyIP, null);
         }catch(Exception ex){
             errOutput(ex.toString());
+        }
+        stdOutput("SignOff: '" + success + "'");
+        if(success.equals("OK")){
+            setStatusPICKUP();
         }
     }
 
@@ -347,7 +357,7 @@ public class ThinClient extends JFrame{
         m_sMyIP = m_ThinClientGUI.getTextFieldMyIP().getText();
         createMyIdentity();
         m_ThinClientSIPStack = new SIPStack(this, m_sMyIP);
-        setStatusPICKUP();
+        setStatusLOGIN();
         m_ThinClientGUI.getButtonStartReceiver().setEnabled(false);
         m_ThinClientGUI.getButtonHandleCall().setEnabled(true);
         m_ThinClientGUI.getButtonRegister().setEnabled(true);
@@ -532,16 +542,20 @@ public class ThinClient extends JFrame{
     /**
      * The pulldown menu "Exit" was choosen...
      */
-    public void exitClient() {
-        stdOutput("Exiting client now");
-        if(getStatus() == TALKING){
+    public boolean exitClient() {
+        stdOutput("Exiting client now\n"
+                  + "Status: " + getStatus());
+        if(m_bStatus == TALKING){
             stdOutput("I'm talking, so terminate the call now...");
             endCallByMyself();
-        }
-        if(getStatus() == PICKUP){
+        }else if(m_bStatus == PICKUP){
             stdOutput("I'm in PICKUP mode, so set me to LOGIN and sign me of now...");
             signOff();
+        }else{
+            stdOutput("Status is NOT Pickup! Sorry, cant Logout...");
+            return false;
         }
+        stdOutput("Status: " + getStatus());
         stdOutput("Closing player...");
         m_PlayTunes.close_Player("Ring");
         if(m_ThinClientSIPStack != null){
@@ -549,6 +563,7 @@ public class ThinClient extends JFrame{
             m_ThinClientSIPStack.stopAndRemoveSIPStack();
         }
         System.exit(0);
+        return true;
     }
 
     public void testButton(String ip) {

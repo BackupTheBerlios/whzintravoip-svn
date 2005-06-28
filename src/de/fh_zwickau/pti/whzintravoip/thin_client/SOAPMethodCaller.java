@@ -55,7 +55,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
       * @param param2 String - the second parameter (can be empty)
       * @throws Exception -
       */
-     public void registerMyselfAtServer(String methodToCall, User param1, String param2) throws Exception {
+     public String registerMyselfAtServer(String methodToCall, User param1, String param2) throws Exception {
          URL url = new URL(m_sServerURL);
          Call call = new Call(); // prepare the service invocation
          call.setTargetObjectURI(m_sServerURN);
@@ -80,6 +80,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
              params.addElement(new Parameter("recipientIP", String.class, param2, null));
          }
          call.setParams(params);
+         Parameter result = null;
          try {
              m_ThinClient.stdOutput("invoke service\n"
                                + "  URL= "
@@ -88,7 +89,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
                                + m_sServerURN);
              Response response = call.invoke(url, ""); // invoke the service
              if (!response.generatedFault()) {
-                 Parameter result = response.getReturnValue(); // response was OK
+                 result = response.getReturnValue(); // response was OK
                  m_ThinClient.stdOutput("Result= " + result.getValue());
              } else {
                  Fault f = response.getFault(); // an error occurred
@@ -99,6 +100,9 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
              m_ThinClient.errOutput("SOAPException= " + e.getFaultCode() + ", " +
                                 e.getMessage());
          }
+         StringTokenizer tok = new StringTokenizer((String)result.getValue(), "=");
+         String resultString = tok.nextToken();
+         return resultString;
      }
      /**
       * This method calls the specified method on the SOAP-server
@@ -160,7 +164,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
       * @param param2 String - the second parameter (can be empty)
       * @throws Exception -
       */
-     public void callSOAPServer(String methodToCall, String param1, String param2) throws Exception {
+     public String callSOAPServer(String methodToCall, String param1, String param2) throws Exception {
          URL url = new URL(m_sServerURL);
          Call call = new Call(); // prepare the service invocation
          call.setTargetObjectURI(m_sServerURN);
@@ -174,6 +178,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
              params.addElement(new Parameter("toIP", String.class, param2, null));
          }
          call.setParams(params);
+         Parameter result = null;
          try {
              m_ThinClient.stdOutput("invoke service\n"
                                + "  URL= "
@@ -182,7 +187,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
                                + m_sServerURN);
              Response response = call.invoke(url, ""); // invoke the service
              if (!response.generatedFault()) {
-                 Parameter result = response.getReturnValue(); // response was OK
+                 result = response.getReturnValue(); // response was OK
                  m_ThinClient.stdOutput("Result= " + result.getValue());
              } else {
                  Fault f = response.getFault(); // an error occurred
@@ -193,5 +198,8 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
              m_ThinClient.errOutput("SOAPException= " + e.getFaultCode() + ", " +
                                 e.getMessage());
          }
+         StringTokenizer tok = new StringTokenizer((String)result.getValue(), "=");
+         String resultString = tok.nextToken();
+         return resultString;
      }
  }
