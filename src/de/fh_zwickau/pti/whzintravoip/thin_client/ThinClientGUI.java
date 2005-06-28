@@ -34,8 +34,9 @@ public class ThinClientGUI extends JFrame{
     private String m_sMySIPName    = "SWF";
     private String m_sMyScreenName = "StarWarsFan";
     private String m_sLoginName    = null;
-    private int m_iWindowSizeX     = 500;
-    private int m_iWindowSizeY     = 500;
+    private int m_iWindowSizeX     = 524;
+    private int m_iWindowSizeY     = 327;
+    private String m_sVersion      = "V0.5";
 
     private VoIP_RTP_Interface m_InterfaceRTP = new VoIP_RTP_Interface();
     private SIPStack m_ThinClientSIPStack = null;
@@ -74,12 +75,22 @@ public class ThinClientGUI extends JFrame{
         m_sLoginName = System.getProperty("user.name");
         m_sLoginName = "ys";
 
+        // am Server anmelden
+//        createMyIdentity();
+//        registerMe();
+
+        // User-Tree bauen
+        createDummyUsers();
+        m_UserTreeGenerator = new UserTreeGenerator(m_UserVector, this);
+        m_UserTreeGenerator.initTreeView();
+
         // einige Settings zum Programmfenster
         this.setSize(m_iWindowSizeX, m_iWindowSizeY);
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
         int screenX = dimension.width;
         int screenY = dimension.height;
         this.setLocation((screenX - m_iWindowSizeX), 0);
+        jLabelForVersion.setText(m_sVersion);
 
         // eigene IP ermitteln
         m_sMyIP = extractOwnIP();
@@ -91,15 +102,6 @@ public class ThinClientGUI extends JFrame{
             "http://" + m_sSOAPServerIP + ":8080/soap/servlet/rpcrouter",
             "urn:sip_server:soapserver:appscope",
             "de.fh_zwickau.pti.whzintravoip.sip_server.user.User");
-
-        // am Server anmelden
-//        createMyIdentity();
-//        registerMe();
-
-        // User-Tree bauen
-        createDummyUsers();
-        m_UserTreeGenerator = new UserTreeGenerator(m_UserVector, this);
-        m_UserTreeGenerator.initTreeView();
 
         // Ringtone-Player initialisieren
 //        m_PlayTunes = new PlayTunes(this);
@@ -300,28 +302,32 @@ public class ThinClientGUI extends JFrame{
         return ip;
     }
 
-    public void playRingTone(){
-        m_PlayTunes.playTune("Ring");
-    }
-
-    public void stopRingTone(){
-        m_PlayTunes.stopTune("Ring");
-    }
-
     /**
-     * Liefert das Panel für den UserTree
+     * Start playing the choosen Ringtone
      *
-     * @return JPanel - darin wird der UserTree dargestellt
+     * @param ringTone String
      */
-    public JPanel getTreeViewPanel(){
-        return jTreeViewPanel;
+    public void playRingTone(String ringTone){
+        if(ringTone.equals(null)){
+            m_PlayTunes.playTune("Ring");
+        }else{
+            m_PlayTunes.playTune(ringTone);
+        }
+    }
+
+    public void stopRingTone(String ringTone){
+        if(ringTone.equals(null)){
+            m_PlayTunes.stopTune("Ring");
+        }else{
+            m_PlayTunes.stopTune(ringTone);
+        }
     }
 
     /**
      * Ein Button für diverse Tests...
      * @param e ActionEvent
      */
-    public void jButtonForTests_actionPerformed(ActionEvent e) {
+    public void jButtonRegister_actionPerformed(ActionEvent e) {
         registerMe();
     }
 
@@ -329,10 +335,9 @@ public class ThinClientGUI extends JFrame{
      * Ein zweiter Button für diverse Tests...
      * @param e ActionEvent
      */
-    public void jButtonForTestsII_actionPerformed(ActionEvent e) {
+    public void jButtonUpdateUsers_actionPerformed(ActionEvent e) {
         whoIsOnAtServer();
     }
-
 
     /**
      * Startet den Receiver-Stack und setzt den eigenen Status auf PICKUP
@@ -350,6 +355,7 @@ public class ThinClientGUI extends JFrame{
         jButtonForTestsII.setEnabled(true);
         jMenuRegisterAtServer.setEnabled(true);
         jMenuWhoIsOn.setEnabled(true);
+        jTextFieldMyIP.setEnabled(false);
     }
 
     /**
@@ -370,7 +376,9 @@ public class ThinClientGUI extends JFrame{
         String callerName = m_UserTreeGenerator.getUserName(incomingCallIP);
         stdOutput(callerName);
         String message = callerName + " ruft Sie an!\n Wollen Sie das Gespräch annehmen?";
+//        playRingTone("Ring");
         int returnvalue = JOptionPane.showConfirmDialog(this, message, "Es klingelt!", JOptionPane.YES_NO_OPTION);
+//        stopRingTone("Ring");
         stdOutput("Returnvalue of Request:" + returnvalue);
         switch (returnvalue) {
         case 0:
@@ -489,6 +497,16 @@ public class ThinClientGUI extends JFrame{
     }
 
     /**
+     * This method returns the Container of the GUI output window. It is used
+     * by the UserTreeGenerator to put the JPanel with the user tree in.
+     *
+     * @return Container - the ContentPane of the GUI window
+     */
+    public Container getGUIContentPane(){
+        return this.getContentPane();
+    }
+
+    /**
      * Button zum Anrufen wurde gedrückt
      *
      * @param e ActionEvent
@@ -550,9 +568,14 @@ public class ThinClientGUI extends JFrame{
         }
     }
 
+    /**
+     * The pulldown menu "Info" was choosen...
+     *
+     * @param e ActionEvent
+     */
     public void jMenuInfo_actionPerformed(ActionEvent e) {
         stdOutput("Info!!!");
-        String message = "WHZIntraVoIP\n"
+        String message = "WHZIntraVoIP " + m_sVersion + "\n"
                          + "\n"
                          + "Softwareprojekt der FH Zwickau\n"
                          + "Sommersemester 2005\n"
@@ -572,6 +595,11 @@ public class ThinClientGUI extends JFrame{
         whoIsOnAtServer();
     }
 
+    /**
+     * The pulldown menu "Exit" was choosen...
+     *
+     * @param e ActionEvent
+     */
     public void jMenuExit_actionPerformed(ActionEvent e) {
         if(m_ThinClientSIPStack != null){
             m_ThinClientSIPStack.stopAndRemoveSIPStack();
@@ -590,8 +618,8 @@ public class ThinClientGUI extends JFrame{
         this.setJMenuBar(jMenuBar1);
         jTextFieldMyIP.setMinimumSize(new Dimension(50, 21));
         jTextFieldMyIP.setText("127.0.0.1");
-        jLabel1.setHorizontalAlignment(SwingConstants.RIGHT);
-        jLabel1.setText("My IP");
+        jLabelForIP.setHorizontalAlignment(SwingConstants.RIGHT);
+        jLabelForIP.setText("My IP");
         this.addWindowListener(new ThinClientGUI_this_windowAdapter(this));
         jButtonToggleOutputWindow.setText("Ausgabefenster öffnen");
         jButtonToggleOutputWindow.addActionListener(new
@@ -603,6 +631,7 @@ public class ThinClientGUI extends JFrame{
         jButtonStartReceiver.setText("Start Receiver");
         jButtonStartReceiver.addActionListener(new
                 ThinClientGUI_jButtonStartReceiver_actionAdapter(this));
+        jUserInfoField.setBorder(BorderFactory.createLoweredBevelBorder());
         jUserInfoField.setEditable(false);
         jUserInfoField.setText("");
         jButtonForTests.setEnabled(false);
@@ -610,12 +639,6 @@ public class ThinClientGUI extends JFrame{
         jButtonForTests.setText("Register");
         jButtonForTests.addActionListener(new
                 ThinClientGUI_jButtonForTests_actionAdapter(this));
-        jButtonDeleteAllEntries.setText("alles löschen");
-        jButtonDeleteAllEntries.addActionListener(new
-                ThinClientGUI_jButtonDeleteAllEntries_actionAdapter(this));
-        jButtonAddEntries.setText("Add Entries");
-        jButtonAddEntries.addActionListener(new
-                ThinClientGUI_jButtonAddEntries_actionAdapter(this));
         jMenu1.setText("Programm");
         jMenu2.setText("?");
         jMenuExit.setText("Ende");
@@ -625,47 +648,36 @@ public class ThinClientGUI extends JFrame{
         jButtonForTestsII.setEnabled(false);
         jButtonForTestsII.setText("Update");
         jButtonForTestsII.addActionListener(new
-                ThinClientGUI_jButtonForTestsII_actionAdapter(this));
-        jTreeViewPanel.setLayout(xYLayout1);
-        jPanel1.setLayout(xYLayout2);
+                                            ThinClientGUI_jButtonForTestsII_actionAdapter(this));
+
+        // Information panel for user infos
+        jInfoPanel.setLayout(xYLayout2);
+
+        /////////
+        // Pulldown menu "Register"
         jMenuRegisterAtServer.setText("Am Server anmelden");
         jMenuRegisterAtServer.setEnabled(false);
         jMenuRegisterAtServer.addActionListener(new
-                ThinClientGUI_jMenuRegisterAtServer_actionAdapter(this));
+                                                ThinClientGUI_jMenuRegisterAtServer_actionAdapter(this));
+        // Pulldown menu "Register"
         jMenuWhoIsOn.setText("Wer ist online?");
         jMenuWhoIsOn.setEnabled(false);
         jMenuWhoIsOn.addActionListener(new
                                        ThinClientGUI_jMenuWhoIsOn_actionAdapter(this));
-        /**
-        treeViewScrollPane.setMinimumSize(new Dimension(1, 1));
-        treeViewScrollPane.setPreferredSize(new Dimension(1, 1));
-        treeViewScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        treeViewScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        treeViewScrollPane.setAutoscrolls(false);
-         */
+        jLabelForVersion.setHorizontalAlignment(SwingConstants.RIGHT);
+        jLabelForVersion.setText("");
         jMenuBar1.add(jMenu1);
         jMenuBar1.add(jMenu2);
         jMenu1.add(jMenuRegisterAtServer);
         jMenu1.add(jMenuWhoIsOn);
         jMenu1.add(jMenuExit);
         jMenu2.add(jMenuInfo);
-        this.getContentPane().add(jPanel1,
-                                  new GridBagConstraints(2, 1, 3, 1, 1.0, 1.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(5, 5, 5, 5), 2, 2));
-        this.getContentPane().add(jButtonAddEntries,
-                                  new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(5, 5, 5, 5), 2, 2));
+        jInfoPanel.add(jUserInfoField, new XYConstraints(2, 2, 200, 150));
         this.getContentPane().add(jButtonStartReceiver,
                                   new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
-        this.getContentPane().add(jButtonHandleCall,
-                                  new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(5, 5, 5, 5), 2, 2));
-        this.getContentPane().add(jLabel1,
+        this.getContentPane().add(jLabelForIP,
                                   new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
@@ -673,55 +685,57 @@ public class ThinClientGUI extends JFrame{
                                   new GridBagConstraints(3, 0, 1, 1, 1.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
-        this.getContentPane().add(jButtonDeleteAllEntries,
-                                  new GridBagConstraints(2, 2, 1, 1, 0.0, 0.0
+        this.getContentPane().add(jInfoPanel,
+                                  new GridBagConstraints(2, 1, 2, 1, 1.0, 1.0
+                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 5), 2, 2));
+        this.getContentPane().add(jButtonHandleCall,
+                                  new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
         this.getContentPane().add(jButtonForTests,
-                                  new GridBagConstraints(3, 2, 1, 2, 0.0, 0.0
+                                  new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
         this.getContentPane().add(jButtonForTestsII,
-                                  new GridBagConstraints(3, 4, 1, 1, 0.0, 0.0
+                                  new GridBagConstraints(1, 3, 1, 1, 0.0, 0.0
+                , GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+                new Insets(5, 5, 5, 5), 2, 2));
+        this.getContentPane().add(jLabelForVersion,
+                                  new GridBagConstraints(3, 3, 1, 1, 0.0, 0.0
                 , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
-        this.getContentPane().add(jTreeViewPanel,
-                                  new GridBagConstraints(0, 1, 2, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(5, 5, 5, 5), 2, 2));
-        jPanel1.add(jUserInfoField, new XYConstraints(2, 2, 200, 150));
         this.getContentPane().add(jButtonToggleOutputWindow,
-                                  new GridBagConstraints(1, 0, 2, 1, 0.0, 0.0
+                                  new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0
                 , GridBagConstraints.WEST, GridBagConstraints.BOTH,
-                new Insets(5, 5, 5, 50), 2, 2));
+                new Insets(5, 5, 5, 5), 2, 2));
     }
 
     JTextField jTextFieldMyIP = new JTextField();
-    JLabel jLabel1 = new JLabel();
+    JLabel jLabelForIP = new JLabel();
     TitledBorder titledBorder1 = new TitledBorder("");
     TitledBorder titledBorder2 = new TitledBorder("");
     TitledBorder titledBorder3 = new TitledBorder("");
     JButton jButtonToggleOutputWindow = new JButton();
     JButton jButtonHandleCall = new JButton();
-    JButton jButtonStartReceiver = new JButton(); //    JTree treeView = new JTree();
+    JButton jButtonStartReceiver = new JButton();
     JTextArea jUserInfoField = new JTextArea();
     JButton jButtonForTests = new JButton();
     JButton jButtonDeleteAllEntries = new JButton();
-    JButton jButtonAddEntries = new JButton();
     JMenuBar jMenuBar1 = new JMenuBar();
     JMenu jMenu1 = new JMenu();
     JMenu jMenu2 = new JMenu();
     JMenuItem jMenuExit = new JMenuItem();
     JMenuItem jMenuInfo = new JMenuItem();
     JButton jButtonForTestsII = new JButton();
-    JPanel jPanel1 = new JPanel();
+    JPanel jInfoPanel = new JPanel();
     GridBagLayout gridBagLayout1 = new GridBagLayout();
-    JPanel jTreeViewPanel = new JPanel();
     FlowLayout flowLayout1 = new FlowLayout();
     XYLayout xYLayout1 = new XYLayout();
     XYLayout xYLayout2 = new XYLayout();
     JMenuItem jMenuRegisterAtServer = new JMenuItem();
     JMenuItem jMenuWhoIsOn = new JMenuItem();
+    JLabel jLabelForVersion = new JLabel();
 }
 
 
@@ -745,7 +759,7 @@ class ThinClientGUI_jButtonForTestsII_actionAdapter implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
-        adaptee.jButtonForTestsII_actionPerformed(e);
+        adaptee.jButtonUpdateUsers_actionPerformed(e);
     }
 }
 
@@ -774,31 +788,6 @@ class ThinClientGUI_jMenuInfo_actionAdapter implements ActionListener {
 }
 
 
-class ThinClientGUI_jButtonAddEntries_actionAdapter implements ActionListener {
-    private ThinClientGUI adaptee;
-    ThinClientGUI_jButtonAddEntries_actionAdapter(ThinClientGUI adaptee) {
-        this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        adaptee.jButtonAddEntries_actionPerformed(e);
-    }
-}
-
-
-class ThinClientGUI_jButtonDeleteAllEntries_actionAdapter implements
-        ActionListener {
-    private ThinClientGUI adaptee;
-    ThinClientGUI_jButtonDeleteAllEntries_actionAdapter(ThinClientGUI adaptee) {
-        this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        adaptee.jButtonDeleteAllEntries_actionPerformed(e);
-    }
-}
-
-
 class ThinClientGUI_jButtonForTests_actionAdapter implements
         ActionListener {
     private ThinClientGUI adaptee;
@@ -808,7 +797,7 @@ class ThinClientGUI_jButtonForTests_actionAdapter implements
 
     public void actionPerformed(ActionEvent e) {
 
-        adaptee.jButtonForTests_actionPerformed(e);
+        adaptee.jButtonRegister_actionPerformed(e);
     }
 }
 

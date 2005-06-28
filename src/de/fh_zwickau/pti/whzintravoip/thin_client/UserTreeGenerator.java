@@ -45,7 +45,7 @@ public class UserTreeGenerator {
      */
     public void initTreeView()
     {
-        m_Root = new DefaultMutableTreeNode("Root");
+        m_Root = new DefaultMutableTreeNode("erreichbare User:");
         m_TreeModel = new DefaultTreeModel(m_Root);
 
         addUserTreeEntries(m_UserVector);
@@ -64,12 +64,11 @@ public class UserTreeGenerator {
         jScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         jScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         jScrollPane.setWheelScrollingEnabled(true);
-        /**
-        m_UserGUI.getTreeViewScrollPane().getViewport().add(jScrollPane);
-        m_UserGUI.getTreeViewScrollPane().setPreferredSize(new Dimension(1, 1));
-         */
-        m_UserGUI.getTreeViewPanel().add(jScrollPane, new XYConstraints(2,2,200,300));
-        m_UserGUI.getTreeViewPanel().setPreferredSize(new Dimension(1, 1));
+
+        m_UserGUI.getGUIContentPane().add(jScrollPane, new GridBagConstraints(0, 1, 2, 1, 0.0, 0.0,
+                GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(5, 5, 5, 5), 2, 2));
+
 
         // TreeSelectionListener einfügen
         m_JTree.addTreeSelectionListener(
