@@ -1,99 +1,98 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
 
 /**
- * <p>Title: WHZIntraVoIP - SIP-Stack</p>
+ * <p>Title: WHZIntraVoIP</p>
  *
- * <p>Description: Receiver-SIP-Stack für Thin-Client</p>
+ * <p>Description: </p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
- * <p>Company: </p>
+ * <p>Organisation: </p>
  *
- * @author Y. Schumann
- * @version 0.0.2
+ * @author Y. Schumann <ys@fh-zwickau.de>
+ * @version 0.1.0
  */
 
 import java.util.*;
-
 import javax.sip.*;
 import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
 public class SIPStack implements SipListener {
-    public static SipStack m_SIPStack;
+
+    public  static SipStack m_SIPStack;
+    private static SIPStack m_ListenerSIPStack;
+
+    // factories
     private static SipFactory m_SIPFactory;
     private static AddressFactory m_AddressFactory;
     private static MessageFactory m_MessageFactory;
     private static HeaderFactory m_HeaderFactory;
-
-    // classes etc.
-    private static ThinClient m_ThinClient;
-    private static SIPStack m_ListenerSIPStack;
 
     // Providers
     private static SipProvider m_SIPProviderUDP;
     private static SipProvider m_SIPProviderTCP;
     private static SipProvider m_SIPProviderToUse;
 
+    // Transactions
     protected ServerTransaction m_ServerTid;
     protected ClientTransaction m_ClientTid;
     protected ServerTransaction m_ServerTransactionFromInvite;
-    private ServerTransaction m_ServerTransaction;
+    private   ServerTransaction m_ServerTransaction;
 
     // Listeningpoints
     private ListeningPoint m_UDPListeningPoint;
     private ListeningPoint m_TCPListeningPoint;
 
-    private Dialog dialog;
-
-    private static final byte LOGIN = 1;
-    private static final byte PICKUP = 2;
+    // the states of the program
+    private static final byte LOGIN    = 1;
+    private static final byte PICKUP   = 2;
     private static final byte INCOMING = 3;
     private static final byte MAKECALL = 4;
-    private static final byte CALLING = 5;
-    private static final byte TALKING = 6;
+    private static final byte CALLING  = 5;
+    private static final byte TALKING  = 6;
 
+    // classes etc.
+    private static ThinClient m_ThinClient;
+    private Dialog dialog;
     private Request m_Request;
     private RequestEvent m_RequestEvent;
-
-
-//    private enum Status {
-//        LOGIN, PICKUP, INCOMING, MAKECALL, CALLING, TALKING;
-//    }
 
     class ApplicationData {
         protected int ackCount;
     }
 
-
-    private ContactHeader m_ContactHeader;
-    private String m_sTransport;
-    private String m_sPeerHostPort;
-    private String m_sClientSIPStackName = "Client_SIP_Stack";
+    private String m_sClientSIPStackName = "ThinClientSIPStack";
     private int m_iClientSIPPort = 5070;
 
-//    private static String PEER_ADDRESS = Shootme.myAddress;
     public static String m_sMyIP = "127.0.0.1";
 
+    /**
+     * Initializes the SIP-Stack and the Factories
+     *
+     * @param client ThinClient
+     * @param myIP String
+     */
     public SIPStack(ThinClient client, String myIP) {
         this.m_ThinClient = client;
         this.m_sMyIP = myIP;
         try {
-            initReceiverSIPStack();
-            initReceiverFactories();
+            initClientSIPStack();
+            initClientSIPFactories();
         } catch (Exception ex) {
-            m_ThinClient.errOutput("Exception beim Initialisieren");
+            m_ThinClient.errOutput("Exception beim Initialisieren des SIP-Stack");
+            m_ThinClient.errOutput(ex.toString());
         }
     }
 
     /**
      * Initialize the SIP-Stack with the necessary properties
      *
-     * @return boolean
+     * @return boolean TRUE, actually not used
      * @throws Exception
      */
-    public boolean initReceiverSIPStack() throws Exception {
+    public boolean initClientSIPStack() throws Exception {
         m_ThinClient.stdOutput("Using Port " + m_iClientSIPPort);
         m_SIPStack = null;
         m_SIPFactory = null;
@@ -121,13 +120,13 @@ public class SIPStack implements SipListener {
     }
 
     /**
-     * Initialize the necessary Factories and
-     * create the listeningpoints for UDP and TCP
+     * Initialize the necessary Factories and create the listeningpoints for
+     * UDP and TCP
      *
-     * @return boolean
+     * @return boolean TRUE, actually not used
      * @throws Exception
      */
-    public boolean initReceiverFactories() throws Exception {
+    public boolean initClientSIPFactories() throws Exception {
         m_HeaderFactory = m_SIPFactory.createHeaderFactory();
         m_AddressFactory = m_SIPFactory.createAddressFactory();
         m_MessageFactory = m_SIPFactory.createMessageFactory();
@@ -148,12 +147,11 @@ public class SIPStack implements SipListener {
     }
 
     /**
-     * Wait until the thread is not working and then remove the SIP-Stack
+     * Wait until the thread is not working and then shut down the SIP-Stack
      * by removing the listeners, deleting the providers and set the variables
      * to NULL
      *
      * @return boolean
-     * @throws Exception
      */
     public boolean stopAndRemoveSIPStack() {
         if (m_SIPStack != null) {
@@ -187,13 +185,13 @@ public class SIPStack implements SipListener {
                 m_ThinClient.errOutput(
                         "Exception beim löschen des SIP-Stack abgefangen");
                 ex.printStackTrace();
+                return false;
             }
             m_SIPStack = null;
             m_SIPProviderTCP = null;
             m_SIPProviderUDP = null;
             m_SIPProviderToUse = null;
             this.m_ServerTid = null;
-            this.m_ContactHeader = null;
             m_AddressFactory = null;
             m_HeaderFactory = null;
             m_MessageFactory = null;
@@ -208,9 +206,12 @@ public class SIPStack implements SipListener {
     }
 
     /**
-     * This method will send an 100 (Trying) back to the caller. We need this
-     * to let the server know, that the request has arrived and the server stops
-     * to send new requests.
+     * This method will send a Response 100 (Trying) back to the caller. We need
+     * this to let the server know, that the request was received and the server
+     * now stops to send new requests.
+     *
+     * @todo Implement sending of responses even if we have no RequestEvent and
+     * review the whole method...
      */
     public void answerRequest() {
         SipProvider sipProvider = (SipProvider) m_RequestEvent.getSource();
@@ -274,8 +275,14 @@ public class SIPStack implements SipListener {
     }
 
     /**
-     * Process the incoming requests
-     * known requests at the moment are INVITE, ACK, BYE
+     * Process the incoming requests. Actually it will handle the following
+     * requests and calls the responsible methods on ThinClient:
+     * INVITE  -> processINCOMINGRequest
+     * ACK     -> processACKRequest
+     * BYE     -> processBYERequest
+     * CANCEL  -> processCANCELRequest
+     * UPDATE  -> processUPDATERequest
+     * OPTIONS -> processOPTIONSRequest
      *
      * @param requestEvent RequestEvent
      */
@@ -287,53 +294,58 @@ public class SIPStack implements SipListener {
         String callerIP = extractIPFromURI(m_Request);
 
         // Infos ausgeben
-        m_ThinClient.stdOutput("\n\nRequest '"
-                            + this.m_Request.getMethod().toString()
-                            + "' received at '"
-                            + m_SIPStack.getStackName()
-                            + "'\nwith server transaction id '"
-                            + this.m_ServerTransaction
-                            + "'\nRequest was from this IP: "
-                            + callerIP);
+        m_ThinClient.stdOutput("\n\nRequest:\n"
+                               + this.m_Request.getMethod().toString()
+                               + "\nreceived at:\n"
+                               + m_SIPStack.getStackName()
+                               + "\nwith server transaction id:\n"
+                               + this.m_ServerTransaction
+                               + "\nRequest was from this IP: "
+                               + callerIP);
 
-        if ((m_ThinClient.getStatus() == PICKUP) && (this.m_Request.getMethod().equals(Request.INVITE))) {
-            m_ThinClient.stdOutput("INVITE-Request received");
+        if ((m_ThinClient.getStatus() == PICKUP) &&
+            (this.m_Request.getMethod().equals(Request.INVITE))) {
+            m_ThinClient.stdOutput("processing INVITE-Request");
             // the server has to stop sending Requests, so let him know
             // that we received the request...
             answerRequest();
-            m_ThinClient.processIncomingCall(callerIP);
-        } else if ((m_ThinClient.getStatus() == MAKECALL) && (this.m_Request.getMethod().equals(Request.ACK))) {
-            m_ThinClient.stdOutput("ACK-Request received");
+            m_ThinClient.processINVITERequest(callerIP);
+        } else if ((m_ThinClient.getStatus() == MAKECALL) &&
+                   (this.m_Request.getMethod().equals(Request.ACK))) {
+            m_ThinClient.stdOutput("processing ACK-Request");
             m_ThinClient.processACKRequest();
-        } else if ((m_ThinClient.getStatus() == MAKECALL) && (this.m_Request.getMethod().equals(Request.CANCEL))) {
-            m_ThinClient.stdOutput("CANCEL-Request received");
-            m_ThinClient.processCANCELRequest();
-        } else if (this.m_Request.getMethod().equals(Request.UPDATE)) {
-            m_ThinClient.stdOutput("UPDATE-Request received");
-            m_ThinClient.updateUserList();
-        } else if ((m_ThinClient.getStatus() == TALKING) && (this.m_Request.getMethod().equals(Request.BYE))) {
-            m_ThinClient.stdOutput("BYE-Request received");
+        } else if ((m_ThinClient.getStatus() == MAKECALL) &&
+                   (this.m_Request.getMethod().equals(Request.CANCEL))) {
+            m_ThinClient.stdOutput("processing CANCEL-Request");
             // the server has to stop sending Requests, so let him know
             // that we received the request...
-            m_ThinClient.endCallByOtherSide();
+//            answerRequest();
+            m_ThinClient.processCANCELRequest();
+        } else if (this.m_Request.getMethod().equals(Request.UPDATE)) {
+            m_ThinClient.stdOutput("processing UPDATE-Request");
+            m_ThinClient.processUPDATERequest();
+        } else if ((m_ThinClient.getStatus() == TALKING) &&
+                   (this.m_Request.getMethod().equals(Request.BYE))) {
+            m_ThinClient.stdOutput("processing BYE-Request");
+            // the server has to stop sending Requests, so let him know
+            // that we received the request...
+//            answerRequest();
+            m_ThinClient.processBYERequest();
         } else if (this.m_Request.getMethod().equals(Request.OPTIONS)) {
-            m_ThinClient.stdOutput("OPTIONS-Request received");
-            m_ThinClient.processOptionsRequest();
+            m_ThinClient.stdOutput("processing OPTIONS-Request");
+            m_ThinClient.processOPTIONSRequest();
         } else if (m_ThinClient.getStatus() == TALKING) {
             m_ThinClient.stdOutput(
                     "Request received but I'm talking at the moment");
-//            m_UserGUI.denyCall(callerIP);
         } else if (m_ThinClient.getStatus() != PICKUP) {
-            m_ThinClient.stdOutput("Request received but I'm busy at the moment");
-//            m_UserGUI.denyCall(callerIP);
+            m_ThinClient.stdOutput(
+                    "Request received but I'm busy at the moment");
         }
     }
 
     /**
-     * Process the incoming responses.
-     * Sending an ACK if the Response is an OK to an INVITE
-     * This method may not be used in the receiver-stack because the ACK
-     * is only created by the caller!
+     * Process the incoming responses. Actually only a message is written
+     * because the ThinClient does not need to receive Responses from the server.
      *
      * @param responseReceivedEvent ResponseEvent
      */
@@ -353,24 +365,20 @@ public class SIPStack implements SipListener {
     }
 
     /**
-     * Extrahiert die IP aus dem Request. Es wird nach dem Header "Caller-IP"
-     * gesucht und dann dessen Wert ausgelesen.
+     * Extract the IP out of a Request. The method searches for the Header
+     * "Caller-IP" and returns the value of this header
      *
-     * @param request Request - der Reguest
-     * @return String - die IP
+     * @param request Request - the Reguest
+     * @return String - the IP
      */
-//    private String extractIPFromURI(String callID) {
     private String extractIPFromURI(Request request) {
-        String textOfRequest = request.toString();
         Header header = request.getHeader("Caller-IP");
-        m_ThinClient.stdOutput(textOfRequest);
-        String headerField = "127.0.0.1";
+        String headerField = "127.0.0.1"; // just for initializing
         headerField = header.toString();
-        m_ThinClient.stdOutput("ausgelesener Header: " + headerField);
         StringTokenizer st = new StringTokenizer(headerField, " ");
         String ip = st.nextToken();
         ip = st.nextToken();
-        ip = ip.substring(0, (ip.length() - 2));
+        ip = ip.substring(0, (ip.length() - 2)); // cut of the LF and CR
         return ip;
     }
 }

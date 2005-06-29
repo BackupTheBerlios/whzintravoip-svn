@@ -1,27 +1,27 @@
 package de.fh_zwickau.pti.whzintravoip;
 
-import java.awt.event.*;
-
-import javax.swing.*;
-
-import com.borland.jbcl.layout.*;
-import de.fh_zwickau.pti.whzintravoip.ldap_connection.*;
-import de.fh_zwickau.pti.whzintravoip.sip_connection.*;
-import de.fh_zwickau.pti.whzintravoip.thin_client.*;
-
 /**
- * <p>Überschrift: WHZIntraVoIP</p>
+ * <p>Title: WHZIntraVoIP</p>
  *
- * <p>Beschreibung: </p>
+ * <p>Description: This is the main class for the different parts of the
+ * project. We used it to start parts independently.</p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
  * <p>Organisation: </p>
  *
- * @author Y. Schumann
- * @version 0.0.1
+ * @author Y. Schumann <ys@fh-zwickau.de>
+ * @version 0.1.0
  */
-public class IntraVoIP_main  extends JFrame{
+
+import java.awt.event.*;
+import javax.swing.*;
+import com.borland.jbcl.layout.*;
+import de.fh_zwickau.pti.whzintravoip.ldap_connection.*;
+import de.fh_zwickau.pti.whzintravoip.sip_connection.*;
+import de.fh_zwickau.pti.whzintravoip.thin_client.*;
+
+public class IntraVoIP_main extends JFrame {
     public IntraVoIP_main() {
         try {
             jbInit();
@@ -33,72 +33,94 @@ public class IntraVoIP_main  extends JFrame{
     }
 
     public static void main(String[] args) {
-        /**
-        SIPConnector dialog = new SIPConnector();
-        dialog.main(null);
-        ThinClientGUI thinClientGUI = new ThinClientGUI();
-        */
         IntraVoIP_main intraVoIP_main = new IntraVoIP_main();
         intraVoIP_main.setVisible(true);
-//        GridBagTest gridBagTest = new GridBagTest();
-//        gridBagTest.setSize(600, 600);
-//        gridBagTest.setVisible(true);
     }
 
     private void jbInit() throws Exception {
         this.getContentPane().setLayout(xYLayout1);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("VoIP Main Test Window");
-        jButtonCaller.setText("SIP-Tester");
-        jButtonCaller.addActionListener(new
-                IntraVoIP_main_jButtonCaller_actionAdapter(this));
-        jButtonReceiver.addActionListener(new
-                IntraVoIP_main_jButtonReceiver_actionAdapter(this));
-        this.addWindowListener(new IntraVoIP_main_this_windowAdapter(this));
-        jButtonHib.setActionCommand("start Hib");
-        jButtonHib.setText("Hibernate Test");
-        jButtonHib.addActionListener(new
-                                     IntraVoIP_main_jButtonHib_actionAdapter(this));
         xYLayout1.setWidth(271);
         xYLayout1.setHeight(221);
+        jButtonSIPTester.setText("SIP-Tester");
+        jButtonSIPTester.setToolTipText("This is the SIP-Tester");
+        jButtonSIPTester.addActionListener(new
+                                           IntraVoIP_main_jButtonCaller_actionAdapter(this));
+        jButtonThinClient.setText("Thin Client");
+        jButtonThinClient.setToolTipText("Start the thin client");
+        jButtonThinClient.addActionListener(new
+                                          IntraVoIP_main_jButtonReceiver_actionAdapter(this));
+        jButtonHib.setActionCommand("start Hib");
+        jButtonHib.setText("Hibernate Test");
+        jButtonHib.setToolTipText("Start the Hibernate test");
+        jButtonHib.addActionListener(new
+                                     IntraVoIP_main_jButtonHib_actionAdapter(this));
         jButtonLDAPTest.setText("Test LDAP");
+        jButtonLDAPTest.setToolTipText("Try a LDAP Test");
         jButtonLDAPTest.addActionListener(new
-                IntraVoIP_main_jButtonLDAPTest_actionAdapter(this));
-        jButtonReceiver.setToolTipText("");
-        this.getContentPane().add(jButtonCaller, new XYConstraints(11, 12, 116, 36));
-        this.getContentPane().add(jButtonReceiver, new XYConstraints(11, 55, 116, 36));
+                                          IntraVoIP_main_jButtonLDAPTest_actionAdapter(this));
+        this.addWindowListener(new IntraVoIP_main_this_windowAdapter(this));
+        this.getContentPane().add(jButtonSIPTester,
+                                  new XYConstraints(11, 12, 116, 36));
+        this.getContentPane().add(jButtonThinClient,
+                                  new XYConstraints(11, 55, 116, 36));
         this.getContentPane().add(jButtonHib,
                                   new XYConstraints(10, 100, 163, 36));
-        this.getContentPane().add(jButtonLDAPTest, new XYConstraints(11, 145, 116, 36));
-
-        jButtonReceiver.setText("Thin Client");
+        this.getContentPane().add(jButtonLDAPTest,
+                                  new XYConstraints(11, 145, 116, 36));
     }
 
     XYLayout xYLayout1 = new XYLayout();
-    JButton jButtonCaller = new JButton();
-    JButton jButtonReceiver = new JButton();
+    JButton jButtonSIPTester = new JButton();
+    JButton jButtonThinClient = new JButton();
     JButton jButtonHib = new JButton();
     JButton jButtonLDAPTest = new JButton();
 
+    /**
+     * This method creates a new SIPConnector and calls "main(null)"
+     *
+     * @param e ActionEvent
+     */
     public void jButtonCaller_actionPerformed(ActionEvent e) {
         SIPConnector dialog = new SIPConnector();
         dialog.main(null);
     }
 
+    /**
+     * This method creates a new ThinClient and calls "main(null)"
+     *
+     * @param e ActionEvent
+     */
     public void jButtonReceiver_actionPerformed(ActionEvent e) {
         ThinClient thinClient = new ThinClient();
         thinClient.main(null);
     }
 
+    /**
+     * This method calls "System.exit(0)"
+     *
+     * @param e WindowEvent
+     */
     public void this_windowClosing(WindowEvent e) {
         System.exit(0);
     }
 
+    /**
+     * This method creates a new db_test and calls "main(null)"
+     *
+     * @param e ActionEvent
+     */
     public void jButtonHib_actionPerformed(ActionEvent e) {
 //        db_test test = new db_test();
 //        test.main(null);
     }
 
+    /**
+     * This method creates a new LDAPConnection and calls "main(null)"
+     *
+     * @param e ActionEvent
+     */
     public void jButtonLDAPTest_actionPerformed(ActionEvent e) {
         LDAPConnectionTest testConnect = new LDAPConnectionTest();
         testConnect.main(null);

@@ -1,16 +1,16 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
 
 /**
- * <p>Überschrift: WHZIntraVoIP</p>
+ * <p>Title: WHZIntraVoIP</p>
  *
- * <p>Beschreibung: </p>
+ * <p>Description: </p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
  * <p>Organisation: </p>
  *
- * @author Y. Schumann yves.schumann@fh-zwickau.de
- * @version 0.0.1
+ * @author Y. Schumann <ys@fh-zwickau.de>
+ * @version 0.1.0
  */
 
 import java.awt.*;
@@ -21,7 +21,6 @@ import javax.swing.event.*;
 import javax.swing.tree.*;
 
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
-import com.borland.jbcl.layout.XYConstraints;
 
 public class UserTreeGenerator {
 
@@ -35,7 +34,8 @@ public class UserTreeGenerator {
     private DefaultTreeModel m_TreeModel = null;
     private String m_sIPOfChoosenUser = null;
 
-    public UserTreeGenerator(Vector userVector, ThinClient client, ThinClientGUI userGUI) {
+    public UserTreeGenerator(Vector userVector, ThinClient client,
+                             ThinClientGUI userGUI) {
         this.m_UserVector = userVector;
         this.m_ThinClient = client;
         this.m_UserGUI = userGUI;
@@ -45,8 +45,7 @@ public class UserTreeGenerator {
      * Initialisiert den JTree der User, die gerade online sind und bindet
      * ihn in das Hauptfenster ein
      */
-    public void initTreeView()
-    {
+    public void initTreeView() {
         m_Root = new DefaultMutableTreeNode("erreichbare User:");
         m_TreeModel = new DefaultTreeModel(m_Root);
 
@@ -57,20 +56,25 @@ public class UserTreeGenerator {
         m_JTree.setRootVisible(true);
 
         // Selectionmode festlegen
-        DefaultTreeSelectionModel defaultTreeSelectionModel = new DefaultTreeSelectionModel();
-        defaultTreeSelectionModel.setSelectionMode(DefaultTreeSelectionModel.SINGLE_TREE_SELECTION);
+        DefaultTreeSelectionModel defaultTreeSelectionModel = new
+                DefaultTreeSelectionModel();
+        defaultTreeSelectionModel.setSelectionMode(DefaultTreeSelectionModel.
+                SINGLE_TREE_SELECTION);
         m_JTree.setSelectionModel(defaultTreeSelectionModel);
 
         // Tree einfügen
         JScrollPane jScrollPane = new JScrollPane(m_JTree);
-        jScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        jScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        jScrollPane.setHorizontalScrollBarPolicy(JScrollPane.
+                                                 HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        jScrollPane.setVerticalScrollBarPolicy(JScrollPane.
+                                               VERTICAL_SCROLLBAR_AS_NEEDED);
         jScrollPane.setWheelScrollingEnabled(true);
 
-        m_UserGUI.getGUIContentPane().add(jScrollPane, new GridBagConstraints(0, 1, 2, 1, 0.0, 0.0,
+        m_UserGUI.getGUIContentPane().add(jScrollPane,
+                                          new GridBagConstraints(0, 1, 2, 1,
+                0.0, 0.0,
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
-
 
         // TreeSelectionListener einfügen
         m_JTree.addTreeSelectionListener(
@@ -90,11 +94,11 @@ public class UserTreeGenerator {
     /**
      * löscht den momentan selektierten Eintrag aus dem JTree
      */
-    public void removeUserTreeEntry(){
+    public void removeUserTreeEntry() {
         m_ThinClient.stdOutput("löschen...");
         TreePath tp = m_JTree.getLeadSelectionPath();
         DefaultMutableTreeNode node;
-        node = (DefaultMutableTreeNode)tp.getLastPathComponent();
+        node = (DefaultMutableTreeNode) tp.getLastPathComponent();
         if (node != m_Root) {
             TreeNode parent = node.getParent();
             TreeNode[] path = m_TreeModel.getPathToRoot(parent);
@@ -106,9 +110,9 @@ public class UserTreeGenerator {
     /**
      * Entfernt alle Einträge aus dem JTree der User
      */
-    public void removeAllEntries(){
+    public void removeAllEntries() {
         int childCount = m_Root.getChildCount();
-        for (int i=childCount; i > 0; i--) {
+        for (int i = childCount; i > 0; i--) {
             DefaultMutableTreeNode child = m_Root.getNextNode();
             m_TreeModel.removeNodeFromParent(child);
         }
@@ -119,8 +123,8 @@ public class UserTreeGenerator {
      *
      * @param userVector Vector die Userobjekte, welche momentan online sind
      */
-    public void addUserTreeEntries(Vector userVector){
-        for(Enumeration el = userVector.elements(); el.hasMoreElements();){
+    public void addUserTreeEntries(Vector userVector) {
+        for (Enumeration el = userVector.elements(); el.hasMoreElements(); ) {
             User user = (User) el.nextElement();
 //            if (!user.getUserIP().equals(m_UserGUI.getOwnIPFromTextField())) {
             if (!user.getUserIP().equals(m_ThinClient.getOwnIP())) {
@@ -133,12 +137,12 @@ public class UserTreeGenerator {
         }
     }
 
-    private void expandJTree(){
-        TreePath tp = m_JTree.getPathForLocation(0,0);
+    private void expandJTree() {
+        TreePath tp = m_JTree.getPathForLocation(0, 0);
         m_JTree.expandPath(tp);
     }
 
-    public void setNewUserList(Vector userVector){
+    public void setNewUserList(Vector userVector) {
         removeAllEntries();
         this.m_UserVector = userVector;
         addUserTreeEntries(userVector);
@@ -156,19 +160,19 @@ public class UserTreeGenerator {
      * @param fullName String - der angeklickte Eintrag aus dem JTree
      * @return String - der komplette Info-String
      */
-    private String getUserInfos(String fullName){
+    private String getUserInfos(String fullName) {
         User user = null;
         Enumeration el = m_UserVector.elements();
-        while(el.hasMoreElements()){
-            User dummyUser = (User)el.nextElement();
+        while (el.hasMoreElements()) {
+            User dummyUser = (User) el.nextElement();
             StringTokenizer tokenizer = new StringTokenizer(fullName, "()");
             String loginName = null;
-            try{
+            try {
                 // erstes Token ist der volle Name
                 loginName = tokenizer.nextToken();
                 // dieses Token ist das Login-Kürzel
                 loginName = tokenizer.nextToken();
-            }catch(NoSuchElementException ex){
+            } catch (NoSuchElementException ex) {
             }
             if (loginName.equals(dummyUser.getUserInitial())) {
                 user = dummyUser;
@@ -195,11 +199,11 @@ public class UserTreeGenerator {
      * @param userIP String - Die IP, welche im JTree gesucht werden soll
      * @return String - Der gefundene Name
      */
-    public String getUserName(String userIP){
+    public String getUserName(String userIP) {
         User user = null;
         Enumeration el = m_UserVector.elements();
-        while(el.hasMoreElements()){
-            User dummyUser = (User)el.nextElement();
+        while (el.hasMoreElements()) {
+            User dummyUser = (User) el.nextElement();
             if (userIP.equals(dummyUser.getUserIP())) {
                 user = dummyUser;
                 break;
@@ -218,7 +222,7 @@ public class UserTreeGenerator {
      *
      * @return String - IP
      */
-    public String getIPOfChoosenUser(){
+    public String getIPOfChoosenUser() {
         return m_sIPOfChoosenUser;
     }
 }

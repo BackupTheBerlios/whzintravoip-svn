@@ -1,40 +1,38 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
 
 /**
- * <p>Überschrift: WHZIntraVoIP, ThinClientGUI</p>
+ * <p>Title: WHZIntraVoIP</p>
  *
- * <p>Beschreibung: Oberfläche für den Client</p>
+ * <p>Description: </p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
  * <p>Organisation: </p>
  *
- * @author Y. Schumann ys@fh-zwickau.de
- * @version 0.0.1
+ * @author Y. Schumann <ys@fh-zwickau.de>
+ * @version 0.1.0
  */
 
 import java.awt.*;
 import java.awt.event.*;
-
 import javax.swing.*;
 import javax.swing.border.*;
-
 import com.borland.jbcl.layout.*;
 
-public class ThinClientGUI extends JFrame{
+public class ThinClientGUI extends JFrame {
 
-    private int m_iWindowSizeX     = 524;
-    private int m_iWindowSizeY     = 327;
-    private String m_sVersion      = "V0.5";
+    private int m_iWindowSizeX = 524;
+    private int m_iWindowSizeY = 327;
+    private String m_sVersion = "V0.5";
 
     private ThinClient m_ThinClient = null;
 
-    private static final byte LOGIN    = 1;
-    private static final byte PICKUP   = 2;
+    private static final byte LOGIN = 1;
+    private static final byte PICKUP = 2;
     private static final byte INCOMING = 3;
     private static final byte MAKECALL = 4;
-    private static final byte CALLING  = 5;
-    private static final byte TALKING  = 6;
+    private static final byte CALLING = 5;
+    private static final byte TALKING = 6;
 
 //    private enum Status {
 //        LOGIN, PICKUP, INCOMING, MAKECALL, CALLING, TALKING;
@@ -114,7 +112,7 @@ public class ThinClientGUI extends JFrame{
      *
      * @return Container - the ContentPane of the GUI window
      */
-    public Container getGUIContentPane(){
+    public Container getGUIContentPane() {
         return this.getContentPane();
     }
 
@@ -138,54 +136,72 @@ public class ThinClientGUI extends JFrame{
                          + "Softwareprojekt der FH Zwickau\n"
                          + "Sommersemester 2005\n"
                          + "\n"
-                         + "Torsten Schmidt <torssch@fh-zwickau.de> - Serveranbindung\n"
-                         + "Holger Seidel <hs@fh-zwickau.de> - Audiostreaming\n"
-                         + "Yves Schumann <ys@fh-zwickau.de> - Sessionauf- und -abbau, GUI";
+                         +
+                "Torsten Schmidt <torssch@fh-zwickau.de> - Serveranbindung\n"
+                         +
+                         "Holger Seidel <hs@fh-zwickau.de> - Audiostreaming\n"
+                         +
+                "Yves Schumann <ys@fh-zwickau.de> - Sessionauf- und -abbau, GUI";
         String title = "Über WHZIntraVoIP";
-        JOptionPane.showConfirmDialog(this, message, title, JOptionPane.CLOSED_OPTION, JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showConfirmDialog(this, message, title,
+                                      JOptionPane.CLOSED_OPTION,
+                                      JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void jMenuRegisterAtServer_actionPerformed(ActionEvent e) {
         m_ThinClient.signOn();
     }
+
     public void jMenuWhoIsOn_actionPerformed(ActionEvent e) {
         m_ThinClient.whoIsOnAtServer();
     }
+
     public void jMenuExit_actionPerformed(ActionEvent e) {
         m_ThinClient.exitClient();
     }
+
     public void jTestButton_actionPerformed(ActionEvent e) {
         m_ThinClient.testButton(jTextFieldMyIP.getText());
     }
-    public JTextField getTextFieldMyIP(){
+
+    public JTextField getTextFieldMyIP() {
         return jTextFieldMyIP;
     }
-    public JTextArea getTextAreaUserInfo(){
+
+    public JTextArea getTextAreaUserInfo() {
         return jUserInfoField;
     }
-    public JButton getButtonStartReceiver(){
+
+    public JButton getButtonStartReceiver() {
         return jButtonStartReceiver;
     }
-    public JButton getButtonToggleOutputWindow(){
+
+    public JButton getButtonToggleOutputWindow() {
         return jButtonToggleOutputWindow;
     }
-    public JButton getButtonHandleCall(){
+
+    public JButton getButtonHandleCall() {
         return jButtonHandleCall;
     }
-    public JButton getButtonTest(){
+
+    public JButton getButtonTest() {
         // wurde benötigt um den Test-Button zu übergeben
         return null;
     }
-    public JButton getButtonRegister(){
+
+    public JButton getButtonRegister() {
         return jButtonForRegistering;
     }
-    public JButton getButtonUpdate(){
+
+    public JButton getButtonUpdate() {
         return jButtonForUpdate;
     }
-    public JMenuItem getMenuRegister(){
+
+    public JMenuItem getMenuRegister() {
         return jMenuRegisterAtServer;
     }
-    public JMenuItem getMenuUpdate(){
+
+    public JMenuItem getMenuUpdate() {
         return jMenuWhoIsOn;
     }
 
@@ -209,10 +225,10 @@ public class ThinClientGUI extends JFrame{
         jButtonHandleCall.setEnabled(false);
         jButtonHandleCall.setText("Anrufen");
         jButtonHandleCall.addActionListener(new
-                ThinClientGUI_jButtonMakeCall_actionAdapter(this));
+                                            ThinClientGUI_jButtonMakeCall_actionAdapter(this));
         jButtonStartReceiver.setText("Start Receiver");
         jButtonStartReceiver.addActionListener(new
-                ThinClientGUI_jButtonStartReceiver_actionAdapter(this));
+                                               ThinClientGUI_jButtonStartReceiver_actionAdapter(this));
         jUserInfoField.setBorder(BorderFactory.createLoweredBevelBorder());
         jUserInfoField.setEditable(false);
         jUserInfoField.setText("");
@@ -220,7 +236,7 @@ public class ThinClientGUI extends JFrame{
         jButtonForRegistering.setToolTipText("");
         jButtonForRegistering.setText("Register");
         jButtonForRegistering.addActionListener(new
-                ThinClientGUI_jButtonForTests_actionAdapter(this));
+                                                ThinClientGUI_jButtonForTests_actionAdapter(this));
         jMenu1.setText("Programm");
         jMenu2.setText("?");
         jMenuExit.setText("Ende");
@@ -230,7 +246,7 @@ public class ThinClientGUI extends JFrame{
         jButtonForUpdate.setEnabled(false);
         jButtonForUpdate.setText("Update");
         jButtonForUpdate.addActionListener(new
-                                            ThinClientGUI_jButtonForUpdate_actionAdapter(this));
+                                           ThinClientGUI_jButtonForUpdate_actionAdapter(this));
 
         // Information panel for user infos
         jInfoPanel.setLayout(xYLayout2);
