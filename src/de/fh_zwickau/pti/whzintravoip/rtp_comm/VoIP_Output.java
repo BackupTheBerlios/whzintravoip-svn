@@ -50,12 +50,12 @@ public class VoIP_Output implements ControllerListener {
      *
      * @throws Exception any to parent
      */
-    public void start_Player() throws Exception {
+    public void start_Player() {
         if (m_Player != null) {
             m_Player.start();
             m_Status.infoMessage("Player started!");
         } else {
-            throw new Exception("No Player initialized yet!");
+            m_Status.errMessage("No Player initialized yet!");
         }
     }
 
@@ -64,12 +64,12 @@ public class VoIP_Output implements ControllerListener {
      *
      * @throws Exception any to parent
      */
-    public void stop_Player() throws Exception {
+    public void stop_Player() {
         if (m_Player != null) {
             m_Player.stop();
             m_Status.infoMessage("Player stopt!");
         } else {
-            throw new Exception("No Player initialized yet!");
+            m_Status.errMessage("No Player initialized yet!");
         }
     }
 
@@ -78,27 +78,26 @@ public class VoIP_Output implements ControllerListener {
      *
      * @throws Exception any to parent
      */
-    public void close_Player() throws Exception {
+    public void close_Player() {
         if (m_Player != null) {
-            long startTime = System.currentTimeMillis();
-            synchronized (this) {
+            try {
+                long time = System.currentTimeMillis();
                 m_Player.deallocate();
                 m_Player.close();
                 while (!m_bClosed && !m_bFailed) {
-                    try {
-                        wait(m_iTimeout);
-                    } catch (InterruptedException ie) {}
-                    if (System.currentTimeMillis() - startTime > m_iTimeout) {
-                        m_Status.errMessage("Timout of " + m_iTimeout +
-                                            " milliseconds for close_Player reached! Going to interrupt!");
+                    Thread.sleep(10);
+                    if ((System.currentTimeMillis() - time) > m_iTimeout) {
                         break;
                     }
                 }
+
+            } catch (Exception ex) {
+                m_Status.errMessage("Close Player: " + ex.toString());
             }
             m_Player.removeControllerListener(this);
             m_Status.infoMessage("Player closed!");
         } else {
-            throw new Exception("No Player initialized yet!");
+            m_Status.errMessage("No Player initialized yet!");
         }
     }
 
@@ -125,19 +124,18 @@ public class VoIP_Output implements ControllerListener {
      * Realize the player.
      */
     private void realize_Player() {
-        long startTime = System.currentTimeMillis();
-        synchronized (this) {
+        try {
+            long time = System.currentTimeMillis();
             m_Player.realize();
             while (!m_bRealized && !m_bFailed) {
-                try {
-                    wait(m_iTimeout);
-                } catch (InterruptedException ie) {}
-                if (System.currentTimeMillis() - startTime > m_iTimeout) {
-                    m_Status.errMessage("Timout of " + m_iTimeout +
-                                        " milliseconds for realize_Player reached! Going to interrupt!");
+                Thread.sleep(10);
+                if ((System.currentTimeMillis() - time) > m_iTimeout) {
                     break;
                 }
             }
+
+        } catch (Exception ex) {
+            m_Status.errMessage("Realize Player: " + ex.toString());
         }
     }
 
@@ -145,19 +143,18 @@ public class VoIP_Output implements ControllerListener {
      * Prefetch the player.
      */
     private void prefetch_Player() {
-        long startTime = System.currentTimeMillis();
-        synchronized (this) {
+        try {
+            long time = System.currentTimeMillis();
             m_Player.prefetch();
-            while (!m_bPrefetched && !m_bFailed) {
-                try {
-                    wait(m_iTimeout);
-                } catch (InterruptedException ie) {}
-                if (System.currentTimeMillis() - startTime > m_iTimeout) {
-                    m_Status.errMessage("Timout of " + m_iTimeout +
-                                        " milliseconds for prefetch_Player reached! Going to interrupt!");
+            while (!m_bClosed && !m_bFailed) {
+                Thread.sleep(10);
+                if ((System.currentTimeMillis() - time) > m_iTimeout) {
                     break;
                 }
             }
+
+        } catch (Exception ex) {
+            m_Status.errMessage("Prefetch Player: " + ex.toString());
         }
     }
 

@@ -64,7 +64,7 @@ public class VoIP_main extends JFrame {
     private void jbInit() throws Exception {
         contentPane = (JPanel) getContentPane();
         contentPane.setLayout(xYLayout1);
-        this.setDefaultCloseOperation(HIDE_ON_CLOSE);
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setResizable(false);
         setSize(new Dimension(500, 170));
         setTitle("VoIP_RTP_Client");
