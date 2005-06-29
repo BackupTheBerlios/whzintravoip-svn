@@ -33,7 +33,7 @@ public class VoIP_Connection implements SessionListener,
     private SendStream m_SendStream = null;
     private DataSource m_Received = null, m_Captured = null, m_Decoded = null;
     private ReceiveStream stream = null;
-    private static int m_iTimeout = 30; // 30 seconds standard till timeout
+    private static int m_iTimeout = 1000; // 30 seconds standard till timeout
     private boolean m_bReceiveEvent = false;
 
     /**
@@ -100,13 +100,13 @@ public class VoIP_Connection implements SessionListener,
                     }
                 }
             }
-            if (m_bReceiveEvent) {
+/*            if (m_bReceiveEvent) {
                 // start player if a receive stream exists
                 m_Output.start_Player();
                 m_Status.infoMessage("Session start!");
             } else {
                 m_Status.errMessage("Receive Player not started !!!");
-            }
+            }*/
         }
     }
 
