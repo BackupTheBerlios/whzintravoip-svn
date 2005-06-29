@@ -77,7 +77,7 @@ public class ThinClient extends JFrame{
         m_ThinClientGUI = new ThinClientGUI(this);
 
         // User-Tree bauen
-        createDummyUsers();
+        createUserVector();
         m_UserTreeGenerator = new UserTreeGenerator(m_UserVector, this, m_ThinClientGUI);
         m_UserTreeGenerator.initTreeView();
 
@@ -523,8 +523,9 @@ public class ThinClient extends JFrame{
      * legt für Testzwecke einen Dummy-Vector an
      * und füllt ihn mit einigen User-Objekten
      */
-    private void createDummyUsers(){
+    private void createUserVector(){
         m_UserVector = new Vector();
+        /**
         for (int i=0; i<=5; ++i) {
             User user = new User();
             user.setIdUser(i);
@@ -537,6 +538,7 @@ public class ThinClient extends JFrame{
             user.setUserIP("127.0.0." + (i + 1));
             m_UserVector.addElement(user);
         }
+         */
     }
 
     /**
@@ -553,7 +555,6 @@ public class ThinClient extends JFrame{
             signOff();
         }else{
             stdOutput("Status is NOT Pickup! Sorry, cant Logout...");
-            return false;
         }
         stdOutput("Status: " + getStatus());
         stdOutput("Closing player...");

@@ -173,7 +173,8 @@ public class ThinClientGUI extends JFrame{
         return jButtonHandleCall;
     }
     public JButton getButtonTest(){
-        return jTestButton;
+        // wurde benötigt um den Test-Button zu übergeben
+        return null;
     }
     public JButton getButtonRegister(){
         return jButtonForRegistering;
@@ -247,9 +248,6 @@ public class ThinClientGUI extends JFrame{
                                        ThinClientGUI_jMenuWhoIsOn_actionAdapter(this));
         jLabelForVersion.setHorizontalAlignment(SwingConstants.RIGHT);
         jLabelForVersion.setText("");
-        jTestButton.setText("Test");
-        jTestButton.addActionListener(new
-                                      ThinClientGUI_jTestButton_actionAdapter(this));
         jMenuBar1.add(jMenu1);
         jMenuBar1.add(jMenu2);
         jMenu1.add(jMenuRegisterAtServer);
@@ -293,10 +291,6 @@ public class ThinClientGUI extends JFrame{
                                   new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0
                 , GridBagConstraints.WEST, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
-        this.getContentPane().add(jTestButton,
-                                  new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0
-                , GridBagConstraints.CENTER, GridBagConstraints.NONE,
-                new Insets(0, 0, 0, 0), 0, 0));
     }
 
     JTextField jTextFieldMyIP = new JTextField();
@@ -324,19 +318,6 @@ public class ThinClientGUI extends JFrame{
     JMenuItem jMenuRegisterAtServer = new JMenuItem();
     JMenuItem jMenuWhoIsOn = new JMenuItem();
     JLabel jLabelForVersion = new JLabel();
-    JButton jTestButton = new JButton();
-}
-
-
-class ThinClientGUI_jTestButton_actionAdapter implements ActionListener {
-    private ThinClientGUI adaptee;
-    ThinClientGUI_jTestButton_actionAdapter(ThinClientGUI adaptee) {
-        this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        adaptee.jTestButton_actionPerformed(e);
-    }
 }
 
 
