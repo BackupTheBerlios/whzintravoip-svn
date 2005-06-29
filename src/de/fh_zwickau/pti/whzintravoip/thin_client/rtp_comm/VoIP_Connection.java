@@ -222,6 +222,7 @@ public class VoIP_Connection implements SessionListener,
                 // realize the Output
                 m_Output.init_Player(m_Decoded);
                 m_bReceiveEvent = true;
+                m_Output.start_Player();
             } catch (Exception e) {
                 m_Status.errMessage("NewReceiveStreamEvent exception "
                                     + e.getMessage());
