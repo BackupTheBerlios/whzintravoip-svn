@@ -288,8 +288,8 @@ public class ThinClient extends JFrame{
         setStatusTALKING();
         m_ThinClientGUI.getButtonHandleCall().setText("Gespräch beenden");
         stdOutput("Init RTP Session");
-        m_InterfaceRTP.enableDebugging();
-        m_InterfaceRTP.DebugErrorMessages(true);
+//        m_InterfaceRTP.enableDebugging();
+//        m_InterfaceRTP.DebugErrorMessages(true);
         m_InterfaceRTP.initRtpSession(m_UserTreeGenerator.getIPOfChoosenUser(), null);
         stdOutput("RTP Init finished");
         stdOutput("Starting RTP session");
