@@ -33,7 +33,7 @@ public class VoIP_Connection implements SessionListener,
     private SendStream m_SendStream = null;
     private DataSource m_Received = null, m_Captured = null, m_Decoded = null;
     private ReceiveStream stream = null;
-    private static int m_iTimeout = 1000; // 30 seconds standard till timeout
+    private static int m_iTimeout = 30000; // 30 seconds standard till timeout
     private boolean m_bReceiveEvent = false;
 
     /**
@@ -88,19 +88,17 @@ public class VoIP_Connection implements SessionListener,
             m_Status.infoMessage("Session start!");
             m_bReceiveEvent = false;
         } else {
-            synchronized(this){
-                while (!m_bReceiveEvent) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException ie) {}
-                    if (System.currentTimeMillis() - startTime > m_iTimeout) {
-                        m_Status.errMessage("Timout of " + m_iTimeout +
-                                            " milliseconds for receiving reached! Going to interrupt!");
-                        break;
-                    }
+            /*while (!m_bReceiveEvent) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException ie) {}
+                if (System.currentTimeMillis() - startTime > m_iTimeout) {
+                    m_Status.errMessage("Timout of " + m_iTimeout +
+                                        " milliseconds for receiving reached! Going to interrupt!");
+                    break;
                 }
             }
-/*            if (m_bReceiveEvent) {
+            if (m_bReceiveEvent) {
                 // start player if a receive stream exists
                 m_Output.start_Player();
                 m_Status.infoMessage("Session start!");
@@ -224,8 +222,6 @@ public class VoIP_Connection implements SessionListener,
                 // realize the Output
                 m_Output.init_Player(m_Decoded);
                 m_bReceiveEvent = true;
-                // start due stream
-                m_Output.start_Player();
             } catch (Exception e) {
                 m_Status.errMessage("NewReceiveStreamEvent exception "
                                     + e.getMessage());

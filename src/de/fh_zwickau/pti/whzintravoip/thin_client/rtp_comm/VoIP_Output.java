@@ -80,22 +80,19 @@ public class VoIP_Output implements ControllerListener {
      */
     public void close_Player() {
         if (m_Player != null) {
-            synchronized(this){
+            try {
                 long time = System.currentTimeMillis();
-                try {
-
-                    m_Player.deallocate();
-                    m_Player.close();
-                    while (!m_bClosed && !m_bFailed) {
-                        Thread.sleep(10);
-                        if ((System.currentTimeMillis() - time) > m_iTimeout) {
-                            break;
-                        }
+                m_Player.deallocate();
+                m_Player.close();
+                while (!m_bClosed && !m_bFailed) {
+                    Thread.sleep(10);
+                    if ((System.currentTimeMillis() - time) > m_iTimeout) {
+                        break;
                     }
-
-                } catch (Exception ex) {
-                    m_Status.errMessage("Close Player: " + ex.toString());
                 }
+
+            } catch (Exception ex) {
+                m_Status.errMessage("Close Player: " + ex.toString());
             }
             m_Player.removeControllerListener(this);
             m_Status.infoMessage("Player closed!");
@@ -127,20 +124,18 @@ public class VoIP_Output implements ControllerListener {
      * Realize the player.
      */
     private void realize_Player() {
-        synchronized(this){
+        try {
             long time = System.currentTimeMillis();
-            try {
-                m_Player.realize();
-                while (!m_bRealized && !m_bFailed) {
-                    Thread.sleep(10);
-                    if ((System.currentTimeMillis() - time) > m_iTimeout) {
-                        break;
-                    }
+            m_Player.realize();
+            while (!m_bRealized && !m_bFailed) {
+                Thread.sleep(10);
+                if ((System.currentTimeMillis() - time) > m_iTimeout) {
+                    break;
                 }
-
-            } catch (Exception ex) {
-                m_Status.errMessage("Realize Player: " + ex.toString());
             }
+
+        } catch (Exception ex) {
+            m_Status.errMessage("Realize Player: " + ex.toString());
         }
     }
 
@@ -148,20 +143,18 @@ public class VoIP_Output implements ControllerListener {
      * Prefetch the player.
      */
     private void prefetch_Player() {
-        synchronized(this){
+        try {
             long time = System.currentTimeMillis();
-            try {
-                m_Player.prefetch();
-                while (!m_bPrefetched && !m_bFailed) {
-                    Thread.sleep(10);
-                    if ((System.currentTimeMillis() - time) > m_iTimeout) {
-                        break;
-                    }
+            m_Player.prefetch();
+            while (!m_bClosed && !m_bFailed) {
+                Thread.sleep(10);
+                if ((System.currentTimeMillis() - time) > m_iTimeout) {
+                    break;
                 }
-
-            } catch (Exception ex) {
-                m_Status.errMessage("Prefetch Player: " + ex.toString());
             }
+
+        } catch (Exception ex) {
+            m_Status.errMessage("Prefetch Player: " + ex.toString());
         }
     }
 
