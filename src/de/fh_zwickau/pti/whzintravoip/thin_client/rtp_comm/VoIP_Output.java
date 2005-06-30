@@ -13,7 +13,7 @@ import javax.media.protocol.*;
  * <p>Company: </p>
  *
  * @author H. Seidel (hs@fh-zwickau.de)
- * @version 1.0
+ * @version 0.1.0
  */
 public class VoIP_Output implements ControllerListener {
 
@@ -47,8 +47,6 @@ public class VoIP_Output implements ControllerListener {
 
     /**
      * Start the player. Player must be initialized first.
-     *
-     * @throws Exception any to parent
      */
     public void start_Player() {
         if (m_Player != null) {
@@ -61,8 +59,6 @@ public class VoIP_Output implements ControllerListener {
 
     /**
      * Stop the player. Player must be initialized first.
-     *
-     * @throws Exception any to parent
      */
     public void stop_Player() {
         if (m_Player != null) {
@@ -75,8 +71,6 @@ public class VoIP_Output implements ControllerListener {
 
     /**
      * Close the player. Player must be initialized first.
-     *
-     * @throws Exception any to parent
      */
     public void close_Player() {
         if (m_Player != null) {

@@ -14,7 +14,7 @@ import com.borland.jbcl.layout.*;
  * <p>Company: </p>
  *
  * @author H. Seidel (hs@fh-zwickau.de)
- * @version 1.0
+ * @version 0.1.0
  */
 public class VoIP_Debug extends JFrame {
 

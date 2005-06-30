@@ -2,19 +2,18 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 
 import java.util.*;
 import javax.media.*;
-import java.*;
 
 /**
  * <p>Überschrift: WHZintraVoIP</p>
  *
- * <p>Beschreibung: Play some tunes on actions</p>
+ * <p>Beschreibung: Play some tunes</p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
  * <p>Organisation: </p>
  *
  * @author H. Seidel (hs@fh-zwickau.de)
- * @version 1.0
+ * @version 0.1.0
  */
 public class PlayTunes implements ControllerListener {
 
@@ -103,14 +102,18 @@ public class PlayTunes implements ControllerListener {
         }
     }
 
+    /**
+     * Wait a given time before going on
+     *
+     * @param delay int the time in millis
+     * @return boolean true if OK, FALSE if sommit failed
+     */
     private boolean waitDelay(int delay) {
         int fullDelay = delay;
         int effectivDelay = 10;
         int factor = fullDelay / effectivDelay;
         int count = 0;
         m_bBreaked = false;
-        /** @todo optimize the while for lesser resource allocation */
-        /** @todo get sure of righ numbers for factor */
         infMsg("Player delay of " +
                fullDelay +
                " millis! : " + m_TuneObj.getKey());
@@ -131,7 +134,7 @@ public class PlayTunes implements ControllerListener {
 
 
     /**
-     * Just do soe standard debug output.
+     * Just do some standard debug output.
      * @param msg String Message
      */
     private void errMsg(String msg) {
@@ -231,6 +234,11 @@ public class PlayTunes implements ControllerListener {
         }
     }
 
+    /**
+     * Restart a player by the given key
+     *
+     * @param key String the key
+     */
     private void restartTune(String key) {
         if (m_PlayerMap.containsKey(key)) {
             this.m_TuneObj = (TuneObject) m_PlayerMap.get(key);
@@ -245,6 +253,12 @@ public class PlayTunes implements ControllerListener {
         }
     }
 
+    /**
+     * This one got called for end endOfMedia Event.
+     * Just test for a given delay and work on.
+     *
+     * @param key String the key
+     */
     private synchronized void endOfTune(String key) {
         if (m_PlayerMap.containsKey(key)) {
             this.m_TuneObj = (TuneObject) m_PlayerMap.get(key);
@@ -253,13 +267,10 @@ public class PlayTunes implements ControllerListener {
         m_Player.setMediaTime(new Time(0));
         if (m_TuneObj.getDelay() != 0) {
             restartTune(m_TuneObj.getKey());
-            //playTune(m_TuneObj.getKey());
-            //m_Player.stop();
         } else {
             stopTune(m_TuneObj.getKey());
         }
         infMsg("End of file! " + m_TuneObj.getKey());
-        //playTune(m_TuneObj.getKey());
     }
 
     public synchronized void controllerUpdate(ControllerEvent ce) {

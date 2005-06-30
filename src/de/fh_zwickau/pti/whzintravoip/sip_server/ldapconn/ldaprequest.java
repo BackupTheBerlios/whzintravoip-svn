@@ -6,7 +6,18 @@ import javax.naming.*;
 import javax.naming.directory.*;
 
 import org.apache.log4j.*;
-
+/**
+ * <p>Title: WHZintraVoIP</p>
+ *
+ * <p>Description: Get user information from LDAP</p>
+ *
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ * <p>Company: </p>
+ *
+ * @author H. Seidel (hs@fh-zwickau.de)
+ * @version 0.1.0
+ */
 public class ldaprequest {
 
     // LDAP access configration

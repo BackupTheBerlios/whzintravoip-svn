@@ -1,7 +1,6 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client.rtp_comm;
 
 import java.net.*;
-import java.util.*;
 import javax.media.protocol.*;
 import javax.media.rtp.*;
 import javax.media.rtp.event.*;
@@ -17,8 +16,9 @@ import javax.media.rtp.rtcp.*;
  * <p>Company: </p>
  *
  * @author H. Seidel (hs@fh-zwickau.de)
- * @version 1.0
+ * @version 0.1.0
  */
+
 public class VoIP_Connection implements SessionListener,
         SendStreamListener, ReceiveStreamListener {
 
@@ -78,7 +78,6 @@ public class VoIP_Connection implements SessionListener,
      * @throws Exception any to parent
      */
     public void startSession() throws Exception {
-        long startTime = System.currentTimeMillis();
         // start the processor for capture
         m_Process.startProcessing(m_Process.m_iCapture);
         // test for existing receive stream
@@ -87,24 +86,6 @@ public class VoIP_Connection implements SessionListener,
             m_Output.start_Player();
             m_Status.infoMessage("Session start!");
             m_bReceiveEvent = false;
-        } else {
-            /*while (!m_bReceiveEvent) {
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException ie) {}
-                if (System.currentTimeMillis() - startTime > m_iTimeout) {
-                    m_Status.errMessage("Timout of " + m_iTimeout +
-                                        " milliseconds for receiving reached! Going to interrupt!");
-                    break;
-                }
-            }
-            if (m_bReceiveEvent) {
-                // start player if a receive stream exists
-                m_Output.start_Player();
-                m_Status.infoMessage("Session start!");
-            } else {
-                m_Status.errMessage("Receive Player not started !!!");
-            }*/
         }
     }
 
@@ -171,7 +152,7 @@ public class VoIP_Connection implements SessionListener,
     /**
      * Close the Session.
      *
-     * @throws Exception any
+     * @throws Exception any to parent
      */
     public void closeConnection() throws Exception {
         // stop the send stream
@@ -208,6 +189,7 @@ public class VoIP_Connection implements SessionListener,
 
     public synchronized void update(ReceiveStreamEvent event) {
         if (event instanceof NewReceiveStreamEvent) {
+            // on incoming receive stream start procesing and output
             try {
                 m_Status.infoMessage("Receive Stream detected!");
                 // get a handle over the ReceiveStream

@@ -16,7 +16,7 @@ import javax.media.protocol.*;
  * <p>Company: </p>
  *
  * @author H. Seidel (hs@fh-zwickau.de)
- * @version 1.0
+ * @version 0.1.0
  */
 public class VoIP_Process implements ControllerListener {
 
@@ -90,7 +90,6 @@ public class VoIP_Process implements ControllerListener {
      * Start a Processor. Porcessor must be initialized first.
      *
      * @param what int The typ of Processor
-     * @throws Exception any to parent
      */
     public void startProcessing(int what) {
         switch (what) {
@@ -121,7 +120,6 @@ public class VoIP_Process implements ControllerListener {
      * Stop Processing. Processor must be initialized first.
      *
      * @param what int Typ of Processor
-     * @throws Exception any to parent
      */
     public void stopProcessing(int what) {
         switch (what) {
@@ -152,7 +150,6 @@ public class VoIP_Process implements ControllerListener {
      * Close Processor. Processor must be initialized first.
      *
      * @param what int Typ of Processor
-     * @throws Exception any to parent
      */
     public void closeProcessor(int what) {
         switch (what) {
@@ -266,7 +263,6 @@ public class VoIP_Process implements ControllerListener {
      * Processor to configured state.
      *
      * @param proc Processor the Processor
-     * @throws Exception any to parent
      */
     private void configureProcessor(Processor proc) {
         proc.addControllerListener(this);
@@ -288,7 +284,6 @@ public class VoIP_Process implements ControllerListener {
      * Processor to realized state.
      *
      * @param proc Processor the Processor
-     * @throws Exception any to parent
      */
     private void realizeProcessor(Processor proc) {
         try {
@@ -309,7 +304,6 @@ public class VoIP_Process implements ControllerListener {
      * Processor to prefetched state.
      *
      * @param proc Processor the Processor
-     * @throws Exception any to parent
      */
     private void prefetchProcessor(Processor proc) {
         try {

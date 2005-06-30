@@ -10,7 +10,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client.rtp_comm;
  * <p>Company: </p>
  *
  * @author H. Seidel (hs@fh-zwickau.de)
- * @version 1.0
+ * @version 0.1.0
  */
 public class VoIP_Status {
 

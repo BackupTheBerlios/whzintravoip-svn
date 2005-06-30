@@ -1,18 +1,18 @@
 package de.fh_zwickau.pti.whzintravoip.thin_client;
 
-import javax.media.Player;
+import javax.media.*;
 
 /**
  * <p>Überschrift: WHZintraVoIP</p>
  *
- * <p>Beschreibung: Play some tunes on actions</p>
+ * <p>Beschreibung: A Tune object with its getter and setter</p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
  * <p>Organisation: </p>
  *
  * @author H. Seidel (hs@fh-zwickau.de)
- * @version 1.0
+ * @version 0.1.0
  */
 public class TuneObject {
 
