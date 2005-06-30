@@ -3,7 +3,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 /**
  * <p>Title: WHZIntraVoIP</p>
  *
- * <p>Description: This is the </p>
+ * <p>Description: This class opens a output window for textmessages</p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *

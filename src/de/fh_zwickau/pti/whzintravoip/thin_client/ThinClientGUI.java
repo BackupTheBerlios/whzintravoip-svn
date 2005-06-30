@@ -3,7 +3,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 /**
  * <p>Title: WHZIntraVoIP</p>
  *
- * <p>Description: </p>
+ * <p>Description: The GUI for the Thin Client.</p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
@@ -40,6 +40,12 @@ public class ThinClientGUI extends JFrame {
 
 //    private Status status2 = Status.LOGIN;
 
+    /**
+     * It will create the window for the thin client, make some settings for
+     * this window and makes it visible.
+     *
+     * @param client ThinClient - The ThinClient to interact with
+     */
     public ThinClientGUI(ThinClient client) {
         this.m_ThinClient = client;
         try {
@@ -48,7 +54,7 @@ public class ThinClientGUI extends JFrame {
             ex.printStackTrace();
         }
 
-        // einige Settings zum Programmfenster
+        // some settings for the main window
         this.setSize(m_iWindowSizeX, m_iWindowSizeY);
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
         int screenX = dimension.width;
@@ -56,12 +62,13 @@ public class ThinClientGUI extends JFrame {
         this.setLocation((screenX - m_iWindowSizeX), 0);
         jLabelForVersion.setText(m_sVersion);
 
-        // eigene IP ermitteln und in Textfeld eintragen
-        jTextFieldMyIP.setText(m_ThinClient.extractOwnIP());
+        // get own IP and write it into the textfield
+        jTextFieldMyIP.setText(m_ThinClient.getOwnIP());
     }
 
     /**
-     * Button zum Registrieren am Server
+     * The button to register at the server. May be removed if the client
+     * connects by himself.
      *
      * @param e ActionEvent
      */
@@ -70,7 +77,8 @@ public class ThinClientGUI extends JFrame {
     }
 
     /**
-     * Button zum updaten der Userliste
+     * The button to update the user list. May be removed if the client
+     * connects by himself.
      *
      * @param e ActionEvent
      */
@@ -79,7 +87,8 @@ public class ThinClientGUI extends JFrame {
     }
 
     /**
-     * Startet den Receiver-Stack und setzt den eigenen Status auf PICKUP
+     * The button to start the SIP-Stack and so on. May be removed if the client
+     * connects by himself.
      *
      * @param e ActionEvent
      */
@@ -88,8 +97,8 @@ public class ThinClientGUI extends JFrame {
     }
 
     /**
-     * Wenn das Fenster geschlossen wird, wird der SIPStack gelöscht und dann
-     * das Programm beendet
+     * If the window is closed, this method call exitClient() on the ThinClient
+     * to logout myself on the server and shutdown the SIP-Stack et cetera.
      *
      * @param e WindowEvent
      */
@@ -98,7 +107,8 @@ public class ThinClientGUI extends JFrame {
     }
 
     /**
-     * Button zum Ein- bzw. Ausblenden des Textfensters wurde gedrückt
+     * The button to toggle the output window was hit. So call
+     * toggleOutputWindow() on the ThinClient.
      *
      * @param e ActionEvent
      */
@@ -117,7 +127,8 @@ public class ThinClientGUI extends JFrame {
     }
 
     /**
-     * Button zum Anrufen wurde gedrückt
+     * The button to establish or terminate a call was hit. So call
+     * handleCall() on the ThinClient.
      *
      * @param e ActionEvent
      */
@@ -126,87 +137,159 @@ public class ThinClientGUI extends JFrame {
     }
 
     /**
-     * The pulldown menu "Info" was choosen...
+     * The pulldown menu "Info" was choosen, so let the user know, what this is.
      *
      * @param e ActionEvent
      */
     public void jMenuInfo_actionPerformed(ActionEvent e) {
+        String title = "Über WHZIntraVoIP";
         String message = "WHZIntraVoIP " + m_sVersion + "\n"
                          + "\n"
                          + "Softwareprojekt der FH Zwickau\n"
                          + "Sommersemester 2005\n"
                          + "\n"
-                         +
-                "Torsten Schmidt <torssch@fh-zwickau.de> - Serveranbindung\n"
-                         +
-                         "Holger Seidel <hs@fh-zwickau.de> - Audiostreaming\n"
-                         +
-                "Yves Schumann <ys@fh-zwickau.de> - Sessionauf- und -abbau, GUI";
-        String title = "Über WHZIntraVoIP";
+                         + "Torsten Schmidt <torssch@fh-zwickau.de> - Serveranbindung\n"
+                         + "Holger Seidel <hs@fh-zwickau.de> - Audiostreaming\n"
+                         + "Yves Schumann <ys@fh-zwickau.de> - Sessionauf- und -abbau, GUI";
         JOptionPane.showConfirmDialog(this, message, title,
                                       JOptionPane.CLOSED_OPTION,
                                       JOptionPane.INFORMATION_MESSAGE);
     }
 
+    /**
+     * The pulldown menu to register at the server. May be removed if the client
+     * connects by himself.
+     *
+     * @param e ActionEvent
+     */
     public void jMenuRegisterAtServer_actionPerformed(ActionEvent e) {
         m_ThinClient.signOn();
     }
 
+    /**
+     * The pulldown menu to update the user list.
+     *
+     * @param e ActionEvent
+     */
     public void jMenuWhoIsOn_actionPerformed(ActionEvent e) {
         m_ThinClient.whoIsOnAtServer();
     }
 
+    /**
+     * If the pulldown menu "Ende" is choosen, this method call exitClient() on
+     * the ThinClient to logout myself on the server and shutdown the SIP-Stack
+     * et cetera.
+     *
+     * @param e WindowEvent
+     */
     public void jMenuExit_actionPerformed(ActionEvent e) {
         m_ThinClient.exitClient();
     }
 
-    public void jTestButton_actionPerformed(ActionEvent e) {
-        m_ThinClient.testButton(jTextFieldMyIP.getText());
-    }
-
+    /**
+     * Returns the jTextField object on the top right of the main window. This
+     * is used to write into it.
+     *
+     * @return JTextField
+     */
     public JTextField getTextFieldMyIP() {
         return jTextFieldMyIP;
     }
 
+    /**
+     * Returns the jTextArea object on the right of the main window. This
+     * is used to write into it.
+     *
+     * @return JTextArea
+     */
     public JTextArea getTextAreaUserInfo() {
         return jUserInfoField;
     }
 
+    /**
+     * Returns the button object to start the SIP-Stack. This is used to modify
+     * the button like dis- and enable or change its text.
+     *
+     * @return JButton
+     */
     public JButton getButtonStartReceiver() {
         return jButtonStartReceiver;
     }
 
+    /**
+     * Returns the button object to toggle the output window. This is used to
+     * modify the button like dis- and enable or change its text.
+     *
+     * @return JButton
+     */
     public JButton getButtonToggleOutputWindow() {
         return jButtonToggleOutputWindow;
     }
 
+    /**
+     * Returns the button object to handle calls. This is used to modify
+     * the button like dis- and enable or change its text.
+     *
+     * @return JButton
+     */
     public JButton getButtonHandleCall() {
         return jButtonHandleCall;
     }
 
+    /**
+     * Returns the button object of the test button. This is used to modify
+     * the button like dis- and enable or change its text. Actually it returns
+     * null because there is no test button...
+     *
+     * @return JButton
+     */
     public JButton getButtonTest() {
         // wurde benötigt um den Test-Button zu übergeben
         return null;
     }
 
+    /**
+     * Returns the button object to register at the server. This is used to
+     * modify the button like dis- and enable or change its text.
+     *
+     * @return JButton
+     */
     public JButton getButtonRegister() {
         return jButtonForRegistering;
     }
 
+    /**
+     * Returns the button object to update the user list. This is used to modify
+     * the button like dis- and enable or change its text.
+     *
+     * @return JButton
+     */
     public JButton getButtonUpdate() {
         return jButtonForUpdate;
     }
 
+    /**
+     * Returns the menu item object to register at the server. This is used to
+     * modify the button like dis- and enable or change its text.
+     *
+     * @return JMenuItem
+     */
     public JMenuItem getMenuRegister() {
         return jMenuRegisterAtServer;
     }
 
+    /**
+     * Returns the menu item object to update the user list. This is used to
+     * modify the button like dis- and enable or change its text.
+     *
+     * @return JMenuItem
+     */
     public JMenuItem getMenuUpdate() {
         return jMenuWhoIsOn;
     }
 
     /**
-     * Init-Methode um das Hauptfenster zu etablieren
+     * Init method to establish the main window
      *
      * @throws Exception
      */

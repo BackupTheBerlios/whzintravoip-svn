@@ -3,7 +3,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 /**
  * <p>Title: WHZIntraVoIP</p>
  *
- * <p>Description: </p>
+ * <p>Description: This class creates the SIP-Stack for the Thin Client</p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *

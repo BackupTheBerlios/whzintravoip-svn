@@ -3,7 +3,8 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 /**
  * <p>Title: WHZIntraVoIP</p>
  *
- * <p>Description: </p>
+ * <p>Description: This is the connector to the server. This class create and
+ * send the method-calls to the SOAP-Server</p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
@@ -16,10 +17,10 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 import java.net.*;
 import java.util.*;
 import org.apache.soap.*; // Body, Envelope, Fault, Header
+import org.apache.soap.encoding.*;
+import org.apache.soap.encoding.soapenc.*;
 import org.apache.soap.rpc.*; // Call, Parameter, Response
-import org.apache.soap.util.xml.QName;
-import org.apache.soap.encoding.SOAPMappingRegistry;
-import org.apache.soap.encoding.soapenc.BeanSerializer;
+import org.apache.soap.util.xml.*;
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 
 

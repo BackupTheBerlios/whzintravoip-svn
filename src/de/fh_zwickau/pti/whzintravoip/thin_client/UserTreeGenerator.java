@@ -3,7 +3,8 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 /**
  * <p>Title: WHZIntraVoIP</p>
  *
- * <p>Description: </p>
+ * <p>Description: This class generates the tree with the online users and
+ * provides methods to modify this tree.</p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
@@ -15,11 +16,9 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 
 import java.awt.*;
 import java.util.*;
-
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
-
 import de.fh_zwickau.pti.whzintravoip.sip_server.user.*;
 
 public class UserTreeGenerator {
@@ -42,8 +41,8 @@ public class UserTreeGenerator {
     }
 
     /**
-     * Initialisiert den JTree der User, die gerade online sind und bindet
-     * ihn in das Hauptfenster ein
+     * Initializes the JTree of the users which are online at the moment and
+     * connects the tree with the main window.
      */
     public void initTreeView() {
         m_Root = new DefaultMutableTreeNode("erreichbare User:");
@@ -51,18 +50,18 @@ public class UserTreeGenerator {
 
         addUserTreeEntries(m_UserVector);
 
-        // Tree erzeugen
+        // create tree
         m_JTree = new JTree(m_TreeModel);
         m_JTree.setRootVisible(true);
 
-        // Selectionmode festlegen
+        // define selection mode
         DefaultTreeSelectionModel defaultTreeSelectionModel = new
                 DefaultTreeSelectionModel();
         defaultTreeSelectionModel.setSelectionMode(DefaultTreeSelectionModel.
                 SINGLE_TREE_SELECTION);
         m_JTree.setSelectionModel(defaultTreeSelectionModel);
 
-        // Tree einfügen
+        // insert tree
         JScrollPane jScrollPane = new JScrollPane(m_JTree);
         jScrollPane.setHorizontalScrollBarPolicy(JScrollPane.
                                                  HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -76,7 +75,7 @@ public class UserTreeGenerator {
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(5, 5, 5, 5), 2, 2));
 
-        // TreeSelectionListener einfügen
+        // insert TreeSelectionListener
         m_JTree.addTreeSelectionListener(
                 new TreeSelectionListener() {
             public void valueChanged(TreeSelectionEvent event) {
@@ -92,10 +91,11 @@ public class UserTreeGenerator {
     }
 
     /**
-     * löscht den momentan selektierten Eintrag aus dem JTree
+     * Remove the actually selected user in the tree. This method was only for
+     * testing the JTree, actually it is not used.
      */
     public void removeUserTreeEntry() {
-        m_ThinClient.stdOutput("löschen...");
+        m_ThinClient.stdOutput("Löschen des angeklickten Users aus dem Tree");
         TreePath tp = m_JTree.getLeadSelectionPath();
         DefaultMutableTreeNode node;
         node = (DefaultMutableTreeNode) tp.getLastPathComponent();
@@ -108,7 +108,7 @@ public class UserTreeGenerator {
     }
 
     /**
-     * Entfernt alle Einträge aus dem JTree der User
+     * Remove all entries on the JTree which is the whole user list.
      */
     public void removeAllEntries() {
         int childCount = m_Root.getChildCount();
@@ -119,17 +119,23 @@ public class UserTreeGenerator {
     }
 
     /**
-     * Fügt die im übergebenen Vector aufgelisteten User dem JTree hinzu
+     * Insert the users from the given user vector into the JTree. This is not
+     * correct at all, so only some data of this user objects where put into the
+     * tree like the name and the IP. The user objects are still on the vector.
      *
-     * @param userVector Vector die Userobjekte, welche momentan online sind
+     * @param userVector Vector - The user objects to insert into the tree.
      */
     public void addUserTreeEntries(Vector userVector) {
         for (Enumeration el = userVector.elements(); el.hasMoreElements(); ) {
             User user = (User) el.nextElement();
-//            if (!user.getUserIP().equals(m_UserGUI.getOwnIPFromTextField())) {
-            if (!user.getUserIP().equals(m_ThinClient.getOwnIP())) {
-                String name = user.getUserFName() + " " + user.getUserLName() +
-                              " (" + user.getUserInitial() + ")";
+            // filter out myself (only insert the others into the tree, not me)
+            if (!user.getUserIP().equals(m_ThinClient.getStoredIP())) {
+                String name = user.getUserFName()
+                              + " "
+                              + user.getUserLName()
+                              + " ("
+                              + user.getUserInitial()
+                              + ")";
                 m_Child = new DefaultMutableTreeNode(name);
                 m_TreeModel.insertNodeInto(m_Child, m_Root,
                                            m_TreeModel.getChildCount(m_Root));
@@ -137,11 +143,22 @@ public class UserTreeGenerator {
         }
     }
 
+    /**
+     * Expands the JTree if it is collapsed.
+     */
     private void expandJTree() {
         TreePath tp = m_JTree.getPathForLocation(0, 0);
         m_JTree.expandPath(tp);
     }
 
+    /**
+     * Set a complete new user list (JTree). At first the old users where
+     * removed from the list, then the new users from the given vector are
+     * added to the tree. After that the tree will be expanded so the new list
+     * is visible at the main window.
+     *
+     * @param userVector Vector - The vector with the users.
+     */
     public void setNewUserList(Vector userVector) {
         removeAllEntries();
         this.m_UserVector = userVector;
@@ -150,15 +167,15 @@ public class UserTreeGenerator {
     }
 
     /**
-     * Ließt die Userdaten aus dem UserVector für den User aus, welcher im JTree
-     * selektiert wurde. Daraus wird das Login-Kürzel extrahiert, dieses im
-     * UserVector gesucht und die entsprechenden Daten werden angezeigt.
-     * Der übergebene Name setzt sich wie folgt zusammen:
-     * "Max Mustermann (MaMu)". Dabei wird der Ausdruck zwischen den Klammern
-     * extrahiert und ausgewertet.
+     * Reads the user data for the user, which is selected on the JTree. Then
+     * this user will be searched on the user vector and the necessary data are
+     * displayed in the TextArea on the right of the main window. <br>
+     * The name is given in the following form: "Max Mustermann (MaMu)". The
+     * method extracts the string between the brackets and search for this
+     * shortcut on the user vector.
      *
-     * @param fullName String - der angeklickte Eintrag aus dem JTree
-     * @return String - der komplette Info-String
+     * @param fullName String - the activated entry on the JTree
+     * @return String - the complete info string
      */
     private String getUserInfos(String fullName) {
         User user = null;
@@ -194,10 +211,10 @@ public class UserTreeGenerator {
     }
 
     /**
-     * Ermittelt aus dem JTree durch Angabe der IP den zugehörigen Namen
+     * Extracts out of the user vector the name of a user by the given IP
      *
-     * @param userIP String - Die IP, welche im JTree gesucht werden soll
-     * @return String - Der gefundene Name
+     * @param userIP String - the IP to search for on the user vector
+     * @return String - the found name
      */
     public String getUserName(String userIP) {
         User user = null;
@@ -218,7 +235,7 @@ public class UserTreeGenerator {
     }
 
     /**
-     * Liefert die IP des im JTree angeklickten Users
+     * Returns the IP of the activated user in the JTree
      *
      * @return String - IP
      */

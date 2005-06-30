@@ -3,7 +3,7 @@ package de.fh_zwickau.pti.whzintravoip.thin_client;
 /**
  * <p>Title: WHZIntraVoIP</p>
  *
- * <p>Description: </p>
+ * <p>Description: The main class of the Thin Client.</p>
  *
  * <p>Copyright: Copyright (c) 2005</p>
  *
@@ -23,11 +23,17 @@ public class ThinClient extends JFrame {
 
 //    private String m_sSOAPServerIP = "141.32.28.183";
     private String m_sSOAPServerIP = "voipserver.informatik.fh-zwickau.de";
+    private String m_sSOAPServletPath = ":8080/soap/servlet/rpcrouter";
+    private String m_sSOAPURN = "urn:sip_server:soapserver:appscope";
+    private String m_sUserObjectPath = "de.fh_zwickau.pti.whzintravoip.sip_server.user.User";
     private String m_sMyIP = "127.0.0.1";
     private String m_sMySIPAddress = "My SIP Address";
     private String m_sMySIPName = "SWF";
     private String m_sMyScreenName = "StarWarsFan";
     private String m_sLoginName = null;
+    private String m_sRingtonePath = "file:///D:/Coding/Java/WHZIntraVoIP/s1.wav";
+    private String m_sRingtoneName = "Ring";
+    private int m_iRingtoneDelay = 2000;
 
     private ThinClientGUI m_ThinClientGUI = null;
     private VoIP_RTP_Interface m_InterfaceRTP = new VoIP_RTP_Interface();
@@ -41,10 +47,8 @@ public class ThinClient extends JFrame {
     private String m_sOpponentIP = null;
     private boolean m_bDebug = true;
 
-    /////////////////
-    // this is only for RTP-Testing
-    private boolean m_bStartRTP = true;
-    /////////////////
+    // this is used in the test method
+    private boolean m_bStartTest = true;
 
     private static final byte LOGIN = 1;
     private static final byte PICKUP = 2;
@@ -54,64 +58,72 @@ public class ThinClient extends JFrame {
     private static final byte TALKING = 6;
     private byte m_bStatus = LOGIN; // Login, Pickup, Incoming, MakeCall, Calling, Talking
 
-//    private enum Status {
-//        LOGIN, PICKUP, INCOMING, MAKECALL, CALLING, TALKING;
-//    }
+    ////////////////////////
+    // we used JBuilder 2005 Foundation and JDK 1.5
+    // but there are some problems with enum and JBuilder
+    // and so we dont use enum for the status of the client
+    /**
+    private enum Status {
+        LOGIN, PICKUP, INCOMING, MAKECALL, CALLING, TALKING;
+    }
+    private Status m_bStatus = Status.LOGIN;
+     */
 
-//    private Status status2 = Status.LOGIN;
-
+    /**
+     * The main class for the WHZIntraVoIP application. This will run all the
+     * necessary things...
+     */
     public ThinClient() {
         setStatusLOGIN();
 
-        // Login-Namen auslesen
+        // get Login-Namen
         m_sLoginName = System.getProperty("user.name");
         m_sLoginName = "ys";
 
-        // am Server anmelden
+        // register at Server
 //        createMyIdentity();
 //        registerMe();
 
-        // GUI Fenster bauen
+        // create GUI
         m_ThinClientGUI = new ThinClientGUI(this);
 
-        // User-Tree bauen
+        // create User-Tree
         createUserVector();
         m_UserTreeGenerator = new UserTreeGenerator(m_UserVector, this,
                 m_ThinClientGUI);
         m_UserTreeGenerator.initTreeView();
 
-        // eigene IP ermitteln
-        m_sMyIP = extractOwnIP();
+        // get own IP
+        m_sMyIP = getOwnIP();
         m_ThinClientGUI.getTextFieldMyIP().setText(m_sMyIP);
 
-        // SOAP-Caller initialisieren
+        // init the SOAP-Caller
         m_MethodCaller = new SOAPMethodCaller(
                 this,
-                "http://" + m_sSOAPServerIP + ":8080/soap/servlet/rpcrouter",
-                "urn:sip_server:soapserver:appscope",
-                "de.fh_zwickau.pti.whzintravoip.sip_server.user.User");
+                "http://" + m_sSOAPServerIP + m_sSOAPServletPath,
+                m_sSOAPURN,
+                m_sUserObjectPath);
 
-        // Ringtone-Player initialisieren
+        // init Ringtone-Player
         m_PlayTunes = new PlayTunes(this);
-        m_PlayTunes.initTune("file:///D:/Coding/Java/WHZIntraVoIP/s1.wav",
-                             "Ring", 2000);
+        m_PlayTunes.initTune(m_sRingtonePath,
+                             m_sRingtoneName,
+                             m_iRingtoneDelay);
         m_ThinClientGUI.setVisible(true);
     }
 
     /**
-     * Mainmethode um das Hauptfenster einzublenden
+     * The main method does nothing at the moment
      *
      * @param args String[]
      */
     public static void main(String[] args) {
-//        new ThinClientGUI().setVisible(true);
     }
 
     /**
-     * Gibt Text als Infomessage im Ausgabefenster aus. Dies geschieht nur,
-     * wenn es bereits einmal geöffnet worden ist.
-     * Wenn m_bDebug == true, dann erfolgt die Ausgabe zusätzlich auf die
-     * Standardausgabe.
+     * Writes a Info-Message to the Output-Window. This only happens, if the
+     * window was opened before and is going on if you close the output window.
+     * If m_bDebug is true, then the message is written to the stdout too.
      *
      * @param msg String - der auszugebende Text als String
      */
@@ -125,10 +137,9 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Gibt Text als Fehlermessage im Ausgabefenster aus. Dies geschieht nur,
-     * wenn es bereits einmal geöffnet worden ist.
-     * Wenn m_bDebug == true, dann erfolgt die Ausgabe zusätzlich auf die
-     * Standardausgabe.
+     * Writes a Error-Message to the Output-Window. This only happens, if the
+     * window was opened before and is going on if you close the output window.
+     * If m_bDebug is true, then the message is written to the stdout too.
      *
      * @param err String - der auszugebende Text als String
      */
@@ -142,17 +153,16 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Gibt im Textarea rechts neben dem Tree einen Infotext aus
+     * Writes a text in the TextArea on the right of the main window.
      *
      * @param string String - auszugebender Infotext
      */
     public void showUserInfo(String string) {
-        //        jUserInfoField.setText("");
         m_ThinClientGUI.getTextAreaUserInfo().setText(string);
     }
 
     /**
-     * Setzt den eigenen Status
+     * Set own status
      */
     public void setStatusLOGIN() {
         m_bStatus = LOGIN;
@@ -160,7 +170,7 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Setzt den eigenen Status
+     * Set own status
      */
     public void setStatusPICKUP() {
         m_bStatus = PICKUP;
@@ -168,7 +178,7 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Setzt den eigenen Status
+     * Set own status
      */
     public void setStatusINCOMING() {
         m_bStatus = INCOMING;
@@ -176,7 +186,7 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Setzt den eigenen Status
+     * Set own status
      */
     public void setStatusMAKECALL() {
         m_bStatus = MAKECALL;
@@ -184,7 +194,7 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Setzt den eigenen Status
+     * Set own status
      */
     public void setStatusCALLING() {
         m_bStatus = CALLING;
@@ -192,7 +202,7 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Setzt den eigenen Status
+     * Set own status
      */
     public void setStatusTALKING() {
         m_bStatus = TALKING;
@@ -200,23 +210,22 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Liefert den eigenen Status.
-     * 1 = Login,
-     * 2 = Pickup,
-     * 3 = Incoming,
-     * 4 = MakeCall,
-     * 5 = Calling,
-     * 6 = Talking
+     * Returns the own status. <br>
+     * 1 = Login,              <br>
+     * 2 = Pickup,             <br>
+     * 3 = Incoming,           <br>
+     * 4 = MakeCall,           <br>
+     * 5 = Calling,            <br>
+     * 6 = Talking             <br>
      *
-     * @return byte - Der eigene Status.
+     * @return byte - The status.
      */
     public byte getStatus() {
         return m_bStatus;
     }
 
     /**
-     * Registriert das eigene User-Objekt via SOAP am Server
-     *
+     * Register the own user object via SOAP on the server
      */
     public void signOn() {
         String success = null;
@@ -231,6 +240,9 @@ public class ThinClient extends JFrame {
         }
     }
 
+    /**
+     * Unregister the own user object via SOAP on the server
+     */
     public void signOff() {
         setStatusLOGIN();
         String success = null;
@@ -245,6 +257,12 @@ public class ThinClient extends JFrame {
         }
     }
 
+    /**
+     * Asks the server, who is online at the moment and then set the new
+     * userlist using the UserTreeGenerator. <br>
+     * Actually this method is identical to processUPDATERequest and so
+     * it may not be used sometime...
+     */
     public void whoIsOnAtServer() {
         Vector userVector = null;
         try {
@@ -257,7 +275,7 @@ public class ThinClient extends JFrame {
 
 
     /**
-     * Legt ein Userobjekt m_Myself für die eigene Identität an
+     * Creates a user object "m_Myself" for the own identity
      */
     private void createMyIdentity() {
         Properties myProperties = new Properties();
@@ -270,6 +288,9 @@ public class ThinClient extends JFrame {
         m_Myself.setThinClientProps(myProperties);
     }
 
+    /**
+     * Ask the server, who is online at the moment and then update the userlist.
+     */
     public void processUPDATERequest() {
         Vector userVector = null;
         try {
@@ -281,9 +302,18 @@ public class ThinClient extends JFrame {
 
     }
 
+    /**
+     * Actually nothing happens here...
+     */
     public void processOPTIONSRequest() {
     }
 
+    /**
+     * If the ACK-Request is received, the other side has accepted the call and
+     * so we can start the RTP-Session. So this method sets the own status to
+     * TALKING, modifies the responsible button in the main window and then
+     * initializes and starts the RTP-Session.
+     */
     public void processACKRequest() {
         setStatusTALKING();
         m_ThinClientGUI.getButtonHandleCall().setText("Gespräch beenden");
@@ -297,9 +327,14 @@ public class ThinClient extends JFrame {
         stdOutput("RTP session startet");
     }
 
+    /**
+     * If the CANCEL-Request is received, the other side has denied the call.
+     * Because of that this method shows a message and sets the own status
+     * back to PICKUP.
+     */
     public void processCANCELRequest() {
-        String message = "Das Gespräch wurde nicht angenommen";
         String title = "Abgelehnt";
+        String message = "Das Gespräch wurde nicht angenommen";
         JOptionPane.showConfirmDialog(this,
                                       message,
                                       title,
@@ -308,16 +343,22 @@ public class ThinClient extends JFrame {
         setStatusPICKUP();
     }
 
-    public String getOwnIP() {
+    /**
+     * This method returns the own IP, which is stored in a variable. Dont mix
+     * this method with the method "getOwnIP"!
+     *
+     * @return String - Die eigene IP
+     */
+    public String getStoredIP() {
         return m_sMyIP;
     }
 
     /**
-     * Ermittelt die eigene IP und gibt diese als String zurück.
+     * Determines the own IP and return it as a string.
      *
      * @return String - Die eigene IP
      */
-    public String extractOwnIP() {
+    public String getOwnIP() {
         String ip = null;
         try {
             InetAddress myIP = InetAddress.getLocalHost();
@@ -329,28 +370,38 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Start playing the choosen Ringtone
+     * Start playing the choosen Ringtone. If @param is empty, the ringtone
+     * "Ring" will be played.
      *
-     * @param ringTone String
+     * @param ringTone String - The name of the ringtone in the ringtonemap
      */
     public void playRingTone(String ringTone) {
         if (ringTone.equals(null)) {
-            m_PlayTunes.playTune("Ring");
+            m_PlayTunes.playTune(m_sRingtoneName);
         } else {
             m_PlayTunes.playTune(ringTone);
         }
     }
 
+    /**
+     * Stop playing the choosen Ringtone. If @param is empty, the ringtone
+     * "Ring" will be stoped.
+     *
+     * @param ringTone String - The name of the ringtone in the ringtonemap
+     */
     public void stopRingTone(String ringTone) {
         if (ringTone.equals(null)) {
-            m_PlayTunes.stopTune("Ring");
+            m_PlayTunes.stopTune(m_sRingtoneName);
         } else {
             m_PlayTunes.stopTune(ringTone);
         }
     }
 
     /**
-     * Startet den Receiver-Stack und setzt den eigenen Status auf PICKUP
+     * This method does some more things. At first write the entered IP from
+     * the input field to a variable. Then create my identity and initialize
+     * the SIP-Stack for receiving. At last set the own status to LOGIN and
+     * enable respectively disable some buttons et cetera.
      */
     public void startReceiver() {
         m_sMyIP = m_ThinClientGUI.getTextFieldMyIP().getText();
@@ -366,6 +417,15 @@ public class ThinClient extends JFrame {
         m_ThinClientGUI.getTextFieldMyIP().setEnabled(false);
     }
 
+    /**
+     * If a INVITE-Request was received, someone is calling us. The inviter is
+     * determined by his IP. So this method is trying to find details for this
+     * user in the usertree using methods of the UserTreeGenerator. After that
+     * a message window will pop up asking for a choice. As the case may be the
+     * call is accepted or denied.
+     *
+     * @param incomingCallIP String - The IP of the caller
+     */
     public void processINVITERequest(String incomingCallIP) {
         setStatusINCOMING();
         stdOutput("Call from this IP: " + incomingCallIP);
@@ -374,10 +434,10 @@ public class ThinClient extends JFrame {
         stdOutput(callerName);
         String message = callerName +
                          " ruft Sie an!\n Wollen Sie das Gespräch annehmen?";
-        playRingTone("Ring");
+        playRingTone(m_sRingtoneName);
         int returnvalue = JOptionPane.showConfirmDialog(m_ThinClientGUI,
                 message, "Es klingelt!", JOptionPane.YES_NO_OPTION);
-        stopRingTone("Ring");
+        stopRingTone(m_sRingtoneName);
         stdOutput("Returnvalue of Request:" + returnvalue);
         switch (returnvalue) {
         case 0:
@@ -392,10 +452,12 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Ruft am SOAP-Server die Methode zum Annehmen eines Anrufs auf und setzt
-     * dann die Buttons dementsprechend.
+     * If the incoming call is accepted, we have to inform the server about
+     * that. So at first set the status to TALKING, change the text of the
+     * responsible button and call the SOAP-Server with "acceptCall". After that
+     * init and start the RTP-Session
      *
-     * @param incomingIP String - IP des anrufenden Clienten
+     * @param incomingIP String - IP of the caller
      */
     public void acceptCall(String incomingIP) {
         this.m_sOpponentIP = incomingIP;
@@ -407,8 +469,8 @@ public class ThinClient extends JFrame {
             errOutput("Fehler beim SOAP-Methodenaufruf: " + ex);
         }
         stdOutput("Init RTP Session");
-        m_InterfaceRTP.enableDebugging();
-        m_InterfaceRTP.DebugErrorMessages(true);
+//        m_InterfaceRTP.enableDebugging();
+//        m_InterfaceRTP.DebugErrorMessages(true);
         m_InterfaceRTP.initRtpSession(m_UserTreeGenerator.getIPOfChoosenUser(), null);
         stdOutput("RTP Init finished");
         stdOutput("Starting RTP Session");
@@ -417,10 +479,10 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Ruft am SOAP-Server die Methode zum Ablehnen eines Anrufs auf und setzt
-     * dann die Buttons wieder dementsprechend.
+     * If the incoming call was not accepted, inform the server about that and
+     * set the own status back to PICKUP
      *
-     * @param incomingIP String - IP des anrufenden Clienten
+     * @param incomingIP String - IP of the caller
      */
     public void denyCall(String incomingIP) {
         this.m_sOpponentIP = incomingIP;
@@ -433,8 +495,9 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Ruft am SOAP-Server die Methode zum Beenden des Anrufs auf und setzt dann
-     * den eigenen Status wieder auf PICKUP
+     * If I terminate the phonecall by myself, I have to call the SOAP-Method
+     * "endCall", stop and close the RTP-Session, modify the responsible button
+     * and set my status back to PICKUP.
      */
     public void endCallByMyself() {
         stdOutput("Stopping RTP Session");
@@ -455,10 +518,11 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Ruft am SOAP-Server die Methode zum Beenden des Anrufs auf und setzt dann
-     * den eigenen Status wieder auf PICKUP
+     * The other side has closed the connection, so stop and close the RTP-
+     * Session, modify the responsible button and set my status to PICKUP.
      */
     public void processBYERequest() {
+        m_ThinClientGUI.getButtonHandleCall().setEnabled(false);
         stdOutput("Stopping RTP Session");
         m_InterfaceRTP.stopRtpSession();
         stdOutput("RTP Session stopped");
@@ -469,12 +533,12 @@ public class ThinClient extends JFrame {
         stdOutput("Closing RTP Session");
         m_InterfaceRTP.closeRtpSession();
         stdOutput("RTP Session closed");
+        m_ThinClientGUI.getButtonHandleCall().setEnabled(true);
     }
 
     /**
-     * Legt eine neue Instanz des Textausgabefensters an und öffnet bzw.
-     * schließt es. Dabei wird die Beschriftung des zuständigen Buttons
-     * angepasst.
+     * Creates a new instance of the output window and opens respectively closes
+     * it. Additionaly the text of the respnsible button will be modified
      */
     public void toggleOutputWindow() {
         if (m_OutputWindow == null) {
@@ -496,17 +560,17 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * Setzt die Beschriftung des Buttons für Ein-/Ausblenden des Textausgabe-
-     * fensters. Wird benötigt, wenn Textfenster durch eigenen Button
-     * ausgeblendet wird.
-     * @param string String - der Text für den Button
+     * Modifies the text of the button for the output window. This method is
+     * used by the output window itself.
+     *
+     * @param string String - the text for the button
      */
     public void setToggleWindowButtonName(String string) {
         m_ThinClientGUI.getButtonToggleOutputWindow().setText(string);
     }
 
     /**
-     * Button zum Anrufen wurde gedrückt
+     * The button to call or to end a call was pressed. So react as necessary.
      */
     public void handleCall() {
         if (m_bStatus == PICKUP) {
@@ -525,13 +589,13 @@ public class ThinClient extends JFrame {
     }
 
     /**
-     * legt für Testzwecke einen Dummy-Vector an
-     * und füllt ihn mit einigen User-Objekten
+     * Creates the empty user vector. If you need testvalues in the vector,
+     * uncomment the lines in this method.
      */
     private void createUserVector() {
         m_UserVector = new Vector();
         /**
-                 for (int i=0; i<=5; ++i) {
+        for (int i=0; i<=5; ++i) {
             User user = new User();
             user.setIdUser(i);
             user.setUserInitial("Initial-" + i);
@@ -542,12 +606,16 @@ public class ThinClient extends JFrame {
             user.setSipScreenName("SipScreenName-" + i);
             user.setUserIP("127.0.0." + (i + 1));
             m_UserVector.addElement(user);
-                 }
+        }
          */
     }
 
     /**
-     * The pulldown menu "Exit" was choosen...
+     * The pulldown menu "Exit" was choosen, so terminate the actual call (if
+     * calling at the moment), sign me off if I'm not in PICKUP mode, close the
+     * player and shut down the SIP-Stack.
+     *
+     * @return boolean - Actually returns always true...
      */
     public boolean exitClient() {
         stdOutput("Exiting client now\n"
@@ -564,7 +632,7 @@ public class ThinClient extends JFrame {
         }
         stdOutput("Status: " + getStatus());
         stdOutput("Closing player...");
-        m_PlayTunes.close_Player("Ring");
+        m_PlayTunes.close_Player(m_sRingtoneName);
         if (m_ThinClientSIPStack != null) {
             stdOutput("Closing SIP stack...");
             m_ThinClientSIPStack.stopAndRemoveSIPStack();
@@ -573,8 +641,14 @@ public class ThinClient extends JFrame {
         return true;
     }
 
-    public void testButton(String ip) {
-        if (m_bStartRTP == true) {
+    /**
+     * This is only a method for tests. Actually it plays the ringtone and if
+     * the method is called again, the ringtone will stop.
+     *
+     * @param ip String - A IP to work with...
+     */
+    public void methodForTests(String ip) {
+        if (m_bStartTest == true) {
             /**
                          stdOutput("Init RTP Session");
                          m_InterfaceRTP.enableDebugging();
@@ -585,8 +659,8 @@ public class ThinClient extends JFrame {
                          m_InterfaceRTP.startRtpSession();
                          stdOutput("RTP Session started");
              */
-            m_PlayTunes.playTune("Ring");
-            m_bStartRTP = false;
+            m_PlayTunes.playTune(m_sRingtoneName);
+            m_bStartTest = false;
         } else {
             /**
                          stdOutput("Stopping RTP Session");
@@ -596,9 +670,8 @@ public class ThinClient extends JFrame {
                          m_InterfaceRTP.closeRtpSession();
                          stdOutput("RTP Session closed");
              */
-            m_PlayTunes.stopTune("Ring");
-            m_bStartRTP = true;
+            m_PlayTunes.stopTune(m_sRingtoneName);
+            m_bStartTest = true;
         }
     }
 }
-
