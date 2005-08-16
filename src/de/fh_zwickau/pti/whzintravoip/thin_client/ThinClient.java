@@ -78,9 +78,9 @@ public class ThinClient extends JFrame {
 
         // get Login-Namen
         m_sLoginName = System.getProperty("user.name");
-        m_sLoginName = "ys";
+//        m_sLoginName = "ys";
 
-        // register at Server
+        // register at Server - actually done by the buttons
 //        createMyIdentity();
 //        registerMe();
 
